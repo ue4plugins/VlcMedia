@@ -37,7 +37,7 @@ public:
 
 		if (MediaModule == nullptr)
 		{
-			UE_LOG(LogVlcMedia, Log, TEXT("Failed to load Media module"));
+			UE_LOG(LogVlcMedia, Log, TEXT("VLC: Failed to load Media module"));
 
 			return;
 		}
@@ -47,7 +47,7 @@ public:
 			UE_LOG(LogVlcMedia, Log, TEXT("Failed to load required Windows Media Foundation libraries"));
 
 			return;
-		}*/
+		}
 
 		// initialize libvlc
 
@@ -57,9 +57,9 @@ public:
 
 			return;
 		}
-
+*/
 		// initialize supported media formats
-/*		SupportedFileTypes.Add(TEXT("3g2"), LOCTEXT("Format3g2", "3G2 Multimedia Stream"));
+		SupportedFileTypes.Add(TEXT("3g2"), LOCTEXT("Format3g2", "3G2 Multimedia Stream"));
 		SupportedFileTypes.Add(TEXT("3gp"), LOCTEXT("Format3gp", "3GP Video Stream"));
 		SupportedFileTypes.Add(TEXT("3gp2"), LOCTEXT("Format3gp2", "3GPP2 Multimedia File"));
 		SupportedFileTypes.Add(TEXT("3gpp"), LOCTEXT("Format3gpp", "3GPP Multimedia File"));
@@ -72,7 +72,7 @@ public:
 		SupportedFileTypes.Add(TEXT("mp4"), LOCTEXT("FormatMp4", "MPEG-4 Movie"));
 		SupportedFileTypes.Add(TEXT("sami"), LOCTEXT("FormatSami", "Synchronized Accessible Media Interchange (SAMI) File"));
 		SupportedFileTypes.Add(TEXT("smi"), LOCTEXT("FormatSmi", "Synchronized Multimedia Integration (SMIL) File"));
-		SupportedFileTypes.Add(TEXT("wmv"), LOCTEXT("FormatWmv", "Windows Media Video"));*/
+		SupportedFileTypes.Add(TEXT("wmv"), LOCTEXT("FormatWmv", "Windows Media Video"));
 
 		// register factory
 		MediaModule->RegisterPlayerFactory(*this);
@@ -114,7 +114,7 @@ public:
 
 		return nullptr;
 	}
-
+/*
 	virtual const FMediaFileTypes& GetSupportedFileTypes() const override
 	{
 		return SupportedFileTypes;
@@ -124,6 +124,13 @@ public:
 	{
 		return SupportedFileTypes.Contains(FPaths::GetExtension(Url));
 	}
+*/
+
+        virtual const FMediaFormats& GetSupportedFormats() const override
+        {
+                return SupportedFileTypes;
+        }
+
 
 protected:
 
@@ -143,7 +150,7 @@ private:
 	bool Initialized;
 
 	/** The collection of supported media file types. */
-	FMediaFileTypes SupportedFileTypes;
+	FMediaFormats SupportedFileTypes;
 };
 
 

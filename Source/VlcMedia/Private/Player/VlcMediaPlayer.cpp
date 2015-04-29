@@ -399,7 +399,7 @@ FVlcMediaPlayer::FVlcMediaPlayer()
 #endif
 
 	char const *vlc_argv[] = {
-		"--verbose=2",
+//		"--verbose=2",
 		"--no-video-title-show",
 		"--no-stats",
 		"--no-sub-autodetect-file",
@@ -408,12 +408,11 @@ FVlcMediaPlayer::FVlcMediaPlayer()
 		"--no-snapshot-preview",
 //		"--intf", "dummy",
 	//	"--vout", "dummy",
-		"--no-audio", /* skip any audio track */
+//		"--no-audio", /* skip any audio track */
 		"--no-xlib", /* tell VLC to not use Xlib */
 	};
 	int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
 	vlchandle = libvlc_new(vlc_argc, vlc_argv);
-	printf("vlc setup done\n");
 }
 
 FVlcMediaPlayer::~FVlcMediaPlayer()
@@ -478,7 +477,6 @@ void FVlcMediaPlayer::Close()
 	libvlc_media_player_stop((libvlc_media_player_t*)vlcmedia);
 	libvlc_media_player_release((libvlc_media_player_t*)vlcmedia);
 	libvlc_release((libvlc_instance_t*)vlchandle);
-	printf("vlc close\n");
 	vlcmedia = 0;
 
 #ifdef VLCSDL

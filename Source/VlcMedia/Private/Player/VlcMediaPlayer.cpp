@@ -2,6 +2,7 @@
 // modified by @anselm
 
 #include "VlcMediaPrivatePCH.h"
+#include <mutex>
 
 #define LOCTEXT_NAMESPACE "FVlcMediaModule"
 
@@ -192,11 +193,12 @@ public:
 				LastFramePosition = CurrentFramePosition;
 				void* SampleData = 0;
 				int64 SampleCount = 0;
-				if(MediaPlayer.GetVideoLastFrameData(SampleData,SampleCount)) {
+				if(MediaPlayer.LockGetVideoLastFrameData(SampleData,SampleCount)) {
 					ProcessMediaSample(
 						SampleData, SampleCount,
 						FTimespan::MaxValue(),
 						FTimespan::FromMilliseconds(LastFramePosition));
+					MediaPlayer.Unlock();
 				}
 			}
 		}
@@ -322,16 +324,19 @@ static void vlc_display(void *data, void *id) {
 
 struct VLCContext {
 	void *pixeldata;
-	// std::mutex imagemutex;
+	std::mutex mutex;
 };
 
 static void* vlc_lock(void* data, void**p_pixels) {
 	struct VLCContext *ctx = (struct VLCContext*)data;
+	ctx->mutex.lock();
 	*p_pixels = ctx->pixeldata;
 	return NULL;
 }
 
 static void vlc_unlock(void* data, void* id, void *const *p_pixels) {
+	struct VLCContext *ctx = (struct VLCContext*)data;
+	ctx->mutex.unlock();
 }
 
 static void vlc_display(void* data, void* id) {
@@ -340,10 +345,8 @@ static void vlc_display(void* data, void* id) {
 
 #endif
 
-bool FVlcMediaPlayer::GetVideoLastFrameData(void* &SampleData, int64 &SampleCount) {
-
+bool FVlcMediaPlayer::LockGetVideoLastFrameData(void* &SampleData, int64 &SampleCount) {
 	if(!vlcmedia)return false;
-
 #ifdef VLCSDL
 	SDL_LockMutex(vlccontext->mutex);
 	// SDL_Rect rect = blah
@@ -352,13 +355,18 @@ bool FVlcMediaPlayer::GetVideoLastFrameData(void* &SampleData, int64 &SampleCoun
 	// SDL_Flip(screen);
 	// SDL_Delay(10);
 #else
-
-    SampleData = vlccontext->pixeldata;
-    SampleCount = VIDEOWIDTH*VIDEOHEIGHT*4;
-    return true;
-
+	vlccontext->mutex.lock();
+	SampleData = vlccontext->pixeldata;
+	SampleCount = VIDEOWIDTH*VIDEOHEIGHT*4;
+	return true;
 #endif
+}
 
+bool FVlcMediaPlayer::Unlock() {
+#ifndef VLCSDL
+	vlccontext->mutex.unlock();
+#endif
+	return true;
 }
 
 
@@ -419,8 +427,12 @@ FVlcMediaPlayer::~FVlcMediaPlayer()
 {
 	Close();
 	MediaState = EMediaState::End;
+	libvlc_release((libvlc_instance_t*)vlchandle);
+	vlchandle = 0;
 	free(vlccontext->pixeldata);
 	vlccontext->pixeldata = 0;
+	free(vlccontext);
+	vlccontext =0;
 }
 
 
@@ -472,13 +484,16 @@ void FVlcMediaPlayer::Close()
 	if(!vlcmedia) return;
 	MediaUrl = FString();
 	MediaState = EMediaState::Idle;
-	Tracks.Reset();
 	ClosedEvent.Broadcast();
+        for (IMediaTrackRef& track : Tracks) {
+            MediaTrack &t = static_cast<MediaTrack&>(*track);
+	    // XXX TODO free these
+	}
+	Tracks.Reset();
 	libvlc_media_player_stop((libvlc_media_player_t*)vlcmedia);
+	libvlc_video_set_callbacks((libvlc_media_player_t*)vlcmedia, 0, 0, 0, 0);
 	libvlc_media_player_release((libvlc_media_player_t*)vlcmedia);
-	libvlc_release((libvlc_instance_t*)vlchandle);
 	vlcmedia = 0;
-
 #ifdef VLCSDL
 	SDL_DestroyMutex(vlccontext->mutex);
 	SDL_FreeSurface(vlccontext->surf);
@@ -589,7 +604,6 @@ bool FVlcMediaPlayer::Open( const FString& Url )
 	Tracks.Add(MakeShareable(new AudioTrack(*this,Tracks.Num())));
 	OpenedEvent.Broadcast(MediaUrl);
 	MediaState = EMediaState::Prepared;
-	Play();
 	return true;
 }
 

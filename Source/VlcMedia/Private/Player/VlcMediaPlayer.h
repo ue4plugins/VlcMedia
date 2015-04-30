@@ -73,7 +73,8 @@ public:
         //virtual TStatId GetStatId() const override;
         //virtual bool IsTickable() const override;
 
-	bool GetVideoLastFrameData(void* &SampleData,int64 &SampleCount);
+	bool LockGetVideoLastFrameData(void* &SampleData,int64 &SampleCount);
+	bool Unlock();
 private:
 
         class MediaTrack;

@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "ModuleManager.h"
+#include "Media.h"
+#include "Tickable.h"
 
 /**
  * Implements a media player using the Video LAN Codec (VLC) framework.
@@ -9,6 +12,8 @@
 class FVlcMediaPlayer
 	: public IMediaInfo
 	, public IMediaPlayer
+	, public FTickerObjectBase
+//	, public FTickableGameObject
 {
 public:
 
@@ -30,6 +35,8 @@ public:
 	virtual bool SupportsSeeking() const override;
 
 public:
+	void Play();
+	void Stop();
 
 	// IMediaPlayer interface
 
@@ -60,16 +67,45 @@ public:
 		return OpenedEvent;
 	}
 
+        // FTickableObjectRenderThread
+
+        virtual bool Tick(float DeltaTime) override;
+        //virtual TStatId GetStatId() const override;
+        //virtual bool IsTickable() const override;
+
+	bool LockGetVideoLastFrameData(void* &SampleData,int64 &SampleCount);
+	bool Unlock();
 private:
 
-	/** The available media tracks. */
-	TArray<IMediaTrackRef> Tracks;
+        class MediaTrack;
+        class VideoTrack;
+        class AudioTrack;
 
-private:
+
+        // Local state to track where the Java side media player is at.
+        enum class EMediaState
+        {
+                Idle, Initialized, Preparing, Prepared, Started,
+                Paused, Stopped, PlaybackCompleted, End, Error
+        };
+
+        // Our understanding of the state of the Java media player.
+        EMediaState MediaState;
 
 	/** Holds an event delegate that is invoked when media has been closed. */
 	FOnMediaClosed ClosedEvent;
 
 	/** Holds an event delegate that is invoked when media has been opened. */
 	FOnMediaOpened OpenedEvent;
+
+	// Currently opened media.
+	FString MediaUrl;
+
+	// The pseudo-tracks in the media.
+	TArray<IMediaTrackRef> Tracks;
+
+	// vlc context
+	struct VLCContext* vlccontext;
+	void *vlchandle;
+	void *vlcmedia;
 };

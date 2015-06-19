@@ -340,7 +340,11 @@ void FVlcMediaPlayer::InitializeTracks()
 
 	while (AudioTrackDescr != nullptr)
 	{
-		Tracks.Add(MakeShareable(new FVlcMediaAudioTrack(Player, Tracks.Num(), AudioTrackDescr)));
+		if (AudioTrackDescr->Id != -1)
+		{
+			Tracks.Add(MakeShareable(new FVlcMediaAudioTrack(Player, Tracks.Num(), AudioTrackDescr)));
+		}
+
 		AudioTrackDescr = AudioTrackDescr->Next;
 	}
 
@@ -351,7 +355,11 @@ void FVlcMediaPlayer::InitializeTracks()
 
 	while (CaptionTrackDescr != nullptr)
 	{
-		Tracks.Add(MakeShareable(new FVlcMediaCaptionTrack(Player, Tracks.Num(), CaptionTrackDescr)));
+		if (CaptionTrackDescr->Id != -1)
+		{
+			Tracks.Add(MakeShareable(new FVlcMediaCaptionTrack(Player, Tracks.Num(), CaptionTrackDescr)));
+		}
+
 		CaptionTrackDescr = CaptionTrackDescr->Next;
 	}
 
@@ -362,7 +370,11 @@ void FVlcMediaPlayer::InitializeTracks()
 
 	while (VideoTrackDescr != nullptr)
 	{
-		Tracks.Add(MakeShareable(new FVlcMediaVideoTrack(Player, Tracks.Num(), VideoTrackDescr)));
+		if (VideoTrackDescr->Id != -1)
+		{
+			Tracks.Add(MakeShareable(new FVlcMediaVideoTrack(Player, Tracks.Num(), VideoTrackDescr)));
+		}
+
 		VideoTrackDescr = VideoTrackDescr->Next;
 	}
 

@@ -17,7 +17,7 @@ FVlcMediaAudioTrack::FVlcMediaAudioTrack(FLibvlcMediaPlayer* InPlayer, uint32 In
 
 bool FVlcMediaAudioTrack::Disable()
 {
-	return true;
+	return (!IsEnabled() || (FVlc::AudioSetTrack(GetPlayer(), -1) == 0));
 }
 
 

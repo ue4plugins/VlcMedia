@@ -47,7 +47,7 @@ FVlcMediaVideoTrack::~FVlcMediaVideoTrack()
 
 bool FVlcMediaVideoTrack::Disable()
 {
-	return true;
+	return (!IsEnabled() || (FVlc::VideoSetTrack(GetPlayer(), -1) == 0));
 }
 
 

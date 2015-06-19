@@ -17,7 +17,7 @@ FVlcMediaCaptionTrack::FVlcMediaCaptionTrack(FLibvlcMediaPlayer* InPlayer, uint3
 
 bool FVlcMediaCaptionTrack::Disable()
 {
-	return true;
+	return (!IsEnabled() || (FVlc::VideoSetSpu(GetPlayer(), -1) == 0));
 }
 
 

@@ -15,6 +15,7 @@
 FVlcMediaPlayer::FVlcMediaPlayer(FLibvlcInstance* InVlcInstance)
 	: CurrentTime(0.0f)
 	, DataPosition(0)
+	, DesiredRate(0.0)
 	, Player(nullptr)
 	, ShouldLoop(false)
 	, VlcInstance(InVlcInstance)

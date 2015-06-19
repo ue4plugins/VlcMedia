@@ -16,7 +16,9 @@ The following platforms have been built and tested:
 - ~~Mac~~
 - Windows
 
-**IMPORTANT**: Please note that this repository contains pre-compiled binaries for libvlc and its plug-ins, which are licensed under LGPL. This means that you cannot create monolithic builds of your game without violating LGPL, the UE4 EULA or both. The libvlc libraries must remain dynamic libraries that are bound at run-time - static linking is not allowed. This also means that this plug-in cannot work on platforms that do not support dynamically linked libraries (i.e. iOS, HTML5) or do not currently implement support for it (i.e. Android, XboxOne).
+**IMPORTANT**: Please note that this repository contains pre-compiled binaries for libvlc and its plug-ins, which are licensed under LGPL. This means that you cannot create monolithic builds of your game without violating LGPL, the UE4 EULA or both. The libvlc libraries must remain dynamic libraries that are bound at run-time - static linking is not allowed.
+
+This also means that this plug-in cannot work on platforms that do not support dynamically linked libraries (i.e. iOS, HTML5) or do not currently implement support for it (i.e. Android, XboxOne).
 
 
 ## Prerequisites

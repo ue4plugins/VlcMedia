@@ -20,6 +20,8 @@ The following platforms have been built and tested:
 
 This also means that this plug-in cannot work on platforms that do not support dynamically linked libraries (i.e. iOS, HTML5) or do not currently implement support for it (i.e. Android, XboxOne).
 
+Epic is in the process of adding plug-in support to monolithic builds, but there is no ETA yet. Once this is supported, you will be able to distribute monolithic game and server builds with VlcMedia, provided that the libvlc libraries and plug-ins remain as separate DLLs.
+
 
 ## Prerequisites
 

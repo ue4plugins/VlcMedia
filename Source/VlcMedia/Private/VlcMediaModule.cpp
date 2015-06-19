@@ -51,21 +51,22 @@ public:
 		}
 
 		// create LibVLC instance
-		const ANSICHAR* Args[8];
+		const ANSICHAR* Args[1];
 		{
-			Args[0] = "--no-video-title-show";
-			Args[1] = "--no-stats";
-			Args[2] = "--no-sub-autodetect-file";
-			Args[3] = "--no-inhibit";
-			Args[4] = "--no-disable-screensaver";
-			Args[5] = "--no-snapshot-preview";
-			Args[6] = "--no-xlib";
-			Args[7] = TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir()));
+			Args[0] = TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir()));
+			//Args[1] = "--no-video-title-show";
+			//Args[2] = "--no-stats";
+			//Args[3] = "--no-sub-autodetect-file";
+			//Args[4] = "--no-inhibit";
+			//Args[5] = "--no-disable-screensaver";
+			//Args[6] = "--no-snapshot-preview";
+			//Args[7] = "--no-xlib";
+			//Args[8] = "--no-audio";
 		};
 
 		int Argc = sizeof(Args) / sizeof(*Args);
-		//VlcInstance = FVlc::New(Argc, Args);
-		VlcInstance = FVlc::New(0, nullptr);
+		VlcInstance = FVlc::New(Argc, Args);
+		//VlcInstance = FVlc::New(0, nullptr);
 
 		if (VlcInstance == nullptr)
 		{

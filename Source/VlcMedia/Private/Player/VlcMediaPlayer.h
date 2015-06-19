@@ -3,8 +3,7 @@
 #pragma once
 
 #include "ModuleManager.h"
-#include "Media.h"
-#include "Tickable.h"
+
 
 /**
  * Implements a media player using the Video LAN Codec (VLC) framework.
@@ -12,13 +11,15 @@
 class FVlcMediaPlayer
 	: public IMediaInfo
 	, public IMediaPlayer
-	, public FTickerObjectBase
-//	, public FTickableGameObject
 {
 public:
 
-	/** Default constructor. */
-	FVlcMediaPlayer();
+	/**
+	 * Create and initialize a new instance.
+	 *
+	 * @param InInstance The LibVLC instance to use. 
+	 */
+	FVlcMediaPlayer(FLibvlcInstance* InInstance);
 
 	/** Destructor. */
 	~FVlcMediaPlayer();
@@ -35,8 +36,6 @@ public:
 	virtual bool SupportsSeeking() const override;
 
 public:
-	void Play();
-	void Stop();
 
 	// IMediaPlayer interface
 
@@ -50,7 +49,7 @@ public:
 	virtual bool IsPlaying() const override;
 	virtual bool IsReady() const override;
 	virtual bool Open( const FString& Url ) override;
-	virtual bool Open( const TSharedRef<TArray<uint8>>& Buffer, const FString& OriginalUrl ) override;
+	virtual bool Open( const TSharedRef<TArray<uint8>, ESPMode::ThreadSafe>& Buffer, const FString& OriginalUrl ) override;
 	virtual bool Seek( const FTimespan& Time ) override;
 	virtual bool SetLooping( bool Looping ) override;
 	virtual bool SetRate( float Rate ) override;
@@ -67,45 +66,81 @@ public:
 		return OpenedEvent;
 	}
 
-        // FTickableObjectRenderThread
+protected:
 
-        virtual bool Tick(float DeltaTime) override;
-        //virtual TStatId GetStatId() const override;
-        //virtual bool IsTickable() const override;
+	/**
+	 * Initialize the media player object.
+	 *
+	 * @param Media The media to play.
+	 * @return true on success, false otherwise.
+	 */
+	bool InitializeMediaPlayer(FLibvlcMedia* Media);
 
-	bool LockGetVideoLastFrameData(void* &SampleData,int64 &SampleCount);
-	bool Unlock();
+	/** Initialize the media tracks. */
+	void InitializeTracks();
+
 private:
 
-        class MediaTrack;
-        class VideoTrack;
-        class AudioTrack;
+	/** Handles the ticker. */
+	bool HandleTicker(float DeltaTime);
 
+private:
 
-        // Local state to track where the Java side media player is at.
-        enum class EMediaState
-        {
-                Idle, Initialized, Preparing, Prepared, Started,
-                Paused, Stopped, PlaybackCompleted, End, Error
-        };
+	/** Handles event callbacks. */
+	static void HandleEventCallback(FLibvlcEvent* Event, void* UserData);
 
-        // Our understanding of the state of the Java media player.
-        EMediaState MediaState;
+	/** Handles open callbacks from VLC. */
+	static int HandleMediaOpen(void* Opaque, void** OutData, uint64* OutSize);
+
+	/** Handles read callbacks from VLC. */
+	static SSIZE_T HandleMediaRead(void* Opaque, void* Buffer, SIZE_T Length);
+
+	/** Handles seek callbacks from VLC. */
+	static int HandleMediaSeek(void* Opaque, uint64 Offset);
+
+	/** Handles close callbacks from VLC. */
+	static void HandleMediaClose(void* Opaque);
+
+private:
+
+	/** Current playback time to work around VLC's broken time tracking. */
+	float CurrentTime;
+
+	/** Buffer holding media data (for in-memory playback only). */
+	TSharedPtr<TArray<uint8>, ESPMode::ThreadSafe> Data;
+
+	/** The current read position in the media data (for in-memory playback only). */
+	SIZE_T DataPosition;
+
+	/** The desired playback rate. */
+	float DesiredRate;
+
+	/** Collection of received player events. */
+	TQueue<ELibvlcEventType, EQueueMode::Mpsc> Events;
+
+	// Currently opened media.
+	FString MediaUrl;
+
+	/** The VLC media player object. */
+	FLibvlcMediaPlayer* Player;
+
+	/** Whether playback should be looping. */
+	bool ShouldLoop;
+
+	/** Handle to the registered ticker. */
+	FDelegateHandle TickerHandle;
+
+	/** The pseudo-tracks in the media. */
+	TArray<IMediaTrackRef> Tracks;
+
+	/** The LibVLC instance. */
+	FLibvlcInstance* VlcInstance;
+
+private:
 
 	/** Holds an event delegate that is invoked when media has been closed. */
 	FOnMediaClosed ClosedEvent;
 
 	/** Holds an event delegate that is invoked when media has been opened. */
 	FOnMediaOpened OpenedEvent;
-
-	// Currently opened media.
-	FString MediaUrl;
-
-	// The pseudo-tracks in the media.
-	TArray<IMediaTrackRef> Tracks;
-
-	// vlc context
-	struct VLCContext* vlccontext;
-	void *vlchandle;
-	void *vlcmedia;
 };

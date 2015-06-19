@@ -18,7 +18,7 @@
 			"Name" : "VlcMedia",
 			"Type" : "RuntimeNoCommandlet",
 			"LoadingPhase" : "PreLoadingScreen",
-			"WhitelistPlatforms" : [ "Win32", "Win64", "Linux" ]
+			"WhitelistPlatforms" : [ "Mac", "Linux", "Win32", "Win64", "WinRT" ]
 		}
 	],
 

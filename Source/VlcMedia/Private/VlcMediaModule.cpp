@@ -37,42 +37,89 @@ public:
 
 		if (MediaModule == nullptr)
 		{
-			UE_LOG(LogVlcMedia, Log, TEXT("VLC: Failed to load Media module"));
+			UE_LOG(LogVlcMedia, Warning, TEXT("VLC: Failed to load Media module"));
 
 			return;
 		}
 
-/*		if (!LoadRequiredLibraries())
+		// initialize LibVLC
+		if (!FVlc::Initialize())
 		{
-			UE_LOG(LogVlcMedia, Log, TEXT("Failed to load required Windows Media Foundation libraries"));
+			UE_LOG(LogVlcMedia, Warning, TEXT("Failed to initialize libvlc"));
 
 			return;
 		}
 
-		// initialize libvlc
-
-		if (true)
+		// create LibVLC instance
+		const ANSICHAR* Args[8];
 		{
-			UE_LOG(LogVlcMedia, Log, TEXT("Failed to initialize libvlc, Error %i"));
+			Args[0] = "--no-video-title-show";
+			Args[1] = "--no-stats";
+			Args[2] = "--no-sub-autodetect-file";
+			Args[3] = "--no-inhibit";
+			Args[4] = "--no-disable-screensaver";
+			Args[5] = "--no-snapshot-preview";
+			Args[6] = "--no-xlib";
+			Args[7] = TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir()));
+		};
+
+		int Argc = sizeof(Args) / sizeof(*Args);
+		//VlcInstance = FVlc::New(Argc, Args);
+		VlcInstance = FVlc::New(0, nullptr);
+
+		if (VlcInstance == nullptr)
+		{
+			UE_LOG(LogVlcMedia, Warning, TEXT("Failed to create VLC instance (%s)"), ANSI_TO_TCHAR(FVlc::Errmsg()));
+			FVlc::Shutdown();
 
 			return;
 		}
-*/
+
 		// initialize supported media formats
-		SupportedFileTypes.Add(TEXT("3g2"), LOCTEXT("Format3g2", "3G2 Multimedia Stream"));
 		SupportedFileTypes.Add(TEXT("3gp"), LOCTEXT("Format3gp", "3GP Video Stream"));
-		SupportedFileTypes.Add(TEXT("3gp2"), LOCTEXT("Format3gp2", "3GPP2 Multimedia File"));
-		SupportedFileTypes.Add(TEXT("3gpp"), LOCTEXT("Format3gpp", "3GPP Multimedia File"));
+		SupportedFileTypes.Add(TEXT("a52"), LOCTEXT("FormatA52", "Dolby Digital AC-3 Audio"));
 		SupportedFileTypes.Add(TEXT("aac"), LOCTEXT("FormatAac", "MPEG-2 Advanced Audio Coding File"));
-		SupportedFileTypes.Add(TEXT("adts"), LOCTEXT("FormatAdts", "Audio Data Transport Stream"));
 		SupportedFileTypes.Add(TEXT("asf"), LOCTEXT("FormatAsf", "ASF Media File"));
+		SupportedFileTypes.Add(TEXT("au"), LOCTEXT("FormatAu", "Sun Microsystems Audio"));
 		SupportedFileTypes.Add(TEXT("avi"), LOCTEXT("FormatAvi", "Audio Video Interleave File"));
-		SupportedFileTypes.Add(TEXT("m4v"), LOCTEXT("FormatM4v", "Apple MPEG-4 Video"));
+		SupportedFileTypes.Add(TEXT("dts"), LOCTEXT("FormatDts", "Digital Theater System File"));
+		SupportedFileTypes.Add(TEXT("dv"), LOCTEXT("FormatDv", "Digital Video File"));
+		SupportedFileTypes.Add(TEXT("flac"), LOCTEXT("FormatFlac", "Free Lossless Audio Codec"));
+		SupportedFileTypes.Add(TEXT("flv"), LOCTEXT("FormatFlv", "Adobe Flash Video"));
+		SupportedFileTypes.Add(TEXT("mkv"), LOCTEXT("FormatMkv", "Matroska Video"));
+		SupportedFileTypes.Add(TEXT("mka"), LOCTEXT("FormatMka", "Matroska Audio"));
 		SupportedFileTypes.Add(TEXT("mov"), LOCTEXT("FormatMov", "Apple QuickTime Movie"));
+		SupportedFileTypes.Add(TEXT("mp2"), LOCTEXT("FormatMp2", "MPEG-1 Audio"));
+		SupportedFileTypes.Add(TEXT("mp3"), LOCTEXT("FormatMp3", "MPEG-2 Audio"));
 		SupportedFileTypes.Add(TEXT("mp4"), LOCTEXT("FormatMp4", "MPEG-4 Movie"));
-		SupportedFileTypes.Add(TEXT("sami"), LOCTEXT("FormatSami", "Synchronized Accessible Media Interchange (SAMI) File"));
-		SupportedFileTypes.Add(TEXT("smi"), LOCTEXT("FormatSmi", "Synchronized Multimedia Integration (SMIL) File"));
+		SupportedFileTypes.Add(TEXT("mpg"), LOCTEXT("FormatMpg", "MPEG-2 Movie"));
+		SupportedFileTypes.Add(TEXT("nsc"), LOCTEXT("FormatNsc", "Windows Media Station"));
+		SupportedFileTypes.Add(TEXT("nsv"), LOCTEXT("FormatNsv", "Nullsoft Streaming Video"));
+		SupportedFileTypes.Add(TEXT("nut"), LOCTEXT("FormatNut", "NUT Multimedia Container"));
+		SupportedFileTypes.Add(TEXT("ogm"), LOCTEXT("FormatMp4", "Ogg Multimedia"));
+		SupportedFileTypes.Add(TEXT("ogg"), LOCTEXT("FormatOgg", "Ogg Multimedia"));
+		SupportedFileTypes.Add(TEXT("ra"), LOCTEXT("FormatRa", "Real Audio"));
+		SupportedFileTypes.Add(TEXT("ram"), LOCTEXT("FormatRam", "Real Audio Metadata"));
+		SupportedFileTypes.Add(TEXT("rm"), LOCTEXT("FormatRm", "Real Media"));
+		SupportedFileTypes.Add(TEXT("rmvb"), LOCTEXT("FormatRmvb", "Real Media VBR"));
+		SupportedFileTypes.Add(TEXT("rv"), LOCTEXT("FormatRv", "Real Video"));
+		SupportedFileTypes.Add(TEXT("ts"), LOCTEXT("FormatTs", "MPEG-2 Transport Stream"));
+		SupportedFileTypes.Add(TEXT("tac"), LOCTEXT("FormatTac", "True Audio Codec File"));
+		SupportedFileTypes.Add(TEXT("tta"), LOCTEXT("FormatTta", "True Audio Codec File"));
+		SupportedFileTypes.Add(TEXT("ty"), LOCTEXT("FormatTy", "Tivo Container"));
+		SupportedFileTypes.Add(TEXT("vid"), LOCTEXT("FormatVid", "Generic Video File"));
+		SupportedFileTypes.Add(TEXT("wav"), LOCTEXT("FormatWav", "Wave Audio File"));
 		SupportedFileTypes.Add(TEXT("wmv"), LOCTEXT("FormatWmv", "Windows Media Video"));
+		SupportedFileTypes.Add(TEXT("xa"), LOCTEXT("FormatXa", "PlayStation Audio File"));
+
+		// initialize supported URI schemes
+		SupportedUriSchemes.Add(TEXT("ftp://"));
+		SupportedUriSchemes.Add(TEXT("http://"));
+		SupportedUriSchemes.Add(TEXT("https://"));
+		SupportedUriSchemes.Add(TEXT("mms://"));
+		SupportedUriSchemes.Add(TEXT("rtp://"));
+		SupportedUriSchemes.Add(TEXT("rtsp://"));
+		SupportedUriSchemes.Add(TEXT("sap://"));
 
 		// register factory
 		MediaModule->RegisterPlayerFactory(*this);
@@ -95,10 +142,14 @@ public:
 		if (MediaModule != nullptr)
 		{
 			MediaModule->UnregisterPlayerFactory(*this);
-		}		
+		}
 
-		// shutdown libvlc
+		// release LibVLC instance
+		FVlc::Release((FLibvlcInstance*)VlcInstance);
+		VlcInstance = nullptr;
 
+		// shut down LibVLC
+		FVlc::Shutdown();
 	}
 
 public:
@@ -107,14 +158,14 @@ public:
 
 	virtual TSharedPtr<IMediaPlayer> CreatePlayer() override
 	{
-		if (Initialized)
+		if (!Initialized)
 		{
-			return MakeShareable(new FVlcMediaPlayer());
+			return nullptr;
 		}
 
-		return nullptr;
+		return MakeShareable(new FVlcMediaPlayer(VlcInstance));
 	}
-/*
+
 	virtual const FMediaFileTypes& GetSupportedFileTypes() const override
 	{
 		return SupportedFileTypes;
@@ -122,26 +173,22 @@ public:
 
 	virtual bool SupportsUrl(const FString& Url) const override
 	{
-		return SupportedFileTypes.Contains(FPaths::GetExtension(Url));
-	}
-*/
+		const FString Extension = FPaths::GetExtension(Url);
 
-        virtual const FMediaFormats& GetSupportedFormats() const override
-        {
-                return SupportedFileTypes;
-        }
+		if (!Extension.IsEmpty())
+		{
+			return SupportedFileTypes.Contains(Extension);
+		}
 
+		for (const FString& Scheme : SupportedUriSchemes)
+		{
+			if (Url.StartsWith(Scheme))
+			{
+				return true;
+			}
+		}
 
-protected:
-
-	/**
-	 * Loads all required VLC libraries.
-	 *
-	 * @return true on success, false otherwise.
-	 */
-	bool LoadRequiredLibraries()
-	{
-		return true;
+		return false;
 	}
 
 private:
@@ -150,7 +197,13 @@ private:
 	bool Initialized;
 
 	/** The collection of supported media file types. */
-	FMediaFormats SupportedFileTypes;
+	FMediaFileTypes SupportedFileTypes;
+
+	/** The collection of supported URI schemes. */
+	TArray<FString> SupportedUriSchemes;
+
+	/** The LibVLC instance. */
+	FLibvlcInstance* VlcInstance;
 };
 
 

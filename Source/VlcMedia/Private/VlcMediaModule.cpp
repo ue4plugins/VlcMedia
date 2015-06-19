@@ -55,7 +55,7 @@ public:
 		{
 			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
 			"--intf", "dummy",
-			//"--no-audio",
+			"--no-audio",
 			"--no-disable-screensaver",
 			"--no-snapshot-preview",
 			"--no-stats",
@@ -63,12 +63,11 @@ public:
 			"--no-xlib",
 			//"--no-inhibit",
 			//"--quiet",
-			//"--vout", "dummy",
+			"--vout", "dummy",
 		};
 
 		int Argc = sizeof(Args) / sizeof(*Args);
 		VlcInstance = FVlc::New(Argc, Args);
-		//VlcInstance = FVlc::New(0, nullptr);
 
 		if (VlcInstance == nullptr)
 		{

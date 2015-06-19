@@ -93,12 +93,6 @@ void FVlcMediaPlayer::Close()
 	FVlc::MediaPlayerRelease(Player);
 	Player = nullptr;
 
-#ifdef VLCSDL
-	SDL_DestroyMutex(Context->mutex);
-	SDL_FreeSurface(Context->surf);
-	SDL_Quit();
-#endif
-
 	// reset fields
 	DataPosition = 0;
 	MediaUrl = FString();

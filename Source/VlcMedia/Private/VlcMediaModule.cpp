@@ -51,17 +51,19 @@ public:
 		}
 
 		// create LibVLC instance
-		const ANSICHAR* Args[1];
+		const ANSICHAR* Args[] =
 		{
-			Args[0] = TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir()));
-			//Args[1] = "--no-video-title-show";
-			//Args[2] = "--no-stats";
-			//Args[3] = "--no-sub-autodetect-file";
-			//Args[4] = "--no-inhibit";
-			//Args[5] = "--no-disable-screensaver";
-			//Args[6] = "--no-snapshot-preview";
-			//Args[7] = "--no-xlib";
-			//Args[8] = "--no-audio";
+			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
+			"--intf", "dummy",
+			//"--no-audio",
+			"--no-disable-screensaver",
+			"--no-snapshot-preview",
+			"--no-stats",
+			"--no-video-title-show",
+			"--no-xlib",
+			//"--no-inhibit",
+			//"--quiet",
+			//"--vout", "dummy",
 		};
 
 		int Argc = sizeof(Args) / sizeof(*Args);

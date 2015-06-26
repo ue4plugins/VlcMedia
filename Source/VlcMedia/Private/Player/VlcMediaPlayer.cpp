@@ -325,6 +325,8 @@ void FVlcMediaPlayer::InitializeTracks()
 	{
 		return;
 	}
+	
+	FVlc::MediaPlayerStop(Player);
 
 	FLibvlcMedia* Media = FVlc::MediaPlayerGetMedia(Player);
 
@@ -390,7 +392,6 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 	if (Tracks.Num() == 0)
 	{
 		InitializeTracks();
-		FVlc::MediaPlayerStop(Player);
 	}
 	else
 	{

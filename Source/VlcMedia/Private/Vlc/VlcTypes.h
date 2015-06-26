@@ -70,6 +70,16 @@ enum class ELibvlcEventType
 };
 
 
+/** Enumerates logging levels. */
+enum class ELibvlcLogLevel
+{
+	Debug,
+	Notice,
+	Warning,
+	Error
+};
+
+
 /** Enumerates meta data types. */
 enum class ELibvlcMeta
 {
@@ -130,6 +140,9 @@ typedef struct FLibvlcEventManager FLibvlcEventManager;
 
 /** Opaque structure representing a LibVLC instance. */
 typedef struct FLibvlcInstance FLibvlcInstance;
+
+/** Opaque structure representing a LibVLC log context. */
+typedef struct FLibvlcLog FLibvlcLog;
 
 /** Opaque structure representing a media instance. */
 typedef struct FLibvlcMedia FLibvlcMedia;

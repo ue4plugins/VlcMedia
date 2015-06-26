@@ -190,6 +190,8 @@ bool FVlcMediaPlayer::Open(const FString& Url)
 
 	if (NewMedia == nullptr)
 	{
+		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media %s: %s"), *Url, ANSI_TO_TCHAR(FVlc::Errmsg()));
+
 		return false;
 	}
 
@@ -218,6 +220,7 @@ bool FVlcMediaPlayer::Open( const TSharedRef<TArray<uint8>, ESPMode::ThreadSafe>
 
 	if (NewMedia == nullptr)
 	{
+		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media from buffer: %s"), ANSI_TO_TCHAR(FVlc::Errmsg()));
 		Data.Reset();
 
 		return false;
@@ -289,6 +292,7 @@ bool FVlcMediaPlayer::InitializeMediaPlayer(FLibvlcMedia* Media)
 
 	if (Player == nullptr)
 	{
+		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to initialize media player: %s"), ANSI_TO_TCHAR(FVlc::Errmsg()));
 		Close();
 
 		return false;
@@ -327,7 +331,6 @@ void FVlcMediaPlayer::InitializeTracks()
 	}
 	
 	FVlc::MediaPlayerStop(Player);
-
 	FLibvlcMedia* Media = FVlc::MediaPlayerGetMedia(Player);
 
 	if (Media == nullptr)

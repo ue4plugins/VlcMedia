@@ -77,6 +77,9 @@ public:
 			return;
 		}
 
+		// register logging callback
+		FVlc::LogSet(VlcInstance, &FVlcMediaModule::HandleVlcLog, nullptr);
+
 		// initialize supported media formats
 		SupportedFileTypes.Add(TEXT("3gp"), LOCTEXT("Format3gp", "3GP Video Stream"));
 		SupportedFileTypes.Add(TEXT("a52"), LOCTEXT("FormatA52", "Dolby Digital AC-3 Audio"));
@@ -146,6 +149,9 @@ public:
 			MediaModule->UnregisterPlayerFactory(*this);
 		}
 
+		// unregister logging callback
+		FVlc::LogUnset(VlcInstance);
+
 		// release LibVLC instance
 		FVlc::Release((FLibvlcInstance*)VlcInstance);
 		VlcInstance = nullptr;
@@ -191,6 +197,39 @@ public:
 		}
 
 		return false;
+	}
+
+private:
+
+	/** Handles log messages from LibVLC. */
+	static void HandleVlcLog(void* /*Data*/, ELibvlcLogLevel Level, FLibvlcLog* Context, const char* Format, va_list Args)
+	{
+		ANSICHAR Message[1024];
+
+		FCStringAnsi::GetVarArgs(Message, ARRAY_COUNT(Message), ARRAY_COUNT(Message) - 1, Format, Args);
+
+		switch (Level)
+		{
+		case ELibvlcLogLevel::Debug:
+			UE_LOG(LogVlcMedia, Verbose, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			break;
+
+		case ELibvlcLogLevel::Error:
+			UE_LOG(LogVlcMedia, Error, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			break;
+
+		case ELibvlcLogLevel::Notice:
+			UE_LOG(LogVlcMedia, Log, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			break;
+
+		case ELibvlcLogLevel::Warning:
+			UE_LOG(LogVlcMedia, Warning, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			break;
+
+		default:
+			UE_LOG(LogVlcMedia, Log, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			break;
+		}
 	}
 
 private:

@@ -40,7 +40,7 @@ A suitable version of **libvlc** must be installed or compiled from source. If y
 
 ### Mac, Windows
 
-All required libraries and plug-ins are already included in the *ThirdParty* directory, and work out of the box.
+All required libraries and plug-ins are included in the *ThirdParty* directory and work out of the box.
 
 
 ## Dependencies

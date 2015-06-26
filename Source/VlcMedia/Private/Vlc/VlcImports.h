@@ -20,6 +20,12 @@ typedef int (*FLibvlcEventAttachProc)(FLibvlcEventManager* /*EventManager*/, ELi
 typedef int (*FLibvlcEventDetachProc)(FLibvlcEventManager* /*EventManager*/, ELibvlcEventType /*EventType*/, FLibvlcCallback /*Callback*/, void* /*UserData*/);
 typedef const ANSICHAR* (*FLibvlcEventTypeNameProc)(ELibvlcEventType /*EventType*/);
 
+// logging
+typedef void (*FLibvlcLogCb)(void* /*Data*/, ELibvlcLogLevel /*Level*/, FLibvlcLog* /*Context*/, const char* /*Format*/, va_list /*Args*/);
+typedef void (*FLibvlcLogSetProc)(FLibvlcInstance* /*Instance*/, FLibvlcLogCb /*Callback*/, void* /*Data*/);
+typedef void (*FLibvlcLogUnsetProc)(FLibvlcInstance* /*Instance*/);
+
+
 // media callbacks
 typedef void (*FLibvlcMediaCloseCb)(void* /*Opaque*/);
 typedef int (*FLibvlcMediaOpenCb)(void* /*Opaque*/, void** /*OutData*/, uint64* /*OutSize*/);

@@ -27,6 +27,9 @@ public:
 	static FLibvlcEventAttachProc EventDetach;
 	static FLibvlcEventTypeNameProc EventTypeName;
 
+	static FLibvlcLogSetProc LogSet;
+	static FLibvlcLogUnsetProc LogUnset;
+
 	static FLibvlcMediaEventManagerProc MediaEventManager;
 	static FLibvlcMediaNewCallbacksProc MediaNewCallbacks;
 	static FLibvlcMediaNewLocationProc MediaNewLocation;

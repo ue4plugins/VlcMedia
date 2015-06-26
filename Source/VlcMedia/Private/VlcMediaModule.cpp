@@ -118,6 +118,9 @@ public:
 		SupportedFileTypes.Add(TEXT("xa"), LOCTEXT("FormatXa", "PlayStation Audio File"));
 
 		// initialize supported URI schemes
+		SupportedUriSchemes.Add(TEXT("cdda://"));
+		SupportedUriSchemes.Add(TEXT("file://"));
+		SupportedUriSchemes.Add(TEXT("dvd://"));
 		SupportedUriSchemes.Add(TEXT("ftp://"));
 		SupportedUriSchemes.Add(TEXT("http://"));
 		SupportedUriSchemes.Add(TEXT("https://"));
@@ -125,6 +128,8 @@ public:
 		SupportedUriSchemes.Add(TEXT("rtp://"));
 		SupportedUriSchemes.Add(TEXT("rtsp://"));
 		SupportedUriSchemes.Add(TEXT("sap://"));
+		SupportedUriSchemes.Add(TEXT("screen://"));
+		SupportedUriSchemes.Add(TEXT("vcd://"));
 
 		// register factory
 		MediaModule->RegisterPlayerFactory(*this);

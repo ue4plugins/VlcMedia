@@ -66,6 +66,12 @@ public:
 		return OpenedEvent;
 	}
 
+	DECLARE_DERIVED_EVENT(FWmfMediaPlayer, IMediaPlayer::FOnTracksChanged, FOnTracksChanged);
+	virtual FOnTracksChanged& OnTracksChanged() override
+	{
+		return TracksChangedEvent;
+	}
+
 protected:
 
 	/**
@@ -141,4 +147,7 @@ private:
 
 	/** Holds an event delegate that is invoked when media has been opened. */
 	FOnMediaOpened OpenedEvent;
+
+	/** Holds an event delegate that is invoked when the media tracks have changed. */
+	FOnTracksChanged TracksChangedEvent;
 };

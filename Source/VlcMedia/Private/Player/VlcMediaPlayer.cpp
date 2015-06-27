@@ -95,6 +95,7 @@ void FVlcMediaPlayer::Close()
 	MediaUrl.Reset();
 	Tracks.Reset();
 
+	TracksChangedEvent.Broadcast();
 	ClosedEvent.Broadcast();
 }
 
@@ -348,52 +349,64 @@ void FVlcMediaPlayer::InitializeTracks()
 		return;
 	}
 
-	Tracks.Empty();
+	if (Tracks.Num() > 0)
+	{
+		Tracks.Empty();
+		TracksChangedEvent.Broadcast();
+	}
 
 	// audio tracks
 	FLibvlcTrackDescription* AudioTrackDescr = FVlc::AudioGetTrackDescription(Player);
-
-	while (AudioTrackDescr != nullptr)
 	{
-		if (AudioTrackDescr->Id != -1)
+		while (AudioTrackDescr != nullptr)
 		{
-			Tracks.Add(MakeShareable(new FVlcMediaAudioTrack(Player, Tracks.Num(), AudioTrackDescr)));
+			if (AudioTrackDescr->Id != -1)
+			{
+				Tracks.Add(MakeShareable(new FVlcMediaAudioTrack(Player, Tracks.Num(), AudioTrackDescr)));
+			}
+
+			AudioTrackDescr = AudioTrackDescr->Next;
 		}
 
-		AudioTrackDescr = AudioTrackDescr->Next;
+		FVlc::TrackDescriptionListRelease(AudioTrackDescr);
 	}
-
-	FVlc::TrackDescriptionListRelease(AudioTrackDescr);
 
 	// caption tracks
 	FLibvlcTrackDescription* CaptionTrackDescr = FVlc::VideoGetSpuDescription(Player);
-
-	while (CaptionTrackDescr != nullptr)
 	{
-		if (CaptionTrackDescr->Id != -1)
+		while (CaptionTrackDescr != nullptr)
 		{
-			Tracks.Add(MakeShareable(new FVlcMediaCaptionTrack(Player, Tracks.Num(), CaptionTrackDescr)));
+			if (CaptionTrackDescr->Id != -1)
+			{
+				Tracks.Add(MakeShareable(new FVlcMediaCaptionTrack(Player, Tracks.Num(), CaptionTrackDescr)));
+			}
+
+			CaptionTrackDescr = CaptionTrackDescr->Next;
 		}
 
-		CaptionTrackDescr = CaptionTrackDescr->Next;
+		FVlc::TrackDescriptionListRelease(AudioTrackDescr);
 	}
-
-	FVlc::TrackDescriptionListRelease(AudioTrackDescr);
 
 	// video tracks
 	FLibvlcTrackDescription* VideoTrackDescr = FVlc::VideoGetTrackDescription(Player);
-
-	while (VideoTrackDescr != nullptr)
 	{
-		if (VideoTrackDescr->Id != -1)
+		while (VideoTrackDescr != nullptr)
 		{
-			Tracks.Add(MakeShareable(new FVlcMediaVideoTrack(Player, Tracks.Num(), VideoTrackDescr)));
+			if (VideoTrackDescr->Id != -1)
+			{
+				Tracks.Add(MakeShareable(new FVlcMediaVideoTrack(Player, Tracks.Num(), VideoTrackDescr)));
+			}
+
+			VideoTrackDescr = VideoTrackDescr->Next;
 		}
 
-		VideoTrackDescr = VideoTrackDescr->Next;
+		FVlc::TrackDescriptionListRelease(VideoTrackDescr);
 	}
 
-	FVlc::TrackDescriptionListRelease(VideoTrackDescr);
+	if (Tracks.Num() > 0)
+	{
+		TracksChangedEvent.Broadcast();
+	}
 }
 
 

@@ -48,11 +48,11 @@ public:
 	virtual bool IsPaused() const override;
 	virtual bool IsPlaying() const override;
 	virtual bool IsReady() const override;
-	virtual bool Open( const FString& Url ) override;
-	virtual bool Open( const TSharedRef<TArray<uint8>, ESPMode::ThreadSafe>& Buffer, const FString& OriginalUrl ) override;
-	virtual bool Seek( const FTimespan& Time ) override;
-	virtual bool SetLooping( bool Looping ) override;
-	virtual bool SetRate( float Rate ) override;
+	virtual bool Open(const FString& Url ) override;
+	virtual bool Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl) override;
+	virtual bool Seek(const FTimespan& Time) override;
+	virtual bool SetLooping(bool Looping) override;
+	virtual bool SetRate(float Rate) override;
 
 	DECLARE_DERIVED_EVENT(FWmfMediaPlayer, IMediaPlayer::FOnMediaClosed, FOnMediaClosed);
 	virtual FOnMediaClosed& OnClosed() override
@@ -103,14 +103,12 @@ private:
 
 private:
 
+
 	/** Current playback time to work around VLC's broken time tracking. */
 	float CurrentTime;
 
-	/** Buffer holding media data (for in-memory playback only). */
-	TSharedPtr<TArray<uint8>, ESPMode::ThreadSafe> Data;
-
-	/** The current read position in the media data (for in-memory playback only). */
-	SIZE_T DataPosition;
+	/** The file or memory archive to stream from (for local media only). */
+	TSharedPtr<FArchive, ESPMode::ThreadSafe> Data;
 
 	/** The desired playback rate. */
 	float DesiredRate;

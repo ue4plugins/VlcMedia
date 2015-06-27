@@ -37,7 +37,7 @@ FVlcMediaVideoTrack::~FVlcMediaVideoTrack()
 	if (Dimensions.GetMin() > 0)
 	{
 		// @todo gmp: this is probably not thread-safe
-		FVlc::VideoSetCallbacks(GetPlayer(), nullptr, nullptr, nullptr, nullptr);
+		//FVlc::VideoSetCallbacks(GetPlayer(), nullptr, nullptr, nullptr, nullptr);
 	}
 }
 

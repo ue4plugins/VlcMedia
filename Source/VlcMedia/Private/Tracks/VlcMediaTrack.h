@@ -10,7 +10,7 @@ class FVlcMediaPlayer;
  * Abstract base class for media tracks using libVLC.
  */
 class FVlcMediaTrack
-	: public IMediaTrack
+	: public IMediaStream
 {
 public:
 
@@ -31,14 +31,13 @@ public:
 
 public:
 
-	// IMediaTrack interface
+	// IMediaStream interface
 
     virtual void AddSink(const IMediaSinkRef& Sink) override;
     virtual FText GetDisplayName() const override;
-    virtual uint32 GetIndex() const override;
     virtual FString GetLanguage() const override;
     virtual FString GetName() const override;
-    virtual bool IsMutuallyExclusive(const IMediaTrackRef& Other) const override;
+    virtual bool IsMutuallyExclusive(const IMediaStreamRef& Other) const override;
     virtual bool IsProtected() const override;
     virtual void RemoveSink(const IMediaSinkRef& Sink) override;
 

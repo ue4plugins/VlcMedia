@@ -11,10 +11,10 @@
 #include "IMediaInfo.h"
 #include "IMediaPlayer.h"
 #include "IMediaSink.h"
-#include "IMediaTrack.h"
-#include "IMediaTrackAudioDetails.h"
-#include "IMediaTrackCaptionDetails.h"
-#include "IMediaTrackVideoDetails.h"
+#include "IMediaStream.h"
+#include "IMediaAudioTrack.h"
+#include "IMediaCaptionTrack.h"
+#include "IMediaVideoTrack.h"
 
 
 /* Private macros

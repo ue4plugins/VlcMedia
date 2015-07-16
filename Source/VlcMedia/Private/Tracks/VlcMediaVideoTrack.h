@@ -5,7 +5,7 @@
 
 class FVlcMediaVideoTrack
 	: public FVlcMediaTrack
-	, public IMediaTrackVideoDetails
+	, public IMediaVideoTrack
 {
 public:
 
@@ -23,28 +23,30 @@ public:
 
 public:
 
-	// IMediaTrackVideoDetails interface
+	// IMediaVideoTrack interface
 
 	virtual uint32 GetBitRate() const override;
 	virtual FIntPoint GetDimensions() const override;
 	virtual float GetFrameRate() const override;
+	virtual IMediaStream& GetStream() override;
 
 public:
 
-	// IMediaTrack interface
+	// IMediaStream interface
 
     virtual bool Disable() override;
     virtual bool Enable() override;
-	virtual const IMediaTrackAudioDetails& GetAudioDetails() const override;
-	virtual const IMediaTrackCaptionDetails& GetCaptionDetails() const override;
-	virtual EMediaTrackTypes GetType() const override;
-	virtual const IMediaTrackVideoDetails& GetVideoDetails() const override;
     virtual bool IsEnabled() const override;
 
 private:
 
+	/** Handles the buffer lock callback from VLC. */
 	static void* HandleVideoLock(void* Opaque, void** Planes);
+
+	/** Handles the buffer unlock callback from VLC. */
 	static void HandleVideoUnlock(void* Opaque, void* Picture, void* const* Planes);
+
+	/** Handles the display callback from VLC. */
 	static void HandleVideoDisplay(void* Opaque, void* Picture);
 
 private:

@@ -40,10 +40,12 @@ public:
 	// IMediaPlayer interface
 
 	virtual void Close() override;
+	virtual const TArray<IMediaAudioTrackRef>& GetAudioTracks() const override;
+	virtual const TArray<IMediaCaptionTrackRef>& GetCaptionTracks() const override;
 	virtual const IMediaInfo& GetMediaInfo() const override;
 	virtual float GetRate() const override;
 	virtual FTimespan GetTime() const override;
-	virtual const TArray<IMediaTrackRef>& GetTracks() const override;
+	virtual const TArray<IMediaVideoTrackRef>& GetVideoTracks() const override;
 	virtual bool IsLooping() const override;
 	virtual bool IsPaused() const override;
 	virtual bool IsPlaying() const override;
@@ -109,6 +111,11 @@ private:
 
 private:
 
+	/** The available audio tracks. */
+	TArray<IMediaAudioTrackRef> AudioTracks;
+
+	/** The available caption tracks. */
+	TArray<IMediaCaptionTrackRef> CaptionTracks;
 
 	/** Current playback time to work around VLC's broken time tracking. */
 	float CurrentTime;
@@ -134,8 +141,11 @@ private:
 	/** Handle to the registered ticker. */
 	FDelegateHandle TickerHandle;
 
-	/** The pseudo-tracks in the media. */
-	TArray<IMediaTrackRef> Tracks;
+	/** Collection of all available tracks. */
+	TArray<TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>> Tracks;
+
+	/** The available video tracks. */
+	TArray<IMediaVideoTrackRef> VideoTracks;
 
 	/** The LibVLC instance. */
 	FLibvlcInstance* VlcInstance;

@@ -12,7 +12,16 @@ FVlcMediaCaptionTrack::FVlcMediaCaptionTrack(FLibvlcMediaPlayer* InPlayer, uint3
 { }
 
 
-/* IMediaTrack interface
+/* IMediaCaptionTrack interface
+ *****************************************************************************/
+
+IMediaStream& FVlcMediaCaptionTrack::GetStream()
+{
+	return *this;
+}
+
+
+/* IMediaStream interface
  *****************************************************************************/
 
 bool FVlcMediaCaptionTrack::Disable()
@@ -25,32 +34,6 @@ bool FVlcMediaCaptionTrack::Enable()
 {
 	// @todo gmp: implement support for multiple active VLC tracks
 	return (FVlc::VideoSetSpu(GetPlayer(), SpuId) == 0);
-}
-
-
-const IMediaTrackAudioDetails& FVlcMediaCaptionTrack::GetAudioDetails() const
-{
-	check(false); // not an audio track
-	return (IMediaTrackAudioDetails&)*this;
-}
-
-
-const IMediaTrackCaptionDetails& FVlcMediaCaptionTrack::GetCaptionDetails() const
-{
-	return *this;
-}
-
-
-EMediaTrackTypes FVlcMediaCaptionTrack::GetType() const
-{
-	return EMediaTrackTypes::Caption;
-}
-
-
-const IMediaTrackVideoDetails& FVlcMediaCaptionTrack::GetVideoDetails() const
-{
-	check(false); // not a video track
-	return (IMediaTrackVideoDetails&)*this;
 }
 
 

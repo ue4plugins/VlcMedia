@@ -91,12 +91,27 @@ void FVlcMediaPlayer::Close()
 	Player = nullptr;
 
 	// reset fields
-	Data.Reset();
-	MediaUrl.Reset();
+	AudioTracks.Reset();
+	CaptionTracks.Reset();
+	VideoTracks.Reset();
 	Tracks.Reset();
+	MediaUrl.Reset();
+	Data.Reset();
 
 	TracksChangedEvent.Broadcast();
 	ClosedEvent.Broadcast();
+}
+
+
+const TArray<IMediaAudioTrackRef>& FVlcMediaPlayer::GetAudioTracks() const
+{
+	return AudioTracks;
+}
+
+
+const TArray<IMediaCaptionTrackRef>& FVlcMediaPlayer::GetCaptionTracks() const
+{
+	return CaptionTracks;
 }
 
 
@@ -136,9 +151,9 @@ FTimespan FVlcMediaPlayer::GetTime() const
 }
 
 
-const TArray<IMediaTrackRef>& FVlcMediaPlayer::GetTracks() const
+const TArray<IMediaVideoTrackRef>& FVlcMediaPlayer::GetVideoTracks() const
 {
-	return Tracks;
+	return VideoTracks;
 }
 
 
@@ -351,7 +366,10 @@ void FVlcMediaPlayer::InitializeTracks()
 
 	if (Tracks.Num() > 0)
 	{
-		Tracks.Empty();
+		AudioTracks.Empty();
+		CaptionTracks.Empty();
+		VideoTracks.Empty();
+
 		TracksChangedEvent.Broadcast();
 	}
 
@@ -362,7 +380,12 @@ void FVlcMediaPlayer::InitializeTracks()
 		{
 			if (AudioTrackDescr->Id != -1)
 			{
-				Tracks.Add(MakeShareable(new FVlcMediaAudioTrack(Player, Tracks.Num(), AudioTrackDescr)));
+				TSharedRef<FVlcMediaAudioTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
+					new FVlcMediaAudioTrack(Player, AudioTracks.Num(), AudioTrackDescr)
+				);
+
+				AudioTracks.Add(NewTrack);
+				Tracks.Add(NewTrack);
 			}
 
 			AudioTrackDescr = AudioTrackDescr->Next;
@@ -378,7 +401,12 @@ void FVlcMediaPlayer::InitializeTracks()
 		{
 			if (CaptionTrackDescr->Id != -1)
 			{
-				Tracks.Add(MakeShareable(new FVlcMediaCaptionTrack(Player, Tracks.Num(), CaptionTrackDescr)));
+				TSharedRef<FVlcMediaCaptionTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
+					new FVlcMediaCaptionTrack(Player, CaptionTracks.Num(), CaptionTrackDescr)
+				);
+
+				CaptionTracks.Add(NewTrack);
+				Tracks.Add(NewTrack);
 			}
 
 			CaptionTrackDescr = CaptionTrackDescr->Next;
@@ -394,7 +422,12 @@ void FVlcMediaPlayer::InitializeTracks()
 		{
 			if (VideoTrackDescr->Id != -1)
 			{
-				Tracks.Add(MakeShareable(new FVlcMediaVideoTrack(Player, Tracks.Num(), VideoTrackDescr)));
+				TSharedRef<FVlcMediaVideoTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
+					new FVlcMediaVideoTrack(Player, VideoTracks.Num(), VideoTrackDescr)
+				);
+
+				VideoTracks.Add(NewTrack);
+				Tracks.Add(NewTrack);
 			}
 
 			VideoTrackDescr = VideoTrackDescr->Next;
@@ -455,10 +488,9 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 		{
 			CurrentTime += GetRate() * DeltaTime;
 
-			for (IMediaTrackRef& Track : Tracks)
+			for (TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>& Track : Tracks)
 			{
-				FVlcMediaTrack& VlcTrack = static_cast<FVlcMediaTrack&>(*Track);
-				VlcTrack.SetTime(CurrentTime);
+				Track->SetTime(CurrentTime);
 			}
 		}
 	}

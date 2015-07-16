@@ -5,7 +5,7 @@
 
 class FVlcMediaAudioTrack
 	: public FVlcMediaTrack
-	, public IMediaTrackAudioDetails
+	, public IMediaAudioTrack
 {
 public:
 
@@ -21,24 +21,22 @@ public:
 	/** Virtual destructor. */
 	virtual ~FVlcMediaAudioTrack() { }
 
-public:
-
-	// IMediaTrack interface
-
-    virtual bool Disable() override;
-    virtual bool Enable() override;
-	virtual const IMediaTrackAudioDetails& GetAudioDetails() const override;
-	virtual const IMediaTrackCaptionDetails& GetCaptionDetails() const override;
-	virtual EMediaTrackTypes GetType() const override;
-	virtual const IMediaTrackVideoDetails& GetVideoDetails() const override;
-	virtual bool IsEnabled() const override;
 
 public:
 
-	// IMediaTrackAudioDetails interface
+	// IMediaAudioTrack interface
 
 	virtual uint32 GetNumChannels() const override;
 	virtual uint32 GetSamplesPerSecond() const override;
+	virtual IMediaStream& GetStream() override;
+
+public:
+
+	// IMediaStream interface
+
+    virtual bool Disable() override;
+    virtual bool Enable() override;
+	virtual bool IsEnabled() const override;
 
 private:
 

@@ -42,56 +42,7 @@ FVlcMediaVideoTrack::~FVlcMediaVideoTrack()
 }
 
 
-/* IMediaTrack interface
- *****************************************************************************/
-
-bool FVlcMediaVideoTrack::Disable()
-{
-	return (!IsEnabled() || (FVlc::VideoSetTrack(GetPlayer(), -1) == 0));
-}
-
-
-bool FVlcMediaVideoTrack::Enable()
-{
-	// @todo gmp: implement support for multiple active VLC tracks
-	return (FVlc::VideoSetTrack(GetPlayer(), VideoTrackId) == 0);
-}
-
-
-const IMediaTrackAudioDetails& FVlcMediaVideoTrack::GetAudioDetails() const
-{
-	check(false); // not a caption track
-	return (IMediaTrackAudioDetails&)*this;
-}
-
-
-const IMediaTrackCaptionDetails& FVlcMediaVideoTrack::GetCaptionDetails() const
-{
-	check(false); // not a caption track
-	return (IMediaTrackCaptionDetails&)*this;
-}
-
-
-EMediaTrackTypes FVlcMediaVideoTrack::GetType() const
-{
-	return EMediaTrackTypes::Video;
-}
-
-
-const IMediaTrackVideoDetails& FVlcMediaVideoTrack::GetVideoDetails() const
-{
-	return *this;
-}
-
-
-bool FVlcMediaVideoTrack::IsEnabled() const
-{
-	// @todo gmp: implement support for multiple active VLC tracks
-	return (FVlc::VideoGetTrack(GetPlayer()) == VideoTrackId);
-}
-
-
-/* IMediaTrackVideoDetails interface
+/* IMediaVideoTrack interface
  *****************************************************************************/
 
 uint32 FVlcMediaVideoTrack::GetBitRate() const
@@ -109,6 +60,35 @@ FIntPoint FVlcMediaVideoTrack::GetDimensions() const
 float FVlcMediaVideoTrack::GetFrameRate() const
 {
 	return FVlc::MediaPlayerGetFps(GetPlayer());
+}
+
+
+IMediaStream& FVlcMediaVideoTrack::GetStream()
+{
+	return *this;
+}
+
+
+/* IMediaStream interface
+ *****************************************************************************/
+
+bool FVlcMediaVideoTrack::Disable()
+{
+	return (!IsEnabled() || (FVlc::VideoSetTrack(GetPlayer(), -1) == 0));
+}
+
+
+bool FVlcMediaVideoTrack::Enable()
+{
+	// @todo gmp: implement support for multiple active VLC tracks
+	return (FVlc::VideoSetTrack(GetPlayer(), VideoTrackId) == 0);
+}
+
+
+bool FVlcMediaVideoTrack::IsEnabled() const
+{
+	// @todo gmp: implement support for multiple active VLC tracks
+	return (FVlc::VideoGetTrack(GetPlayer()) == VideoTrackId);
 }
 
 

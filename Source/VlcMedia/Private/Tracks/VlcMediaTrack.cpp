@@ -26,7 +26,7 @@ FVlcMediaTrack::FVlcMediaTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex
 }
 
 
-/* IMediaTrack interface
+/* IMediaStream interface
  *****************************************************************************/
 
 void FVlcMediaTrack::AddSink(const IMediaSinkRef& Sink)
@@ -38,12 +38,6 @@ void FVlcMediaTrack::AddSink(const IMediaSinkRef& Sink)
 FText FVlcMediaTrack::GetDisplayName() const
 {
 	return DisplayName;
-}
-
-
-uint32 FVlcMediaTrack::GetIndex() const
-{
-	return TrackIndex;
 }
 
 
@@ -59,11 +53,11 @@ FString FVlcMediaTrack::GetName() const
 }
 
 
-bool FVlcMediaTrack::IsMutuallyExclusive(const IMediaTrackRef& Other) const
+bool FVlcMediaTrack::IsMutuallyExclusive(const IMediaStreamRef& Other) const
 {
 	// for now we only allow one type of track at a time
 	// @todo gmp: implement support for multiple active VLC tracks
-	return ((GetIndex() != Other->GetIndex()) && (GetType() == Other->GetType()));
+	return (&Other.Get() != this);
 }
 
 

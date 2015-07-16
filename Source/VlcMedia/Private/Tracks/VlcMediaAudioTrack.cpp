@@ -12,7 +12,28 @@ FVlcMediaAudioTrack::FVlcMediaAudioTrack(FLibvlcMediaPlayer* InPlayer, uint32 In
 { }
 
 
-/* IMediaTrack interface
+/* IMediaAudioTrack interface
+ *****************************************************************************/
+
+uint32 FVlcMediaAudioTrack::GetNumChannels() const
+{
+	return 1;
+}
+
+
+uint32 FVlcMediaAudioTrack::GetSamplesPerSecond() const
+{
+	return 0;
+}
+
+
+IMediaStream& FVlcMediaAudioTrack::GetStream()
+{
+	return *this;
+}
+
+
+/* IMediaStream interface
  *****************************************************************************/
 
 bool FVlcMediaAudioTrack::Disable()
@@ -28,49 +49,8 @@ bool FVlcMediaAudioTrack::Enable()
 }
 
 
-const IMediaTrackAudioDetails& FVlcMediaAudioTrack::GetAudioDetails() const
-{
-	return *this;
-}
-
-
-const IMediaTrackCaptionDetails& FVlcMediaAudioTrack::GetCaptionDetails() const
-{
-	check(false); // not a caption track
-	return (IMediaTrackCaptionDetails&)*this;
-}
-
-
-EMediaTrackTypes FVlcMediaAudioTrack::GetType() const
-{
-	return EMediaTrackTypes::Audio;
-}
-
-
-const IMediaTrackVideoDetails& FVlcMediaAudioTrack::GetVideoDetails() const
-{
-	check(false); // not an video track
-	return (IMediaTrackVideoDetails&)*this;
-}
-
-
 bool FVlcMediaAudioTrack::IsEnabled() const
 {
 	// @todo gmp: implement support for multiple active VLC tracks
 	return (FVlc::AudioGetTrack(GetPlayer()) == AudioTrackId);
-}
-
-
-/* IMediaTrackAudioDetails interface
- *****************************************************************************/
-
-uint32 FVlcMediaAudioTrack::GetNumChannels() const
-{
-	return 1;
-}
-
-
-uint32 FVlcMediaAudioTrack::GetSamplesPerSecond() const
-{
-	return 0;
 }

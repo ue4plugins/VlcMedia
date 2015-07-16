@@ -216,7 +216,7 @@ private:
 		switch (Level)
 		{
 		case ELibvlcLogLevel::Debug:
-			UE_LOG(LogVlcMedia, Verbose, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			UE_LOG(LogVlcMedia, VeryVerbose, TEXT("%s"), ANSI_TO_TCHAR(Message));
 			break;
 
 		case ELibvlcLogLevel::Error:
@@ -224,7 +224,7 @@ private:
 			break;
 
 		case ELibvlcLogLevel::Notice:
-			UE_LOG(LogVlcMedia, Log, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			UE_LOG(LogVlcMedia, Verbose, TEXT("%s"), ANSI_TO_TCHAR(Message));
 			break;
 
 		case ELibvlcLogLevel::Warning:

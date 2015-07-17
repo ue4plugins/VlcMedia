@@ -30,6 +30,11 @@ public:
 	virtual float GetFrameRate() const override;
 	virtual IMediaStream& GetStream() override;
 
+#if WITH_ENGINE
+	virtual void BindTexture(class FRHITexture* Texture) override;
+	virtual void UnbindTexture(class FRHITexture* Texture) override;
+#endif
+
 public:
 
 	// IMediaStream interface

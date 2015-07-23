@@ -13,12 +13,14 @@ namespace UnrealBuildTool.Rules
             DynamicallyLoadedModuleNames.AddRange(
 				new string[] {
 					"Media",
+                    "Settings",
 				}
 			);
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[] {
 					"Core",
+                    "CoreUObject",
                     "Projects",
                     "RenderCore",
 				}
@@ -27,6 +29,7 @@ namespace UnrealBuildTool.Rules
 			PrivateIncludePathModuleNames.AddRange(
 				new string[] {
 					"Media",
+                    "Settings",
 				}
 			);
 
@@ -34,6 +37,7 @@ namespace UnrealBuildTool.Rules
 				new string[] {
 					"VlcMedia/Private",
                     "VlcMedia/Private/Player",
+                    "VlcMedia/Private/Shared",
                     "VlcMedia/Private/Tracks",
                     "VlcMedia/Private/Vlc",
 				}

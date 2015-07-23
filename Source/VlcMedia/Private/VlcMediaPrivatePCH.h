@@ -7,7 +7,7 @@
  *****************************************************************************/
 
 #include "Core.h"
-
+#include "CoreUObject.h"
 #include "IMediaInfo.h"
 #include "IMediaPlayer.h"
 #include "IMediaSink.h"
@@ -32,3 +32,4 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVlcMedia, Log, All);
 #include "VlcMediaCaptionTrack.h"
 #include "VlcMediaVideoTrack.h"
 #include "VlcMediaPlayer.h"
+#include "VlcMediaSettings.h"

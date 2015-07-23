@@ -3,6 +3,8 @@
 #include "VlcMediaPrivatePCH.h"
 #include "IMediaModule.h"
 #include "IMediaPlayerFactory.h"
+#include "ISettingsModule.h"
+#include "ISettingsSection.h"
 #include "ModuleInterface.h"
 #include "ModuleManager.h"
 
@@ -50,10 +52,23 @@ public:
 			return;
 		}
 
+		// register settings
+		ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+
+		if (SettingsModule != nullptr)
+		{
+			ISettingsSectionPtr SettingsSection = SettingsModule->RegisterSettings("Project", "Plugins", "VlcMedia",
+				LOCTEXT("VlcMediaSettingsName", "VLC Media"),
+				LOCTEXT("VlcMediaSettingsDescription", "Configure the VLC Media plug-in."),
+				GetMutableDefault<UVlcMediaSettings>()
+			);
+		}
+
 		// create LibVLC instance
 		const ANSICHAR* Args[] =
 		{
 			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
+			//"--dummy-quiet",
 			"--intf", "dummy",
 			"--no-audio",
 			"--no-disable-screensaver",
@@ -163,6 +178,14 @@ public:
 
 		// shut down LibVLC
 		FVlc::Shutdown();
+
+		// unregister settings
+		ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+
+		if (SettingsModule != nullptr)
+		{
+			SettingsModule->UnregisterSettings("Project", "Plugins", "VlcMedia");
+		}
 	}
 
 public:
@@ -209,6 +232,11 @@ private:
 	/** Handles log messages from LibVLC. */
 	static void HandleVlcLog(void* /*Data*/, ELibvlcLogLevel Level, FLibvlcLog* Context, const char* Format, va_list Args)
 	{
+		if (!GetDefault<UVlcMediaSettings>()->EnableLog)
+		{
+			return;
+		}
+
 		ANSICHAR Message[1024];
 
 		FCStringAnsi::GetVarArgs(Message, ARRAY_COUNT(Message), ARRAY_COUNT(Message) - 1, Format, Args);

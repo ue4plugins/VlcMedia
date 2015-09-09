@@ -31,8 +31,8 @@ public:
 	virtual IMediaStream& GetStream() override;
 
 #if WITH_ENGINE
-	virtual void BindTexture(class FRHITexture* Texture) override;
-	virtual void UnbindTexture(class FRHITexture* Texture) override;
+	virtual void AddBoundTexture(class FRHITexture* Texture) override;
+	virtual void RemoveBoundTexture(class FRHITexture* Texture) override;
 #endif
 
 public:

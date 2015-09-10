@@ -11,6 +11,7 @@
 	"Description" : "Implements a media player using the Video LAN Codec (libvlc).",
 	"Category" : "Media Players",
 	"EnabledByDefault" : true,
+	"IsBetaVersion": true,
 
 	"Modules" :
 	[

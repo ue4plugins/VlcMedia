@@ -9,7 +9,7 @@
 	"DocsURL" : "https://www.github.com/HeadcrashIndustries/ue4-VlcMedia",
 	"EngineVersion" : "4.2.0",
 	"Description" : "Implements a media player using the Video LAN Codec (libvlc).",
-	"Category" : "Media.Players",
+	"Category" : "Media Players",
 	"EnabledByDefault" : true,
 
 	"Modules" :

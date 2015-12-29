@@ -10,7 +10,8 @@ This plug-in is still under development and likely has a lot of remaining issues
 
 ## Supported Platforms
 
-The following platforms have been built and tested:
+This plug-in was last built against **Unreal Engine 4.11 Preview 1** and tested
+against the following platforms:
 
 - ~~Linux~~
 - ~~Mac~~

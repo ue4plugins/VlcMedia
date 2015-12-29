@@ -69,7 +69,7 @@ IMediaStream& FVlcMediaVideoTrack::GetStream()
 }
 
 
-#if WITH_ENGINE
+#if 0//WITH_ENGINE
 void FVlcMediaVideoTrack::BindTexture(class FRHITexture* Texture)
 {
 	// @todo vlc: gmp: implement texture binding

@@ -98,8 +98,8 @@ void FVlcMediaPlayer::Close()
 	MediaUrl.Reset();
 	Data.Reset();
 
-	TracksChangedEvent.Broadcast();
-	ClosedEvent.Broadcast();
+	MediaEvent.Broadcast(EMediaEvent::TracksChanged);
+	MediaEvent.Broadcast(EMediaEvent::MediaClosed);
 }
 
 
@@ -344,7 +344,7 @@ bool FVlcMediaPlayer::InitializeMediaPlayer(FLibvlcMedia* Media)
 	FVlc::MediaPlayerPlay(Player);
 	FVlc::MediaRelease(Media);
 
-	OpenedEvent.Broadcast(MediaUrl);
+	MediaEvent.Broadcast(EMediaEvent::MediaOpened);
 
 	return true;
 }
@@ -370,7 +370,7 @@ void FVlcMediaPlayer::InitializeTracks()
 		CaptionTracks.Empty();
 		VideoTracks.Empty();
 
-		TracksChangedEvent.Broadcast();
+		MediaEvent.Broadcast(EMediaEvent::TracksChanged);
 	}
 
 	// audio tracks
@@ -438,7 +438,7 @@ void FVlcMediaPlayer::InitializeTracks()
 
 	if (Tracks.Num() > 0)
 	{
-		TracksChangedEvent.Broadcast();
+		MediaEvent.Broadcast(EMediaEvent::TracksChanged);
 	}
 }
 
@@ -473,6 +473,8 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 				{
 					SetRate(DesiredRate);
 				}
+
+				MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
 				break;
 
 			case ELibvlcEventType::MediaPlayerPlaying:

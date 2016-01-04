@@ -56,22 +56,10 @@ public:
 	virtual bool SetLooping(bool Looping) override;
 	virtual bool SetRate(float Rate) override;
 
-	DECLARE_DERIVED_EVENT(FWmfMediaPlayer, IMediaPlayer::FOnMediaClosed, FOnMediaClosed);
-	virtual FOnMediaClosed& OnClosed() override
+	DECLARE_DERIVED_EVENT(FVlcMediaPlayer, IMediaPlayer::FOnMediaEvent, FOnMediaEvent);
+	virtual FOnMediaEvent& OnMediaEvent() override
 	{
-		return ClosedEvent;
-	}
-
-	DECLARE_DERIVED_EVENT(FWmfMediaPlayer, IMediaPlayer::FOnMediaOpened, FOnMediaOpened);
-	virtual FOnMediaOpened& OnOpened() override
-	{
-		return OpenedEvent;
-	}
-
-	DECLARE_DERIVED_EVENT(FWmfMediaPlayer, IMediaPlayer::FOnTracksChanged, FOnTracksChanged);
-	virtual FOnTracksChanged& OnTracksChanged() override
-	{
-		return TracksChangedEvent;
+		return MediaEvent;
 	}
 
 protected:
@@ -129,7 +117,10 @@ private:
 	/** Collection of received player events. */
 	TQueue<ELibvlcEventType, EQueueMode::Mpsc> Events;
 
-	// Currently opened media.
+	/** Holds an event delegate that is invoked when a media event occurred. */
+	FOnMediaEvent MediaEvent;
+
+	/** Currently opened media. */
 	FString MediaUrl;
 
 	/** The VLC media player object. */
@@ -149,15 +140,4 @@ private:
 
 	/** The LibVLC instance. */
 	FLibvlcInstance* VlcInstance;
-
-private:
-
-	/** Holds an event delegate that is invoked when media has been closed. */
-	FOnMediaClosed ClosedEvent;
-
-	/** Holds an event delegate that is invoked when media has been opened. */
-	FOnMediaOpened OpenedEvent;
-
-	/** Holds an event delegate that is invoked when the media tracks have changed. */
-	FOnTracksChanged TracksChangedEvent;
 };

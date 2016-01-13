@@ -79,6 +79,9 @@ private:
 	/** The collection of registered media sinks. */
     TArray<IMediaSinkWeakPtr> Sinks;
 
+	/** Critical section for synchronizing access to sinks. */
+	FCriticalSection SinksLock;
+
 	/** The track's index number. */
     uint32 TrackIndex;
 };

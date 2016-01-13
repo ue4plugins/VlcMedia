@@ -31,6 +31,7 @@ FVlcMediaTrack::FVlcMediaTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex
 
 void FVlcMediaTrack::AddSink(const IMediaSinkRef& Sink)
 {
+	FScopeLock Lock(&SinksLock);
 	Sinks.AddUnique(IMediaSinkWeakPtr(Sink));
 }
 
@@ -69,6 +70,7 @@ bool FVlcMediaTrack::IsProtected() const
 
 void FVlcMediaTrack::RemoveSink(const IMediaSinkRef& Sink)
 {
+	FScopeLock Lock(&SinksLock);
 	Sinks.RemoveSingle(IMediaSinkWeakPtr(Sink));
 }
 
@@ -78,6 +80,8 @@ void FVlcMediaTrack::RemoveSink(const IMediaSinkRef& Sink)
 
 void FVlcMediaTrack::ProcessMediaSample(const void* SampleBuffer, uint32 SampleSize, FTimespan SampleDuration)
 {
+	FScopeLock Lock(&SinksLock);
+
 	for (IMediaSinkWeakPtr& SinkPtr : Sinks)
 	{
 		IMediaSinkPtr Sink = SinkPtr.Pin();

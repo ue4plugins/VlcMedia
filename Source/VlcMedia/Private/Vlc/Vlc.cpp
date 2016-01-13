@@ -45,6 +45,7 @@ VLC_DEFINE(LogSet);
 VLC_DEFINE(LogUnset);
 
 VLC_DEFINE(MediaEventManager);
+VLC_DEFINE(MediaGetStats);
 VLC_DEFINE(MediaNewCallbacks);
 VLC_DEFINE(MediaNewLocation);
 VLC_DEFINE(MediaNewPath);
@@ -159,6 +160,7 @@ bool FVlc::Initialize()
 	VLC_IMPORT(libvlc_log_unset, LogUnset);
 
 	VLC_IMPORT(libvlc_media_event_manager, MediaEventManager);
+	VLC_IMPORT(libvlc_media_get_stats, MediaGetStats);
 	VLC_IMPORT(libvlc_media_new_callbacks, MediaNewCallbacks);
 	VLC_IMPORT(libvlc_media_new_location, MediaNewLocation);
 	VLC_IMPORT(libvlc_media_new_path, MediaNewPath);

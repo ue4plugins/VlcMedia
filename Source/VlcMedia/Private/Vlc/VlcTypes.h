@@ -301,6 +301,29 @@ struct FLibvlcEvent
 
 
 /**
+ * Structure for VLC media statistics.
+ */
+struct FLibvlcMediaStats
+{
+	int32 ReadBytes;
+	float InputBitrate;
+	int32 DemuxReadBytes;
+	float DemuxBitrate;
+	int32 DemuxCorrupted;
+	int32 DemuxDiscontinuity;
+	int32 DecodedVideo;
+	int32 DecodedAudio;
+	int32 DisplayedPictures;
+	int32 LostPictures;
+	int32 PlayedAbuffers;
+	int32 LostAbuffers;
+	int32 SentPackets;
+	int32 SentBytes;
+	float SendBitrate;
+};
+
+
+/**
  * Structure for VLC media tracks.
  */
 struct FLibvlcMediaTrack

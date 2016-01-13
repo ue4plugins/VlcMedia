@@ -39,7 +39,7 @@ public:
 
 		if (MediaModule == nullptr)
 		{
-			UE_LOG(LogVlcMedia, Warning, TEXT("VLC: Failed to load Media module"));
+			UE_LOG(LogVlcMedia, Warning, TEXT("Failed to load Media module"));
 
 			return;
 		}

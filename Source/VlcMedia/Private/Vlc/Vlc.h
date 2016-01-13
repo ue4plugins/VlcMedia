@@ -31,6 +31,7 @@ public:
 	static FLibvlcLogUnsetProc LogUnset;
 
 	static FLibvlcMediaEventManagerProc MediaEventManager;
+	static FLibvlcMediaGetStatsProc MediaGetStats;
 	static FLibvlcMediaNewCallbacksProc MediaNewCallbacks;
 	static FLibvlcMediaNewLocationProc MediaNewLocation;
 	static FLibvlcMediaNewPathProc MediaNewPath;

@@ -34,6 +34,7 @@ typedef int (*FLibvlcMediaSeekCb)(void* /*Opaque*/, uint64 /*Offset*/);
 
 // media
 typedef FLibvlcEventManager* (*FLibvlcMediaEventManagerProc)(FLibvlcMedia* /*Media*/);
+typedef int (*FLibvlcMediaGetStatsProc)(FLibvlcMedia* /*Media*/, FLibvlcMediaStats* /*Stats*/);
 
 typedef FLibvlcMedia* (*FLibvlcMediaNewCallbacksProc)(
 	FLibvlcInstance* /*Instance*/,
@@ -48,8 +49,8 @@ typedef FLibvlcMedia* (*FLibvlcMediaNewPathProc)(FLibvlcInstance* /*Instance*/, 
 typedef void (*FLibvlcMediaParseAsyncProc)(FLibvlcMedia* /*Media*/);
 typedef void (*FLibvlcMediaReleaseProc)(FLibvlcMedia* /*Media*/);
 typedef void (*FLibvlcMediaRetainProc)(FLibvlcMedia* /*Media*/);
-typedef uint32(*FLibvlcMediaTracksGetProc)(FLibvlcMedia* /*Media*/, FLibvlcMediaTrack*** /*OutTracks*/);
-typedef void(*FLibvlcMediaTracksReleaseProc)(FLibvlcMediaTrack** /*Tracks*/, uint32 /*Count*/);
+typedef uint32 (*FLibvlcMediaTracksGetProc)(FLibvlcMedia* /*Media*/, FLibvlcMediaTrack*** /*OutTracks*/);
+typedef void (*FLibvlcMediaTracksReleaseProc)(FLibvlcMediaTrack** /*Tracks*/, uint32 /*Count*/);
 
 // media player
 typedef FLibvlcEventManager* (*FLibvlcMediaPlayerEventManagerProc)(FLibvlcMediaPlayer* /*Player*/);

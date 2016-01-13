@@ -19,7 +19,7 @@ public:
     FVlcMediaAudioTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex, FLibvlcTrackDescription* Descr);
 
 	/** Virtual destructor. */
-	virtual ~FVlcMediaAudioTrack() { }
+	virtual ~FVlcMediaAudioTrack();
 
 
 public:
@@ -40,6 +40,35 @@ public:
 
 private:
 
+	/** Handles audio cleanup callbacks from VLC. */
+	static void HandleAudioCleanup(void* Opaque);
+
+	/** Handles audio drain callbacks from VLC. */
+	static void HandleAudioDrain(void* Opaque);
+
+	/** Handles audio flush callbacks from VLC. */
+	static void HandleAudioFlush(void* Opaque, int64 Timestamp);
+
+	/** Handles audio pause callbacks from VLC. */
+	static void HandleAudioPause(void* Opaque, int64 Timestamp);
+
+	/** Handles audio play callbacks from VLC. */
+	static void HandleAudioPlay(void* Opaque, void* Samples, uint32 Count, int64 Timestamp);
+
+	/** Handles audio resume callbacks from VLC. */
+	static void HandleAudioResume(void* Opaque, int64 Timestamp);
+
+	/** Handles audio setup callbacks from VLC. */
+	static int HandleAudioSetup(void** Opaque, ANSICHAR* Format, uint32* Rate, uint32* Channels);
+
+private:
+
 	/** The audio track's ID. */
 	int32 AudioTrackId;
+
+	/** The number of channels. */
+	uint32 NumChannels;
+
+	/** The number of samples per second. */
+	uint32 SamplesPerSecond;
 };

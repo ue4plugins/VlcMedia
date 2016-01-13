@@ -81,6 +81,9 @@ VLC_DEFINE(MediaPlayerSetPause);
 VLC_DEFINE(MediaPlayerStop);
 VLC_DEFINE(MediaPlayerWillPlay);
 
+VLC_DEFINE(AudioSetCallbacks);
+VLC_DEFINE(AudioSetFormat);
+VLC_DEFINE(AudioSetFormatCallbacks);
 VLC_DEFINE(AudioGetTrack);
 VLC_DEFINE(AudioSetTrack);
 
@@ -196,6 +199,9 @@ bool FVlc::Initialize()
 	VLC_IMPORT(libvlc_media_player_stop, MediaPlayerStop);
 	VLC_IMPORT(libvlc_media_player_will_play, MediaPlayerWillPlay);
 
+	VLC_IMPORT(libvlc_audio_set_callbacks, AudioSetCallbacks);
+	VLC_IMPORT(libvlc_audio_set_format, AudioSetFormat);
+	VLC_IMPORT(libvlc_audio_set_format_callbacks, AudioSetFormatCallbacks);
 	VLC_IMPORT(libvlc_audio_get_track, AudioGetTrack);
 	VLC_IMPORT(libvlc_audio_set_track, AudioSetTrack);
 

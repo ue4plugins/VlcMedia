@@ -73,16 +73,15 @@ public:
 		const ANSICHAR* Args[] =
 		{
 			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
-			//"--dummy-quiet",
+			"--aout", "dummy",
 			"--intf", "dummy",
-			"--no-audio",
 			"--no-disable-screensaver",
+//			"--no-osd",
 			"--no-snapshot-preview",
 			"--no-stats",
 			"--no-video-title-show",
 			"--no-xlib",
-			//"--no-inhibit",
-			//"--quiet",
+//			"--text-renderer", "dummy",
 			"--vout", "dummy",
 		};
 

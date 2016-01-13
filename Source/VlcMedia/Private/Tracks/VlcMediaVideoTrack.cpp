@@ -25,7 +25,8 @@ FVlcMediaVideoTrack::FVlcMediaVideoTrack(FLibvlcMediaPlayer* InPlayer, uint32 In
 			&FVlcMediaVideoTrack::HandleVideoLock,
 			&FVlcMediaVideoTrack::HandleVideoUnlock,
 			&FVlcMediaVideoTrack::HandleVideoDisplay,
-			this);
+			this
+		);
 
 		FVlc::VideoSetFormat(InPlayer, "RV32", Dimensions.X, Dimensions.Y, Dimensions.X * 4);
 	}

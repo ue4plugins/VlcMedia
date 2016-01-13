@@ -67,6 +67,9 @@ public:
 	static FLibvlcMediaPlayerStopProc MediaPlayerStop;
 	static FLibvlcMediaPlayerWillPlayProc MediaPlayerWillPlay;
 
+	static FLibvlcAudioSetCallbacksProc AudioSetCallbacks;
+	static FLibvlcAudioSetFormatProc AudioSetFormat;
+	static FLibvlcAudioSetFormatCallbacksProc AudioSetFormatCallbacks;
 	static FLibvlcAudioGetTrackProc AudioGetTrack;
 	static FLibvlcAudioSetTrackProc AudioSetTrack;
 

@@ -294,8 +294,6 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 		return false;
 	}
 
-	DesiredRate = Rate;
-
 	if (FMath::IsNearlyZero(Rate))
 	{
 		if (IsPlaying())
@@ -310,8 +308,13 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 	}
 	else if (!IsPlaying())
 	{
-		FVlc::MediaPlayerPlay(Player);
+		if (FVlc::MediaPlayerPlay(Player) == -1)
+		{
+			return false;
+		}
 	}
+
+	DesiredRate = Rate;
 
 	return true;
 }

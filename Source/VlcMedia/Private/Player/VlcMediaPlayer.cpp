@@ -449,13 +449,6 @@ void FVlcMediaPlayer::InitializeTracks()
 
 bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 {
-	if (Tracks.Num() == 0)
-	{
-		InitializeTracks();
-
-		return true;
-	}
-
 	// process events
 	ELibvlcEventType Event;
 
@@ -464,18 +457,20 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 		switch (Event)
 		{
 		case ELibvlcEventType::MediaParsedChanged:
-			//MediaPlayer->InitializeTracks();
+			InitializeTracks();
 			break;
 
 		case ELibvlcEventType::MediaPlayerEndReached:
+			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
+
+			// this causes a short delay, but there seems to be no other way.
+			// looping via VLC media list players is also broken. sadness.
 			FVlc::MediaPlayerStop(Player);
 
 			if (ShouldLoop && (DesiredRate != 0.0f))
 			{
 				SetRate(DesiredRate);
 			}
-
-			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
 			break;
 
 		case ELibvlcEventType::MediaPlayerPlaying:

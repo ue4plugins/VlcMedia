@@ -215,9 +215,9 @@ public:
 	{
 		const FString Extension = FPaths::GetExtension(Url);
 
-		if (!Extension.IsEmpty())
+		if (!Extension.IsEmpty() && SupportedFileTypes.Contains(Extension))
 		{
-			return SupportedFileTypes.Contains(Extension);
+			return true;
 		}
 
 		for (const FString& Scheme : SupportedUriSchemes)

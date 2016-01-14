@@ -55,7 +55,7 @@ FTimespan FVlcMediaPlayer::GetDuration() const
 
 TRange<float> FVlcMediaPlayer::GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const
 {
-	return TRange<float>(1.0f);
+	return TRange<float>(0.0f, 10.0f);
 }
 
 
@@ -67,7 +67,7 @@ FString FVlcMediaPlayer::GetUrl() const
 
 bool FVlcMediaPlayer::SupportsRate(float Rate, bool Unthinned) const
 {
-	return (Rate == 1.0f);
+	return (Rate >= 0.0f) && (Rate <= 10.f);
 }
 
 
@@ -502,7 +502,7 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 
 	// interpolate time (VLC's timer is low-res)
 	double PlatformSeconds = FPlatformTime::Seconds();
-	CurrentTime += FTimespan::FromSeconds(PlatformSeconds - LastPlatformSeconds);
+	CurrentTime += FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
 	LastPlatformSeconds = PlatformSeconds;
 
 	// update tracks

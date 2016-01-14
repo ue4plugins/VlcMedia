@@ -29,9 +29,9 @@ Epic is in the process of adding plug-in support to monolithic builds, but there
 A relatively recent version of libvlc is required. The latest stable release (currently 2.2.1) is not sufficient.
 
 For Mac and Windows, the following nightly builds are currently included:
-* Mac: vlc-3.0.0-x86_64-20150618-0108
-* Win32: vlc-3.0.0-git-20150605-0002-win32
-* Win64: vlc-3.0.0-git-20150605-0403-win64
+* Mac: vlc-3.0.0-x86_64-20160113-0109
+* Win32: vlc-3.0.0-git-20151221-0002-win32
+* Win64: vlc-3.0.0-git-20151220-0402-win64
 
 Nightly builds can be downloaded from the VideoLAN web site (see below).
 

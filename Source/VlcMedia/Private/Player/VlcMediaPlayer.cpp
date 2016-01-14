@@ -55,6 +55,11 @@ FTimespan FVlcMediaPlayer::GetDuration() const
 
 TRange<float> FVlcMediaPlayer::GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const
 {
+	if (Direction == EMediaPlaybackDirections::Reverse)
+	{
+		return TRange<float>(0.0f);
+	}
+
 	return TRange<float>(0.0f, 10.0f);
 }
 

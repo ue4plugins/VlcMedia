@@ -167,7 +167,14 @@ bool FVlcMediaPlayer::IsPaused() const
 
 bool FVlcMediaPlayer::IsPlaying() const
 {
-	return ((Player != nullptr) && (FVlc::MediaPlayerGetState(Player) == ELibvlcState::Playing));
+	if (Player == nullptr)
+	{
+		return false;
+	}
+
+	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
+
+	return (State == ELibvlcState::Buffering) || (State == ELibvlcState::Playing);
 }
 
 
@@ -180,7 +187,7 @@ bool FVlcMediaPlayer::IsReady() const
 
 	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
 
-	return ((State >= ELibvlcState::Playing) && (State < ELibvlcState::Error));
+	return (State != ELibvlcState::Opening) && (State != ELibvlcState::Buffering) && (State != ELibvlcState::Error);
 }
 
 
@@ -336,8 +343,6 @@ bool FVlcMediaPlayer::InitializeMediaPlayer(FLibvlcMedia* Media)
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPlaying, &FVlcMediaPlayer::HandleEventCallback, this);
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPositionChanged, &FVlcMediaPlayer::HandleEventCallback, this);
 
-	//FVlc::MediaParseAsync(Media);
-	FVlc::MediaPlayerPlay(Player);
 	FVlc::MediaRelease(Media);
 
 	MediaEvent.Broadcast(EMediaEvent::MediaOpened);

@@ -62,6 +62,7 @@ typedef void (*FLibvlcMediaPlayerRetainProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef void (*FLibvlcMediaPlayerSetMediaProc)(FLibvlcMediaPlayer* /*Player*/, FLibvlcMedia* /*Media*/);
 
 // media player status
+typedef int32 (*FLibvlcMediaPlayerCanPauseProc)(const FLibvlcMediaPlayer* /*Player*/);
 typedef float (*FLibvlcMediaPlayerGetFpsProc)(const FLibvlcMediaPlayer* /*Player*/);
 typedef int64 (*FLibvlcMediaPlayerGetLengthProc)(const FLibvlcMediaPlayer* /*Player*/);
 typedef float (*FLibvlcMediaPlayerGetPositionProc)(const FLibvlcMediaPlayer* /*Player*/);

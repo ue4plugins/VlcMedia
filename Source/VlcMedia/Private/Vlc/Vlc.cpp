@@ -63,6 +63,7 @@ VLC_DEFINE(MediaPlayerRelease);
 VLC_DEFINE(MediaPlayerRetain);
 VLC_DEFINE(MediaPlayerSetMedia);
 
+VLC_DEFINE(MediaPlayerCanPause);
 VLC_DEFINE(MediaPlayerGetFps);
 VLC_DEFINE(MediaPlayerGetLength);
 VLC_DEFINE(MediaPlayerGetPosition);
@@ -181,6 +182,7 @@ bool FVlc::Initialize()
 	VLC_IMPORT(libvlc_media_player_retain, MediaPlayerRetain);
 	VLC_IMPORT(libvlc_media_player_set_media, MediaPlayerSetMedia);
 
+	VLC_IMPORT(libvlc_media_player_can_pause, MediaPlayerCanPause);
 	VLC_IMPORT(libvlc_media_player_get_fps, MediaPlayerGetFps);
 	VLC_IMPORT(libvlc_media_player_get_length, MediaPlayerGetLength);
 	VLC_IMPORT(libvlc_media_player_get_position, MediaPlayerGetPosition);

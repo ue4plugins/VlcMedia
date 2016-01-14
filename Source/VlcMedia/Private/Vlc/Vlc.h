@@ -49,6 +49,7 @@ public:
 	static FLibvlcMediaPlayerRetainProc MediaPlayerRetain;
 	static FLibvlcMediaPlayerSetMediaProc MediaPlayerSetMedia;
 
+	static FLibvlcMediaPlayerCanPauseProc MediaPlayerCanPause;
 	static FLibvlcMediaPlayerGetFpsProc MediaPlayerGetFps;
 	static FLibvlcMediaPlayerGetLengthProc MediaPlayerGetLength;
 	static FLibvlcMediaPlayerGetPositionProc MediaPlayerGetPosition;

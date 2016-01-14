@@ -300,6 +300,11 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 	{
 		if (IsPlaying())
 		{
+			if (FVlc::MediaPlayerCanPause(Player) == 0)
+			{
+				return false;
+			}
+
 			FVlc::MediaPlayerPause(Player);
 		}
 	}

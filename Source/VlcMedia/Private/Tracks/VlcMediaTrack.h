@@ -24,7 +24,7 @@ public:
 
 public:
 
-	void SetTime(float Time)
+	void SetTime(FTimespan Time)
 	{
 		LastTime = Time;
 	}
@@ -68,7 +68,7 @@ private:
 	FText DisplayName;
 
 	/** Last known playback time as a workaround for VLC's broken time management. */
-	float LastTime;
+	FTimespan LastTime;
 
 	/** The track's name. */
 	FString Name;

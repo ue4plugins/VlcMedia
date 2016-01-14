@@ -10,7 +10,7 @@
  *****************************************************************************/
 
 FVlcMediaTrack::FVlcMediaTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex, FLibvlcTrackDescription* Descr)
-    : LastTime(0.0f)
+    : LastTime(FTimespan::Zero())
 	, Name(ANSI_TO_TCHAR(Descr->Name))
 	, Player(InPlayer)
 	, TrackIndex(InTrackIndex)
@@ -88,7 +88,7 @@ void FVlcMediaTrack::ProcessMediaSample(const void* SampleBuffer, uint32 SampleS
 
 		if (Sink.IsValid())
 		{
-			Sink->ProcessMediaSample(SampleBuffer, SampleSize, SampleDuration, FTimespan::FromSeconds(LastTime));
+			Sink->ProcessMediaSample(SampleBuffer, SampleSize, SampleDuration, LastTime);
 		}
 	}
 }

@@ -106,7 +106,7 @@ private:
 	TArray<IMediaCaptionTrackRef> CaptionTracks;
 
 	/** Current playback time to work around VLC's broken time tracking. */
-	float CurrentTime;
+	FTimespan CurrentTime;
 
 	/** The file or memory archive to stream from (for local media only). */
 	TSharedPtr<FArchive, ESPMode::ThreadSafe> Data;
@@ -116,6 +116,9 @@ private:
 
 	/** Collection of received player events. */
 	TQueue<ELibvlcEventType, EQueueMode::Mpsc> Events;
+
+	/** Platform time seconds at the last playback position change. */
+	double LastPlatformSeconds;
 
 	/** Holds an event delegate that is invoked when a media event occurred. */
 	FOnMediaEvent MediaEvent;

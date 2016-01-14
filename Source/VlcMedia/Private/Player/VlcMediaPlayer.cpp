@@ -13,8 +13,9 @@
 
 
 FVlcMediaPlayer::FVlcMediaPlayer(FLibvlcInstance* InVlcInstance)
-	: CurrentTime(0.0f)
+	: CurrentTime(FTimespan::Zero())
 	, DesiredRate(0.0)
+	, LastPlatformSeconds(0.0)
 	, Player(nullptr)
 	, ShouldLoop(false)
 	, VlcInstance(InVlcInstance)
@@ -41,7 +42,14 @@ FTimespan FVlcMediaPlayer::GetDuration() const
 		return FTimespan::Zero();
 	}
 
-	return FTimespan::FromMilliseconds(FVlc::MediaPlayerGetLength(Player));
+	int64 Length = FVlc::MediaPlayerGetLength(Player);
+
+	if (Length <= 0)
+	{
+		return GetTime();
+	}
+
+	return FTimespan::FromMilliseconds(Length);
 }
 
 
@@ -93,6 +101,7 @@ void FVlcMediaPlayer::Close()
 	// reset fields
 	AudioTracks.Reset();
 	CaptionTracks.Reset();
+	CurrentTime = FTimespan::Zero();
 	VideoTracks.Reset();
 	Tracks.Reset();
 	MediaUrl.Reset();
@@ -134,20 +143,7 @@ float FVlcMediaPlayer::GetRate() const
 
 FTimespan FVlcMediaPlayer::GetTime() const 
 {
-	if (Player == nullptr)
-	{
-		return FTimespan::Zero();
-	}
-
-	return FTimespan::FromSeconds(CurrentTime);
-	/*int64 Time = FMath::Min<int64>(0, FVlc::MediaPlayerGetTime(Player));
-
-	if (Time < 0)
-	{
-		return FTimespan::Zero();
-	}
-
-	return FTimespan::FromMilliseconds(Time);*/
+	return CurrentTime;
 }
 
 
@@ -267,7 +263,6 @@ bool FVlcMediaPlayer::Seek(const FTimespan& Time)
 	}
 
 	FVlc::MediaPlayerSetTime(Player, Time.GetTotalMilliseconds());
-	CurrentTime = Time.GetTotalSeconds();
 
 	return true;
 }
@@ -339,6 +334,7 @@ bool FVlcMediaPlayer::InitializeMediaPlayer(FLibvlcMedia* Media)
 	FVlc::EventAttach(MediaEventManager, ELibvlcEventType::MediaParsedChanged, &FVlcMediaPlayer::HandleEventCallback, this);
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerEndReached, &FVlcMediaPlayer::HandleEventCallback, this);
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPlaying, &FVlcMediaPlayer::HandleEventCallback, this);
+	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPositionChanged, &FVlcMediaPlayer::HandleEventCallback, this);
 
 	//FVlc::MediaParseAsync(Media);
 	FVlc::MediaPlayerPlay(Player);
@@ -451,50 +447,60 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 	if (Tracks.Num() == 0)
 	{
 		InitializeTracks();
+
+		return true;
 	}
-	else
+
+	// process events
+	ELibvlcEventType Event;
+
+	while (Events.Dequeue(Event))
 	{
-		// process events
-		ELibvlcEventType Event;
-
-		while (Events.Dequeue(Event))
+		switch (Event)
 		{
-			switch (Event)
+		case ELibvlcEventType::MediaParsedChanged:
+			//MediaPlayer->InitializeTracks();
+			break;
+
+		case ELibvlcEventType::MediaPlayerEndReached:
+			FVlc::MediaPlayerStop(Player);
+
+			if (ShouldLoop && (DesiredRate != 0.0f))
 			{
-			case ELibvlcEventType::MediaParsedChanged:
-				//MediaPlayer->InitializeTracks();
-				break;
-
-			case ELibvlcEventType::MediaPlayerEndReached:
-				FVlc::MediaPlayerStop(Player);
-				CurrentTime = 0.0f;
-
-				if (ShouldLoop && (DesiredRate != 0.0f))
-				{
-					SetRate(DesiredRate);
-				}
-
-				MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
-				break;
-
-			case ELibvlcEventType::MediaPlayerPlaying:
-				break;
-
-			default:
-				continue;
+				SetRate(DesiredRate);
 			}
-		}
 
-		// update tracks
-		if (IsPlaying())
-		{
-			CurrentTime += GetRate() * DeltaTime;
+			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
+			break;
 
-			for (TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>& Track : Tracks)
-			{
-				Track->SetTime(CurrentTime);
-			}
+		case ELibvlcEventType::MediaPlayerPlaying:
+			LastPlatformSeconds = FPlatformTime::Seconds();
+			break;
+
+		case ELibvlcEventType::MediaPlayerPositionChanged:
+			CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player)));
+			LastPlatformSeconds = FPlatformTime::Seconds();
+			break;
+
+		default:
+			continue;
 		}
+	}
+
+	if (!IsPlaying())
+	{
+		return true;
+	}
+
+	// interpolate time (VLC's timer is low-res)
+	double PlatformSeconds = FPlatformTime::Seconds();
+	CurrentTime += FTimespan::FromSeconds(PlatformSeconds - LastPlatformSeconds);
+	LastPlatformSeconds = PlatformSeconds;
+
+	// update tracks
+	for (TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>& Track : Tracks)
+	{
+		Track->SetTime(CurrentTime);
 	}
 
 	return true;

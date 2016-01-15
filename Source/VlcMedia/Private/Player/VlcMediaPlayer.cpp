@@ -66,7 +66,7 @@ TRange<float> FVlcMediaPlayer::GetSupportedRates(EMediaPlaybackDirections Direct
 
 FString FVlcMediaPlayer::GetUrl() const
 {
-	return MediaUrl;
+	return MediaSource.GetCurrentUrl();
 }
 
 
@@ -110,7 +110,6 @@ void FVlcMediaPlayer::Close()
 	MediaSource.Close();
 	VideoTracks.Reset();
 	Tracks.Reset();
-	MediaUrl.Reset();
 
 	MediaEvent.Broadcast(EMediaEvent::TracksChanged);
 	MediaEvent.Broadcast(EMediaEvent::MediaClosed);
@@ -219,14 +218,7 @@ bool FVlcMediaPlayer::Open(const FString& Url)
 
 	Close();
 
-	if (!MediaSource.OpenUrl(Url))
-	{
-		return false;
-	}
-
-	MediaUrl = Url;
-
-	return InitializePlayer();
+	return (MediaSource.OpenUrl(Url) && InitializePlayer());
 }
 
 
@@ -239,14 +231,7 @@ bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Arch
 
 	Close();
 
-	if (!MediaSource.OpenArchive(Archive))
-	{
-		return false;
-	}
-
-	MediaUrl = OriginalUrl;
-
-	return InitializePlayer();
+	return (MediaSource.OpenArchive(Archive, OriginalUrl) && InitializePlayer());
 }
 
 

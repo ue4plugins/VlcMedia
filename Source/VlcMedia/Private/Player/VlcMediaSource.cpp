@@ -15,7 +15,7 @@ FVlcMediaSource::FVlcMediaSource(FLibvlcInstance* InVlcInstance)
 /* FVlcMediaReader interface
 *****************************************************************************/
 
-FLibvlcMedia* FVlcMediaSource::OpenArchive(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive)
+FLibvlcMedia* FVlcMediaSource::OpenArchive(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl)
 {
 	Close();
 
@@ -35,6 +35,8 @@ FLibvlcMedia* FVlcMediaSource::OpenArchive(const TSharedRef<FArchive, ESPMode::T
 		Data.Reset();
 	}
 
+	CurrentUrl = OriginalUrl;
+
 	return Media;
 }
 
@@ -50,6 +52,8 @@ FLibvlcMedia* FVlcMediaSource::OpenUrl(const FString& Url)
 		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media %s: %s"), *Url, ANSI_TO_TCHAR(FVlc::Errmsg()));
 	}
 
+	CurrentUrl = Url;
+
 	return Media;
 }
 
@@ -63,6 +67,7 @@ void FVlcMediaSource::Close()
 	}
 
 	Data.Reset();
+	CurrentUrl.Reset();
 }
 
 

@@ -26,6 +26,12 @@ public:
 		return Media;
 	}
 
+	/** Get the URL of the currently open media source. */
+	const FString& GetCurrentUrl() const
+	{
+		return CurrentUrl;
+	}
+
 	/**
 	 * Open a media source using the given archive.
 	 *
@@ -33,7 +39,7 @@ public:
 	 * @return The media object.
 	 * @see OpenUrl, Close
 	 */
-	FLibvlcMedia* OpenArchive(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive);
+	FLibvlcMedia* OpenArchive(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl);
 
 	/**
 	 * Open a media source from the specified URL.
@@ -72,6 +78,9 @@ private:
 
 	/** The media object. */
 	FLibvlcMedia* Media;
+
+	/** Currently opened media. */
+	FString CurrentUrl;
 
 	/** The LibVLC instance. */
 	FLibvlcInstance* VlcInstance;

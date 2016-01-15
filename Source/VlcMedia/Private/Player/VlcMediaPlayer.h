@@ -118,9 +118,6 @@ private:
 	/** The media source (from URL or archive). */
 	FVlcMediaSource MediaSource;
 
-	/** Currently opened media. */
-	FString MediaUrl;
-
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;
 

@@ -6,8 +6,8 @@
 /* FVlcMediaVideoTrack structors
  *****************************************************************************/
 
-FVlcMediaVideoTrack::FVlcMediaVideoTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex, FLibvlcTrackDescription* Descr)
-	: FVlcMediaTrack(InPlayer, InTrackIndex, Descr)
+FVlcMediaVideoTrack::FVlcMediaVideoTrack(FLibvlcMediaPlayer* InPlayer, FLibvlcTrackDescription* Descr)
+	: FVlcMediaTrack(InPlayer, Descr)
 	, Dimensions(ForceInitToZero)
 	, LastDelta(FTimespan::Zero())
 	, VideoTrackId(Descr->Id)

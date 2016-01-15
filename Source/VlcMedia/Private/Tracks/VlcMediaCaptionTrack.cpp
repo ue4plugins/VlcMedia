@@ -6,8 +6,8 @@
 /* FVlcMediaCaptionTrack structors
  *****************************************************************************/
 
-FVlcMediaCaptionTrack::FVlcMediaCaptionTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex, FLibvlcTrackDescription* Descr)
-	: FVlcMediaTrack(InPlayer, InTrackIndex, Descr)
+FVlcMediaCaptionTrack::FVlcMediaCaptionTrack(FLibvlcMediaPlayer* InPlayer, FLibvlcTrackDescription* Descr)
+	: FVlcMediaTrack(InPlayer, Descr)
 	, SpuId(Descr->Id)
 { }
 

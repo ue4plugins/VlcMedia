@@ -6,8 +6,8 @@
 /* FVlcMediaAudioTrack structors
  *****************************************************************************/
 
-FVlcMediaAudioTrack::FVlcMediaAudioTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex, FLibvlcTrackDescription* Descr)
-	: FVlcMediaTrack(InPlayer, InTrackIndex, Descr)
+FVlcMediaAudioTrack::FVlcMediaAudioTrack(FLibvlcMediaPlayer* InPlayer, FLibvlcTrackDescription* Descr)
+	: FVlcMediaTrack(InPlayer, Descr)
 	, AudioTrackId(Descr->Id)
 	, NumChannels(0)
 	, SamplesPerSecond(0)

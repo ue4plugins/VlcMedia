@@ -22,9 +22,9 @@ public:
 	 * Creates and initializes a new instance.
 	 *
 	 * @param InPlayer The media player that owns this track.
-	 * @param InTrackIndex The index number of this track.
+	 * @param Descr The track description.
 	 */
-    FVlcMediaTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex, FLibvlcTrackDescription* Descr);
+    FVlcMediaTrack(FLibvlcMediaPlayer* InPlayer, FLibvlcTrackDescription* Descr);
 
 public:
 
@@ -85,7 +85,4 @@ private:
 
 	/** Critical section for synchronizing access to sinks. */
 	FCriticalSection SinksLock;
-
-	/** The track's index number. */
-    uint32 TrackIndex;
 };

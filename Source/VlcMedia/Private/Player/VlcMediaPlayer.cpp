@@ -395,7 +395,7 @@ void FVlcMediaPlayer::InitializeTracks()
 			if (AudioTrackDescr->Id != -1)
 			{
 				TSharedRef<FVlcMediaAudioTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
-					new FVlcMediaAudioTrack(Player, AudioTracks.Num(), AudioTrackDescr)
+					new FVlcMediaAudioTrack(Player, AudioTrackDescr)
 				);
 
 				AudioTracks.Add(NewTrack);
@@ -416,7 +416,7 @@ void FVlcMediaPlayer::InitializeTracks()
 			if (CaptionTrackDescr->Id != -1)
 			{
 				TSharedRef<FVlcMediaCaptionTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
-					new FVlcMediaCaptionTrack(Player, CaptionTracks.Num(), CaptionTrackDescr)
+					new FVlcMediaCaptionTrack(Player, CaptionTrackDescr)
 				);
 
 				CaptionTracks.Add(NewTrack);
@@ -437,7 +437,7 @@ void FVlcMediaPlayer::InitializeTracks()
 			if (VideoTrackDescr->Id != -1)
 			{
 				TSharedRef<FVlcMediaVideoTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
-					new FVlcMediaVideoTrack(Player, VideoTracks.Num(), VideoTrackDescr)
+					new FVlcMediaVideoTrack(Player, VideoTrackDescr)
 				);
 
 				VideoTracks.Add(NewTrack);

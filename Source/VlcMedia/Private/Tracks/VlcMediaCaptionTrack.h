@@ -21,10 +21,9 @@ public:
 	 * Creates and initializes a new instance.
 	 *
 	 * @param InPlayer The VLC media player instance that owns this track.
-	 * @param InTrackIndex The index number of this track.
 	 * @param Descr The track description.
 	 */
-	FVlcMediaCaptionTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex, FLibvlcTrackDescription* Descr);
+	FVlcMediaCaptionTrack(FLibvlcMediaPlayer* InPlayer, FLibvlcTrackDescription* Descr);
 
 	/** Virtual destructor. */
 	virtual ~FVlcMediaCaptionTrack() { }

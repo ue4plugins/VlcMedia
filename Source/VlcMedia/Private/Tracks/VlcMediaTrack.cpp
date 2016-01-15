@@ -9,15 +9,14 @@
 /* FVlcMediaTrack structors
  *****************************************************************************/
 
-FVlcMediaTrack::FVlcMediaTrack(FLibvlcMediaPlayer* InPlayer, uint32 InTrackIndex, FLibvlcTrackDescription* Descr)
+FVlcMediaTrack::FVlcMediaTrack(FLibvlcMediaPlayer* InPlayer, FLibvlcTrackDescription* Descr)
     : LastTime(FTimespan::Zero())
 	, Name(ANSI_TO_TCHAR(Descr->Name))
 	, Player(InPlayer)
-	, TrackIndex(InTrackIndex)
 {
 	if (Name.IsEmpty())
 	{
-		DisplayName = FText::Format(LOCTEXT("UnnamedTrackFormat", "Unnamed Track {0}"), FText::AsNumber((uint32)TrackIndex));
+		DisplayName = FText::Format(LOCTEXT("UnnamedTrackFormat", "Unnamed Track {0}"), FText::AsNumber((uint32)Descr->Id));
 	}
 	else
 	{

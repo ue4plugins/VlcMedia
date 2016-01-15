@@ -2,7 +2,16 @@
 
 #pragma once
 
-#include "ModuleManager.h"
+#include "IMediaInfo.h"
+#include "IMediaPlayer.h"
+
+
+struct FLibvlcMedia;
+struct FLibvlcMediaPlayer;
+class FVlcMediaTrack;
+class IMediaAudioTrack;
+class IMediaCaptionTrack;
+class IMediaVideoTrack;
 
 
 /**
@@ -29,9 +38,9 @@ public:
 	// IMediaInfo interface
 
 	virtual FTimespan GetDuration() const override;
-	virtual TRange<float> GetSupportedRates( EMediaPlaybackDirections Direction, bool Unthinned ) const override;
+	virtual TRange<float> GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const override;
 	virtual FString GetUrl() const override;
-	virtual bool SupportsRate( float Rate, bool Unthinned ) const override;
+	virtual bool SupportsRate(float Rate, bool Unthinned) const override;
 	virtual bool SupportsScrubbing() const override;
 	virtual bool SupportsSeeking() const override;
 
@@ -40,12 +49,12 @@ public:
 	// IMediaPlayer interface
 
 	virtual void Close() override;
-	virtual const TArray<IMediaAudioTrackRef>& GetAudioTracks() const override;
-	virtual const TArray<IMediaCaptionTrackRef>& GetCaptionTracks() const override;
+	virtual const TArray<TSharedRef<IMediaAudioTrack, ESPMode::ThreadSafe>>& GetAudioTracks() const override;
+	virtual const TArray<TSharedRef<IMediaCaptionTrack, ESPMode::ThreadSafe>>& GetCaptionTracks() const override;
 	virtual const IMediaInfo& GetMediaInfo() const override;
 	virtual float GetRate() const override;
 	virtual FTimespan GetTime() const override;
-	virtual const TArray<IMediaVideoTrackRef>& GetVideoTracks() const override;
+	virtual const TArray<TSharedRef<IMediaVideoTrack, ESPMode::ThreadSafe>>& GetVideoTracks() const override;
 	virtual bool IsLooping() const override;
 	virtual bool IsPaused() const override;
 	virtual bool IsPlaying() const override;
@@ -100,10 +109,10 @@ private:
 private:
 
 	/** The available audio tracks. */
-	TArray<IMediaAudioTrackRef> AudioTracks;
+	TArray<TSharedRef<IMediaAudioTrack, ESPMode::ThreadSafe>> AudioTracks;
 
 	/** The available caption tracks. */
-	TArray<IMediaCaptionTrackRef> CaptionTracks;
+	TArray<TSharedRef<IMediaCaptionTrack, ESPMode::ThreadSafe>> CaptionTracks;
 
 	/** Current playback time to work around VLC's broken time tracking. */
 	FTimespan CurrentTime;
@@ -139,7 +148,7 @@ private:
 	TArray<TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>> Tracks;
 
 	/** The available video tracks. */
-	TArray<IMediaVideoTrackRef> VideoTracks;
+	TArray<TSharedRef<IMediaVideoTrack, ESPMode::ThreadSafe>> VideoTracks;
 
 	/** The LibVLC instance. */
 	FLibvlcInstance* VlcInstance;

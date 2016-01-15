@@ -2,6 +2,14 @@
 
 #pragma once
 
+#include "IMediaCaptionTrack.h"
+#include "VlcMediaTrack.h"
+
+
+struct FLibvlcMediaPlayer;
+struct FLibvlcTrackDescription;
+class IMediaStream;
+
 
 class FVlcMediaCaptionTrack
 	: public FVlcMediaTrack

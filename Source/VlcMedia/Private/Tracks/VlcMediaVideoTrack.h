@@ -2,6 +2,15 @@
 
 #pragma once
 
+#include "IMediaVideoTrack.h"
+#include "VlcMediaTrack.h"
+
+
+struct FLibvlcMediaPlayer;
+struct FLibvlcTrackDescription;
+class FRHITexture;
+class IMediaStream;
+
 
 class FVlcMediaVideoTrack
 	: public FVlcMediaTrack
@@ -31,8 +40,8 @@ public:
 	virtual IMediaStream& GetStream() override;
 
 #if WITH_ENGINE
-	virtual void BindTexture(class FRHITexture* Texture) override;
-	virtual void UnbindTexture(class FRHITexture* Texture) override;
+	virtual void BindTexture(FRHITexture* Texture) override;
+	virtual void UnbindTexture(FRHITexture* Texture) override;
 #endif
 
 public:

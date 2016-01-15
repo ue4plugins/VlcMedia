@@ -16,9 +16,9 @@ FVlcMediaPlayer::FVlcMediaPlayer(FLibvlcInstance* InVlcInstance)
 	: CurrentTime(FTimespan::Zero())
 	, DesiredRate(0.0)
 	, LastPlatformSeconds(0.0)
+	, MediaSource(InVlcInstance)
 	, Player(nullptr)
 	, ShouldLoop(false)
-	, VlcInstance(InVlcInstance)
 {
 	TickerHandle = FTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateRaw(this, &FVlcMediaPlayer::HandleTicker), 0.0f);
 }
@@ -107,10 +107,10 @@ void FVlcMediaPlayer::Close()
 	AudioTracks.Reset();
 	CaptionTracks.Reset();
 	CurrentTime = FTimespan::Zero();
+	MediaSource.Close();
 	VideoTracks.Reset();
 	Tracks.Reset();
 	MediaUrl.Reset();
-	Data.Reset();
 
 	MediaEvent.Broadcast(EMediaEvent::TracksChanged);
 	MediaEvent.Broadcast(EMediaEvent::MediaClosed);
@@ -219,18 +219,14 @@ bool FVlcMediaPlayer::Open(const FString& Url)
 
 	Close();
 
-	FLibvlcMedia* NewMedia = FVlc::MediaNewLocation(VlcInstance, TCHAR_TO_ANSI(*Url));
-
-	if (NewMedia == nullptr)
+	if (!MediaSource.OpenUrl(Url))
 	{
-		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media %s: %s"), *Url, ANSI_TO_TCHAR(FVlc::Errmsg()));
-
 		return false;
 	}
 
 	MediaUrl = Url;
 
-	return InitializeMediaPlayer(NewMedia);
+	return InitializePlayer();
 }
 
 
@@ -243,27 +239,14 @@ bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Arch
 
 	Close();
 
-	Data = Archive;
-
-	FLibvlcMedia* NewMedia = FVlc::MediaNewCallbacks(
-		VlcInstance,
-		nullptr,//&FVlcMediaPlayer::HandleMediaOpen,
-		&FVlcMediaPlayer::HandleMediaRead,
-		&FVlcMediaPlayer::HandleMediaSeek,
-		&FVlcMediaPlayer::HandleMediaClose,
-		this);
-
-	if (NewMedia == nullptr)
+	if (!MediaSource.OpenArchive(Archive))
 	{
-		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media from archive: %s"), ANSI_TO_TCHAR(FVlc::Errmsg()));
-		Data.Reset();
-
 		return false;
 	}
 
 	MediaUrl = OriginalUrl;
 
-	return InitializeMediaPlayer(NewMedia);
+	return InitializePlayer();
 }
 
 
@@ -328,9 +311,9 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 /* FVlcMediaPlayer implementation
  *****************************************************************************/
 
-bool FVlcMediaPlayer::InitializeMediaPlayer(FLibvlcMedia* Media)
+bool FVlcMediaPlayer::InitializePlayer()
 {
-	Player = FVlc::MediaPlayerNewFromMedia(Media);
+	Player = FVlc::MediaPlayerNewFromMedia(MediaSource.GetMedia());
 
 	if (Player == nullptr)
 	{
@@ -341,7 +324,7 @@ bool FVlcMediaPlayer::InitializeMediaPlayer(FLibvlcMedia* Media)
 	}
 
 	// attach to event managers
-	FLibvlcEventManager* MediaEventManager = FVlc::MediaEventManager(Media);
+	FLibvlcEventManager* MediaEventManager = FVlc::MediaEventManager(MediaSource.GetMedia());
 	FLibvlcEventManager* PlayerEventManager = FVlc::MediaPlayerEventManager(Player);
 
 	if ((MediaEventManager == nullptr) || (PlayerEventManager == nullptr))
@@ -356,8 +339,6 @@ bool FVlcMediaPlayer::InitializeMediaPlayer(FLibvlcMedia* Media)
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPlaying, &FVlcMediaPlayer::HandleEventCallback, this);
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPositionChanged, &FVlcMediaPlayer::HandleEventCallback, this);
 
-	FVlc::MediaRelease(Media);
-
 	MediaEvent.Broadcast(EMediaEvent::MediaOpened);
 
 	return true;
@@ -371,13 +352,6 @@ void FVlcMediaPlayer::InitializeTracks()
 		return;
 	}
 	
-	FLibvlcMedia* Media = FVlc::MediaPlayerGetMedia(Player);
-
-	if (Media == nullptr)
-	{
-		return;
-	}
-
 	if (Tracks.Num() > 0)
 	{
 		AudioTracks.Empty();
@@ -527,93 +501,6 @@ void FVlcMediaPlayer::HandleEventCallback(FLibvlcEvent* Event, void* UserData)
 {
 	FVlcMediaPlayer* MediaPlayer = (FVlcMediaPlayer*)UserData;
 	MediaPlayer->Events.Enqueue(Event->Type);
-}
-
-
-int FVlcMediaPlayer::HandleMediaOpen(void* Opaque, void** OutData, uint64* OutSize)
-{
-	FVlcMediaPlayer* MediaPlayer = (FVlcMediaPlayer*)Opaque;
-
-	if ((MediaPlayer == nullptr) || !MediaPlayer->Data.IsValid())
-	{
-		return 0;
-	}
-
-	*OutSize = MediaPlayer->Data->TotalSize();
-	
-	return 0;
-}
-
-
-SSIZE_T FVlcMediaPlayer::HandleMediaRead(void* Opaque, void* Buffer, SIZE_T Length)
-{
-	FVlcMediaPlayer* MediaPlayer = (FVlcMediaPlayer*)Opaque;
-
-	if (MediaPlayer == nullptr)
-	{
-		return -1;
-	}
-
-	TSharedPtr<FArchive, ESPMode::ThreadSafe> Data = MediaPlayer->Data;
-
-	if (!MediaPlayer->Data.IsValid())
-	{
-		return -1;
-	}
-
-	SIZE_T DataSize = (SIZE_T)Data->TotalSize();
-	SIZE_T BytesToRead = FMath::Min(Length, DataSize);
-	SIZE_T DataPosition = MediaPlayer->Data->Tell();
-
-	if ((DataSize - BytesToRead) < DataPosition)
-	{
-		BytesToRead = DataSize - DataPosition;
-	}
-
-	if (BytesToRead > 0)
-	{
-		Data->Serialize(Buffer, BytesToRead);
-	}
-
-	return (SSIZE_T)BytesToRead;
-}
-
-
-int FVlcMediaPlayer::HandleMediaSeek(void* Opaque, uint64 Offset)
-{
-	FVlcMediaPlayer* MediaPlayer = (FVlcMediaPlayer*)Opaque;
-
-	if (MediaPlayer == nullptr)
-	{
-		return -1;
-	}
-
-	TSharedPtr<FArchive, ESPMode::ThreadSafe> Data = MediaPlayer->Data;
-
-	if (!MediaPlayer->Data.IsValid())
-	{
-		return -1;
-	}
-
-	if ((uint64)Data->TotalSize() <= Offset)
-	{
-		return -1;
-	}
-
-	MediaPlayer->Data->Seek(Offset);
-
-	return 0;
-}
-
-
-void FVlcMediaPlayer::HandleMediaClose(void* Opaque)
-{
-	FVlcMediaPlayer* MediaPlayer = (FVlcMediaPlayer*)Opaque;
-
-	if (MediaPlayer != nullptr)
-	{
-		MediaPlayer->Data->Seek(0);
-	}
 }
 
 

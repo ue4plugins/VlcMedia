@@ -134,6 +134,15 @@ typedef void (*FLibvlcVideoSetFormatProc)(
 	uint32 /*Height*/,
 	uint32 /*Pitch*/);
 
+typedef void (*FLibvlcVideoCleanupCb)(void* /*Opaque*/);
+typedef uint32 (*FLibvlcVideoFormatCb)(void** /*Opaque*/, ANSICHAR* /*Chroma*/, uint32* /*Width*/, uint32* /*Height*/, uint32* /*Pitches*/, uint32* /*Lines*/);
+
+typedef void (*FLibvlcVideoSetFormatCallbacksProc)(
+	FLibvlcMediaPlayer* /*Player*/,
+	FLibvlcVideoFormatCb /*Setup*/,
+	FLibvlcVideoCleanupCb /*Cleanup*/
+);
+
 typedef int32 (*FLibvlcVideoGetHeightProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoGetWidthProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoGetSpuProc)(FLibvlcMediaPlayer* /*Player*/);

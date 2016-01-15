@@ -12,28 +12,16 @@ FVlcMediaAudioTrack::FVlcMediaAudioTrack(FLibvlcMediaPlayer* InPlayer, FLibvlcTr
 	, NumChannels(0)
 	, SamplesPerSecond(0)
 {
-	FVlc::AudioSetFormatCallbacks(
-		InPlayer,
-		&FVlcMediaAudioTrack::HandleAudioSetup,
-		&FVlcMediaAudioTrack::HandleAudioCleanup
-	);
-
-	FVlc::AudioSetCallbacks(
-		InPlayer,
-		&FVlcMediaAudioTrack::HandleAudioPlay,
-		&FVlcMediaAudioTrack::HandleAudioPause,
-		&FVlcMediaAudioTrack::HandleAudioResume,
-		&FVlcMediaAudioTrack::HandleAudioFlush,
-		&FVlcMediaAudioTrack::HandleAudioDrain,
-		this
-	);
+	if (IsEnabled())
+	{
+		Enable();
+	}
 }
 
 
 FVlcMediaAudioTrack::~FVlcMediaAudioTrack()
 {
-	//FVlc::AudioSetCallbacks(GetPlayer(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-	//FVlc::AudioSetFormatCallbacks(GetPlayer(), nullptr, nullptr);
+	//Disable();
 }
 
 
@@ -63,20 +51,42 @@ IMediaStream& FVlcMediaAudioTrack::GetStream()
 
 bool FVlcMediaAudioTrack::Disable()
 {
-	return (!IsEnabled() || (FVlc::AudioSetTrack(GetPlayer(), -1) == 0));
+	if (!IsEnabled())
+	{
+		return true;
+	}
+
+	FVlc::AudioSetCallbacks(GetPlayer(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	FVlc::AudioSetFormatCallbacks(GetPlayer(), nullptr, nullptr);
+
+	return (FVlc::AudioSetTrack(GetPlayer(), -1) == 0);
 }
 
 
 bool FVlcMediaAudioTrack::Enable()
 {
-	// @todo gmp: implement support for multiple active VLC tracks
+	FVlc::AudioSetCallbacks(
+		GetPlayer(),
+		&FVlcMediaAudioTrack::HandleAudioPlay,
+		&FVlcMediaAudioTrack::HandleAudioPause,
+		&FVlcMediaAudioTrack::HandleAudioResume,
+		&FVlcMediaAudioTrack::HandleAudioFlush,
+		&FVlcMediaAudioTrack::HandleAudioDrain,
+		this
+	);
+
+	FVlc::AudioSetFormatCallbacks(
+		GetPlayer(),
+		&FVlcMediaAudioTrack::HandleAudioSetup,
+		&FVlcMediaAudioTrack::HandleAudioCleanup
+	);
+
 	return (FVlc::AudioSetTrack(GetPlayer(), AudioTrackId) == 0);
 }
 
 
 bool FVlcMediaAudioTrack::IsEnabled() const
 {
-	// @todo gmp: implement support for multiple active VLC tracks
 	return (FVlc::AudioGetTrack(GetPlayer()) == AudioTrackId);
 }
 
@@ -101,9 +111,10 @@ void FVlcMediaAudioTrack::HandleAudioPause(void* Opaque, int64 Timestamp)
 
 void FVlcMediaAudioTrack::HandleAudioPlay(void* Opaque, void* Samples, uint32 Count, int64 Timestamp)
 {
-	if (Opaque != nullptr)
+	auto AudioTrack = (FVlcMediaAudioTrack*)Opaque;
+
+	if (AudioTrack != nullptr)
 	{
-		FVlcMediaAudioTrack* AudioTrack = (FVlcMediaAudioTrack*)Opaque;
 		AudioTrack->ProcessMediaSample(Samples, Count * AudioTrack->NumChannels * sizeof(int16), 0.0f);
 	}
 }
@@ -116,19 +127,18 @@ void FVlcMediaAudioTrack::HandleAudioResume(void* Opaque, int64 Timestamp)
 
 int FVlcMediaAudioTrack::HandleAudioSetup(void** Opaque, ANSICHAR* Format, uint32* Rate, uint32* Channels)
 {
-	if (Opaque == nullptr)
+	auto AudioTrack = (FVlcMediaAudioTrack*)*Opaque;
+
+	if (AudioTrack == nullptr)
 	{
 		return -1;
 	}
 
-	Format = "S16N"; // force sample format to 16-bit signed integer
+	FMemory::Memcpy(Format, "S16N", 4); // force sample format to 16-bit signed integer
 
-	FVlcMediaAudioTrack* AudioTrack = (FVlcMediaAudioTrack*)*Opaque;
-	{
-		// @todo gmp: make audio specs configurable
-		AudioTrack->NumChannels = *Channels;
-		AudioTrack->SamplesPerSecond = *Rate;
-	}
+	// @todo gmp: make audio specs configurable?
+	AudioTrack->NumChannels = *Channels;
+	AudioTrack->SamplesPerSecond = *Rate;
 
 	return 0;
 }

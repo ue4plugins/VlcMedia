@@ -91,7 +91,7 @@ private:
 
 private:
 
-	/** The video callback handler. */
+	/** The audio callback handler. */
 	FVlcMediaAudioHandler AudioHandler;
 
 	/** The available caption tracks. */

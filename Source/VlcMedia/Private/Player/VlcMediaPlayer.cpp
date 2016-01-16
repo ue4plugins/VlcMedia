@@ -108,7 +108,6 @@ void FVlcMediaPlayer::Close()
 	Player = nullptr;
 
 	// reset fields
-	CaptionTracks.Reset();
 	CurrentTime = FTimespan::Zero();
 	MediaSource.Close();
 	Tracks.Reset();

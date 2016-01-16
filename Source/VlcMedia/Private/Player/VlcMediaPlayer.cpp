@@ -110,7 +110,6 @@ void FVlcMediaPlayer::Close()
 	// reset fields
 	CurrentTime = FTimespan::Zero();
 	MediaSource.Close();
-	Tracks.Reset();
 
 	MediaEvent.Broadcast(EMediaEvent::TracksChanged);
 	MediaEvent.Broadcast(EMediaEvent::MediaClosed);
@@ -391,11 +390,6 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 	// update tracks
 	AudioHandler.SetTime(CurrentTime);
 	VideoHandler.SetTime(CurrentTime);
-
-	for (TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>& Track : Tracks)
-	{
-		Track->SetTime(CurrentTime);
-	}
 
 	return true;
 }

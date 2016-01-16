@@ -124,9 +124,6 @@ private:
 	/** Handle to the registered ticker. */
 	FDelegateHandle TickerHandle;
 
-	/** Collection of all available tracks. */
-	TArray<TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>> Tracks;
-
 	/** The video callback handler. */
 	FVlcMediaVideoHandler VideoHandler;
 };

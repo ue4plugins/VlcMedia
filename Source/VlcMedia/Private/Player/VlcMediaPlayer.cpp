@@ -98,17 +98,19 @@ void FVlcMediaPlayer::Close()
 		return;
 	}
 
+	// detach callback handlers
+	AudioHandler.Shutdown();
+	VideoHandler.Shutdown();
+
 	// release player
 	FVlc::MediaPlayerStop(Player);
 	FVlc::MediaPlayerRelease(Player);
 	Player = nullptr;
 
 	// reset fields
-	AudioTracks.Reset();
 	CaptionTracks.Reset();
 	CurrentTime = FTimespan::Zero();
 	MediaSource.Close();
-	VideoTracks.Reset();
 	Tracks.Reset();
 
 	MediaEvent.Broadcast(EMediaEvent::TracksChanged);
@@ -118,7 +120,7 @@ void FVlcMediaPlayer::Close()
 
 const TArray<IMediaAudioTrackRef>& FVlcMediaPlayer::GetAudioTracks() const
 {
-	return AudioTracks;
+	return AudioHandler.GetTracks();
 }
 
 
@@ -153,7 +155,7 @@ FTimespan FVlcMediaPlayer::GetTime() const
 
 const TArray<IMediaVideoTrackRef>& FVlcMediaPlayer::GetVideoTracks() const
 {
-	return VideoTracks;
+	return VideoHandler.GetTracks();
 }
 
 
@@ -308,6 +310,10 @@ bool FVlcMediaPlayer::InitializePlayer()
 		return false;
 	}
 
+	// attach callback handlers
+	AudioHandler.Initialize(Player);
+	VideoHandler.Initialize(Player);
+
 	// attach to event managers
 	FLibvlcEventManager* MediaEventManager = FVlc::MediaEventManager(MediaSource.GetMedia());
 	FLibvlcEventManager* PlayerEventManager = FVlc::MediaPlayerEventManager(Player);
@@ -330,92 +336,6 @@ bool FVlcMediaPlayer::InitializePlayer()
 }
 
 
-void FVlcMediaPlayer::InitializeTracks()
-{
-	if (Player == nullptr)
-	{
-		return;
-	}
-	
-	if (Tracks.Num() > 0)
-	{
-		AudioTracks.Empty();
-		CaptionTracks.Empty();
-		VideoTracks.Empty();
-
-		MediaEvent.Broadcast(EMediaEvent::TracksChanged);
-	}
-
-	// audio tracks
-	FLibvlcTrackDescription* AudioTrackDescr = FVlc::AudioGetTrackDescription(Player);
-	{
-		while (AudioTrackDescr != nullptr)
-		{
-			if (AudioTrackDescr->Id != -1)
-			{
-				TSharedRef<FVlcMediaAudioTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
-					new FVlcMediaAudioTrack(Player, AudioTrackDescr)
-				);
-
-				AudioTracks.Add(NewTrack);
-				Tracks.Add(NewTrack);
-			}
-
-			AudioTrackDescr = AudioTrackDescr->Next;
-		}
-
-		FVlc::TrackDescriptionListRelease(AudioTrackDescr);
-	}
-
-	// caption tracks
-	FLibvlcTrackDescription* CaptionTrackDescr = FVlc::VideoGetSpuDescription(Player);
-	{
-		while (CaptionTrackDescr != nullptr)
-		{
-			if (CaptionTrackDescr->Id != -1)
-			{
-				TSharedRef<FVlcMediaCaptionTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
-					new FVlcMediaCaptionTrack(Player, CaptionTrackDescr)
-				);
-
-				CaptionTracks.Add(NewTrack);
-				Tracks.Add(NewTrack);
-			}
-
-			CaptionTrackDescr = CaptionTrackDescr->Next;
-		}
-
-		FVlc::TrackDescriptionListRelease(AudioTrackDescr);
-	}
-
-	// video tracks
-	FLibvlcTrackDescription* VideoTrackDescr = FVlc::VideoGetTrackDescription(Player);
-	{
-		while (VideoTrackDescr != nullptr)
-		{
-			if (VideoTrackDescr->Id != -1)
-			{
-				TSharedRef<FVlcMediaVideoTrack, ESPMode::ThreadSafe> NewTrack = MakeShareable(
-					new FVlcMediaVideoTrack(Player, VideoTrackDescr)
-				);
-
-				VideoTracks.Add(NewTrack);
-				Tracks.Add(NewTrack);
-			}
-
-			VideoTrackDescr = VideoTrackDescr->Next;
-		}
-
-		FVlc::TrackDescriptionListRelease(VideoTrackDescr);
-	}
-
-	if (Tracks.Num() > 0)
-	{
-		MediaEvent.Broadcast(EMediaEvent::TracksChanged);
-	}
-}
-
-
 /* FVlcMediaPlayer callbacks
  *****************************************************************************/
 
@@ -429,7 +349,7 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 		switch (Event)
 		{
 		case ELibvlcEventType::MediaParsedChanged:
-			InitializeTracks();
+			MediaEvent.Broadcast(EMediaEvent::TracksChanged);
 			break;
 
 		case ELibvlcEventType::MediaPlayerEndReached:
@@ -470,6 +390,9 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 	LastPlatformSeconds = PlatformSeconds;
 
 	// update tracks
+	AudioHandler.SetTime(CurrentTime);
+	VideoHandler.SetTime(CurrentTime);
+
 	for (TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>& Track : Tracks)
 	{
 		Track->SetTime(CurrentTime);
@@ -484,8 +407,18 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 
 void FVlcMediaPlayer::HandleEventCallback(FLibvlcEvent* Event, void* UserData)
 {
-	FVlcMediaPlayer* MediaPlayer = (FVlcMediaPlayer*)UserData;
-	MediaPlayer->Events.Enqueue(Event->Type);
+	auto MediaPlayer = (FVlcMediaPlayer*)UserData;
+
+	if (MediaPlayer != nullptr)
+	{
+		MediaPlayer->Events.Enqueue(Event->Type);
+
+		if (Event->Type == ELibvlcEventType::MediaParsedChanged)
+		{
+			MediaPlayer->AudioHandler.InitializeTracks();
+			MediaPlayer->VideoHandler.InitializeTracks();
+		}
+	}
 }
 
 

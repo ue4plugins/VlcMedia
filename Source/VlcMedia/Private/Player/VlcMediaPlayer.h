@@ -79,9 +79,6 @@ protected:
 	 */
 	bool InitializePlayer();
 
-	/** Initialize the media tracks. */
-	void InitializeTracks();
-
 private:
 
 	/** Handles the ticker. */
@@ -94,8 +91,8 @@ private:
 
 private:
 
-	/** The available audio tracks. */
-	TArray<TSharedRef<IMediaAudioTrack, ESPMode::ThreadSafe>> AudioTracks;
+	/** The video callback handler. */
+	FVlcMediaAudioHandler AudioHandler;
 
 	/** The available caption tracks. */
 	TArray<TSharedRef<IMediaCaptionTrack, ESPMode::ThreadSafe>> CaptionTracks;
@@ -130,6 +127,6 @@ private:
 	/** Collection of all available tracks. */
 	TArray<TSharedRef<FVlcMediaTrack, ESPMode::ThreadSafe>> Tracks;
 
-	/** The available video tracks. */
-	TArray<TSharedRef<IMediaVideoTrack, ESPMode::ThreadSafe>> VideoTracks;
+	/** The video callback handler. */
+	FVlcMediaVideoHandler VideoHandler;
 };

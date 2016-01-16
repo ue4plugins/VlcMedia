@@ -73,7 +73,7 @@ public:
 		const ANSICHAR* Args[] =
 		{
 			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
-			"--aout", "dummy",
+			"--aout", "amem",
 			"--intf", "dummy",
 			"--no-disable-screensaver",
 //			"--no-osd",
@@ -82,7 +82,8 @@ public:
 			"--no-video-title-show",
 			"--no-xlib",
 //			"--text-renderer", "dummy",
-			"--vout", "dummy",
+			"--vout", "vmem",
+			"--vmem-chroma", "RV32"
 		};
 
 		int Argc = sizeof(Args) / sizeof(*Args);

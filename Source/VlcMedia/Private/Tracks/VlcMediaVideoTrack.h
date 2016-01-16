@@ -31,6 +31,18 @@ public:
 
 public:
 
+	void ProcessFrameBuffer()
+	{
+		ProcessMediaSample(FrameBuffer.GetData(), FrameBuffer.Num(), 0.0f);
+	}
+
+	void* GetFrameData()
+	{
+		return FrameBuffer.GetData();
+	}
+
+public:
+
 	// IMediaVideoTrack interface
 
 	virtual uint32 GetBitRate() const override;
@@ -50,23 +62,6 @@ public:
     virtual bool Disable() override;
     virtual bool Enable() override;
     virtual bool IsEnabled() const override;
-
-private:
-
-	/** Handles cleanup callback from VLC. */
-	static void HandleVideoCleanup(void* Opaque);
-
-	/** Handles the display callback from VLC. */
-	static void HandleVideoDisplay(void* Opaque, void* Picture);
-
-	/** Handles the buffer lock callback from VLC. */
-	static void* HandleVideoLock(void* Opaque, void** Planes);
-
-	/** Handles video setup callbacks from VLC. */
-	static uint32 HandleVideoSetup(void** Opaque, ANSICHAR* Chroma, uint32* Width, uint32* Height, uint32* Pitches, uint32* Lines);
-
-	/** Handles the buffer unlock callback from VLC. */
-	static void HandleVideoUnlock(void* Opaque, void* Picture, void* const* Planes);
 
 private:
 

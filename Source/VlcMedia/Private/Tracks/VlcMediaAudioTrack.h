@@ -28,6 +28,12 @@ public:
 	/** Virtual destructor. */
 	virtual ~FVlcMediaAudioTrack();
 
+public:
+
+	void ProcessSamples(void* Samples, uint32 Count)
+	{
+		ProcessMediaSample(Samples, Count * NumChannels * sizeof(int16), 0.0f);
+	}
 
 public:
 
@@ -44,29 +50,6 @@ public:
     virtual bool Disable() override;
     virtual bool Enable() override;
 	virtual bool IsEnabled() const override;
-
-private:
-
-	/** Handles audio cleanup callbacks from VLC. */
-	static void HandleAudioCleanup(void* Opaque);
-
-	/** Handles audio drain callbacks from VLC. */
-	static void HandleAudioDrain(void* Opaque);
-
-	/** Handles audio flush callbacks from VLC. */
-	static void HandleAudioFlush(void* Opaque, int64 Timestamp);
-
-	/** Handles audio pause callbacks from VLC. */
-	static void HandleAudioPause(void* Opaque, int64 Timestamp);
-
-	/** Handles audio play callbacks from VLC. */
-	static void HandleAudioPlay(void* Opaque, void* Samples, uint32 Count, int64 Timestamp);
-
-	/** Handles audio resume callbacks from VLC. */
-	static void HandleAudioResume(void* Opaque, int64 Timestamp);
-
-	/** Handles audio setup callbacks from VLC. */
-	static int HandleAudioSetup(void** Opaque, ANSICHAR* Format, uint32* Rate, uint32* Channels);
 
 private:
 

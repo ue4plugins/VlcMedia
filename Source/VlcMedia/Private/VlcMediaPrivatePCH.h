@@ -24,9 +24,11 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVlcMedia, Log, All);
 
 #include "Vlc.h"
 #include "VlcMediaTrack.h"
+#include "VlcMediaAudioHandler.h"
 #include "VlcMediaAudioTrack.h"
 #include "VlcMediaCaptionTrack.h"
 #include "VlcMediaSource.h"
+#include "VlcMediaVideoHandler.h"
 #include "VlcMediaVideoTrack.h"
 #include "VlcMediaPlayer.h"
 #include "VlcMediaSettings.h"

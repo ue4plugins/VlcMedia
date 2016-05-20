@@ -1,11 +1,8 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
 #include "VlcMediaPrivatePCH.h"
-#include "Ticker.h"
-#include "vlc/vlc.h"
-#include <mutex>
-
-#define LOCTEXT_NAMESPACE "FVlcMediaPlayer"
+#include "Vlc.h"
+#include "VlcMediaPlayer.h"
 
 
 /* FVlcMediaPlayer structors
@@ -26,13 +23,12 @@ FVlcMediaPlayer::FVlcMediaPlayer(FLibvlcInstance* InVlcInstance)
 
 FVlcMediaPlayer::~FVlcMediaPlayer()
 {
-	Close();
-
 	FTicker::GetCoreTicker().RemoveTicker(TickerHandle);
+	Close();
 }
 
 
-/* IMediaInfo interface
+/* IMediaControls interface
  *****************************************************************************/
 
 FTimespan FVlcMediaPlayer::GetDuration() const
@@ -53,87 +49,6 @@ FTimespan FVlcMediaPlayer::GetDuration() const
 }
 
 
-TRange<float> FVlcMediaPlayer::GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const
-{
-	if (Direction == EMediaPlaybackDirections::Reverse)
-	{
-		return TRange<float>(0.0f);
-	}
-
-	return TRange<float>(0.0f, 10.0f);
-}
-
-
-FString FVlcMediaPlayer::GetUrl() const
-{
-	return MediaSource.GetCurrentUrl();
-}
-
-
-bool FVlcMediaPlayer::SupportsRate(float Rate, bool Unthinned) const
-{
-	return (Rate >= 0.0f) && (Rate <= 10.f);
-}
-
-
-bool FVlcMediaPlayer::SupportsScrubbing() const
-{
-	return ((Player != nullptr) && (FVlc::MediaPlayerIsSeekable(Player) != 0));
-}
-
-
-bool FVlcMediaPlayer::SupportsSeeking() const
-{
-	return ((Player != nullptr) && (FVlc::MediaPlayerIsSeekable(Player) != 0));
-}
-
-
-/* IMediaPlayer interface
- *****************************************************************************/
-
-void FVlcMediaPlayer::Close()
-{
-	if (Player == nullptr)
-	{
-		return;
-	}
-
-	// detach callback handlers
-	AudioHandler.Shutdown();
-	VideoHandler.Shutdown();
-
-	// release player
-	FVlc::MediaPlayerStop(Player);
-	FVlc::MediaPlayerRelease(Player);
-	Player = nullptr;
-
-	// reset fields
-	CurrentTime = FTimespan::Zero();
-	MediaSource.Close();
-
-	MediaEvent.Broadcast(EMediaEvent::TracksChanged);
-	MediaEvent.Broadcast(EMediaEvent::MediaClosed);
-}
-
-
-const TArray<IMediaAudioTrackRef>& FVlcMediaPlayer::GetAudioTracks() const
-{
-	return AudioHandler.GetTracks();
-}
-
-
-const TArray<IMediaCaptionTrackRef>& FVlcMediaPlayer::GetCaptionTracks() const
-{
-	return CaptionTracks;
-}
-
-
-const IMediaInfo& FVlcMediaPlayer::GetMediaInfo() const 
-{
-	return *this;
-}
-
-
 float FVlcMediaPlayer::GetRate() const
 {
 	if ((Player == nullptr) || !IsPlaying())
@@ -145,19 +60,24 @@ float FVlcMediaPlayer::GetRate() const
 }
 
 
-FTimespan FVlcMediaPlayer::GetTime() const 
+TRange<float> FVlcMediaPlayer::GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const
+{
+	if (Direction == EMediaPlaybackDirections::Reverse)
+	{
+		return TRange<float>(0.0f);
+	}
+
+	return TRange<float>(0.0f, 10.0f);
+}
+
+
+FTimespan FVlcMediaPlayer::GetTime() const
 {
 	return CurrentTime;
 }
 
 
-const TArray<IMediaVideoTrackRef>& FVlcMediaPlayer::GetVideoTracks() const
-{
-	return VideoHandler.GetTracks();
-}
-
-
-bool FVlcMediaPlayer::IsLooping() const 
+bool FVlcMediaPlayer::IsLooping() const
 {
 	return ShouldLoop;
 }
@@ -165,7 +85,12 @@ bool FVlcMediaPlayer::IsLooping() const
 
 bool FVlcMediaPlayer::IsPaused() const
 {
-	return ((Player != nullptr) && (FVlc::MediaPlayerGetState(Player) == ELibvlcState::Paused));
+	if (Player == nullptr)
+	{
+		return false;
+	}
+	
+	return (FVlc::MediaPlayerGetState(Player) == ELibvlcState::Paused);
 }
 
 
@@ -191,60 +116,9 @@ bool FVlcMediaPlayer::IsReady() const
 
 	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
 
-	return (State != ELibvlcState::Opening) && (State != ELibvlcState::Buffering) && (State != ELibvlcState::Error);
-}
-
-
-bool FVlcMediaPlayer::Open(const FString& Url)
-{
-	if (Url.IsEmpty())
-	{
-		return false;
-	}
-
-	if (!Url.Contains(TEXT("://")))
-	{
-		TSharedRef<FArchive, ESPMode::ThreadSafe> Archive = MakeShareable(IFileManager::Get().CreateFileReader(
-// temp hack until we have proper media sources
-#if PLATFORM_WINDOWS
-			*Url.Replace(TEXT("/"), TEXT("\\"))
-#else
-			*Url
-#endif
-		));
-
-		return Open(Archive, Url);
-	}
-
-	Close();
-
-	return (MediaSource.OpenUrl(Url) && InitializePlayer());
-}
-
-
-bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl)
-{
-	if ((Archive->TotalSize() == 0) || OriginalUrl.IsEmpty())
-	{
-		return false;
-	}
-
-	Close();
-
-	return (MediaSource.OpenArchive(Archive, OriginalUrl) && InitializePlayer());
-}
-
-
-bool FVlcMediaPlayer::Seek(const FTimespan& Time)
-{
-	if (!IsReady())
-	{
-		return false;
-	}
-
-	FVlc::MediaPlayerSetTime(Player, Time.GetTotalMilliseconds());
-
-	return true;
+	return ((State != ELibvlcState::Opening) &&
+			(State != ELibvlcState::Buffering) &&
+			(State != ELibvlcState::Error));
 }
 
 
@@ -293,6 +167,165 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 }
 
 
+bool FVlcMediaPlayer::SupportsRate(float Rate, bool Unthinned) const
+{
+	return (Rate >= 0.0f) && (Rate <= 10.0f);
+}
+
+
+bool FVlcMediaPlayer::SupportsScrubbing() const
+{
+	return ((Player != nullptr) && (FVlc::MediaPlayerIsSeekable(Player) != 0));
+}
+
+
+bool FVlcMediaPlayer::SupportsSeeking() const
+{
+	return ((Player != nullptr) && (FVlc::MediaPlayerIsSeekable(Player) != 0));
+}
+
+
+/* IMediaPlayer interface
+ *****************************************************************************/
+
+void FVlcMediaPlayer::Close()
+{
+	if (Player == nullptr)
+	{
+		return;
+	}
+
+	// detach callback handlers
+	Output.Shutdown();
+	Tracks.Shutdown();
+
+	// release player
+	FVlc::MediaPlayerStop(Player);
+	FVlc::MediaPlayerRelease(Player);
+	Player = nullptr;
+
+	// reset fields
+	CurrentTime = FTimespan::Zero();
+	MediaSource.Close();
+
+	// notify listeners
+	MediaEvent.Broadcast(EMediaEvent::TracksChanged);
+	MediaEvent.Broadcast(EMediaEvent::MediaClosed);
+}
+
+
+IMediaControls& FVlcMediaPlayer::GetControls() 
+{
+	return *this;
+}
+
+
+IMediaOutput& FVlcMediaPlayer::GetOutput()
+{
+	return Output;
+}
+
+
+IMediaTracks& FVlcMediaPlayer::GetTracks()
+{
+	return Tracks;
+}
+
+
+FString FVlcMediaPlayer::GetUrl() const
+{
+	return MediaSource.GetCurrentUrl();
+}
+
+
+bool FVlcMediaPlayer::Open(const FString& Url, const IMediaOptions& Options)
+{
+	Close();
+
+	if (Url.IsEmpty())
+	{
+		return false;
+	}
+
+	if (Url.StartsWith(TEXT("file://")))
+	{
+		// open local files via platform file system
+		TSharedPtr<FArchive, ESPMode::ThreadSafe> Archive;
+		const TCHAR* FilePath = &Url[7];
+
+		if (Options.GetMediaOption("PrecacheFile", false))
+		{
+			FBufferArchive* Buffer = new FBufferArchive;
+
+			if (FFileHelper::LoadFileToArray(*Buffer, FilePath))
+			{
+				Archive = MakeShareable(Buffer);
+			}
+			else
+			{
+				delete Buffer;
+			}
+		}
+		else
+		{
+			Archive = MakeShareable(IFileManager::Get().CreateFileReader(FilePath));
+		}
+
+		if (!Archive.IsValid())
+		{
+			UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media file: %s"), FilePath);
+
+			return false;
+		}
+
+		if (!MediaSource.OpenArchive(Archive.ToSharedRef(), Url))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (!MediaSource.OpenUrl(Url))
+		{
+			return false;
+		}
+	}
+	
+	return InitializePlayer();
+}
+
+
+bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl, const IMediaOptions& Options)
+{
+	Close();
+
+	if ((Archive->TotalSize() == 0) || OriginalUrl.IsEmpty())
+	{
+		return false;
+	}
+
+	if (!MediaSource.OpenArchive(Archive, OriginalUrl))
+	{
+		return false;
+	}
+	
+	return InitializePlayer();
+}
+
+
+bool FVlcMediaPlayer::Seek(const FTimespan& Time)
+{
+	if (!IsReady())
+	{
+		return false;
+	}
+
+	FVlc::MediaPlayerSetTime(Player, Time.GetTotalMilliseconds());
+
+	return true;
+}
+
+
 /* FVlcMediaPlayer implementation
  *****************************************************************************/
 
@@ -303,14 +336,9 @@ bool FVlcMediaPlayer::InitializePlayer()
 	if (Player == nullptr)
 	{
 		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to initialize media player: %s"), ANSI_TO_TCHAR(FVlc::Errmsg()));
-		Close();
 
 		return false;
 	}
-
-	// attach callback handlers
-	AudioHandler.Initialize(Player);
-	VideoHandler.Initialize(Player);
 
 	// attach to event managers
 	FLibvlcEventManager* MediaEventManager = FVlc::MediaEventManager(MediaSource.GetMedia());
@@ -318,15 +346,16 @@ bool FVlcMediaPlayer::InitializePlayer()
 
 	if ((MediaEventManager == nullptr) || (PlayerEventManager == nullptr))
 	{
-		Close();
+		FVlc::MediaPlayerRelease(Player);
+		Player = nullptr;
 
 		return false;
 	}
 
-	FVlc::EventAttach(MediaEventManager, ELibvlcEventType::MediaParsedChanged, &FVlcMediaPlayer::HandleEventCallback, this);
-	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerEndReached, &FVlcMediaPlayer::HandleEventCallback, this);
-	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPlaying, &FVlcMediaPlayer::HandleEventCallback, this);
-	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPositionChanged, &FVlcMediaPlayer::HandleEventCallback, this);
+	FVlc::EventAttach(MediaEventManager, ELibvlcEventType::MediaParsedChanged, &FVlcMediaPlayer::StaticEventCallback, this);
+	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerEndReached, &FVlcMediaPlayer::StaticEventCallback, this);
+	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPlaying, &FVlcMediaPlayer::StaticEventCallback, this);
+	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPositionChanged, &FVlcMediaPlayer::StaticEventCallback, this);
 
 	MediaEvent.Broadcast(EMediaEvent::MediaOpened);
 
@@ -339,6 +368,19 @@ bool FVlcMediaPlayer::InitializePlayer()
 
 bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 {
+	if (Player == nullptr)
+	{
+		return true;
+	}
+
+	// interpolate time, because VLC's timer is too low-res
+	if (IsPlaying())
+	{
+		double PlatformSeconds = FPlatformTime::Seconds();
+		CurrentTime += FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
+		LastPlatformSeconds = PlatformSeconds;
+	}
+
 	// process events
 	ELibvlcEventType Event;
 
@@ -351,8 +393,6 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 			break;
 
 		case ELibvlcEventType::MediaPlayerEndReached:
-			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
-
 			// this causes a short delay, but there seems to be no other way.
 			// looping via VLC media list players is also broken. sadness.
 			FVlc::MediaPlayerStop(Player);
@@ -361,6 +401,8 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 			{
 				SetRate(DesiredRate);
 			}
+
+			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
 			break;
 
 		case ELibvlcEventType::MediaPlayerPlaying:
@@ -377,20 +419,6 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 		}
 	}
 
-	if (!IsPlaying())
-	{
-		return true;
-	}
-
-	// interpolate time (VLC's timer is low-res)
-	double PlatformSeconds = FPlatformTime::Seconds();
-	CurrentTime += FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
-	LastPlatformSeconds = PlatformSeconds;
-
-	// update tracks
-	AudioHandler.SetTime(CurrentTime);
-	VideoHandler.SetTime(CurrentTime);
-
 	return true;
 }
 
@@ -398,21 +426,18 @@ bool FVlcMediaPlayer::HandleTicker(float DeltaTime)
 /* FVlcMediaPlayer static functions
  *****************************************************************************/
 
-void FVlcMediaPlayer::HandleEventCallback(FLibvlcEvent* Event, void* UserData)
+void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 {
 	auto MediaPlayer = (FVlcMediaPlayer*)UserData;
 
 	if (MediaPlayer != nullptr)
 	{
-		MediaPlayer->Events.Enqueue(Event->Type);
-
 		if (Event->Type == ELibvlcEventType::MediaParsedChanged)
 		{
-			MediaPlayer->AudioHandler.InitializeTracks();
-			MediaPlayer->VideoHandler.InitializeTracks();
+			MediaPlayer->Tracks.Initialize(*MediaPlayer->Player);
+			MediaPlayer->Output.Initialize(*MediaPlayer->Player);
 		}
+
+		MediaPlayer->Events.Enqueue(Event->Type);
 	}
 }
-
-
-#undef LOCTEXT_NAMESPACE

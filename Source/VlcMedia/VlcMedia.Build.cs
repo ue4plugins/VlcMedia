@@ -38,7 +38,6 @@ namespace UnrealBuildTool.Rules
 					"VlcMedia/Private",
                     "VlcMedia/Private/Player",
                     "VlcMedia/Private/Shared",
-                    "VlcMedia/Private/Tracks",
                     "VlcMedia/Private/Vlc",
 				}
 			);

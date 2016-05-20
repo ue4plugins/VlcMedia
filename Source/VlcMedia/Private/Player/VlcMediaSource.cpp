@@ -1,6 +1,8 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
 #include "VlcMediaPrivatePCH.h"
+#include "Vlc.h"
+#include "VlcMediaSource.h"
 
 
 /* FVlcMediaReader structors
@@ -17,12 +19,12 @@ FVlcMediaSource::FVlcMediaSource(FLibvlcInstance* InVlcInstance)
 
 FLibvlcMedia* FVlcMediaSource::OpenArchive(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl)
 {
-	Close();
+	check(Media == nullptr);
 
 	Data = Archive;
 	Media = FVlc::MediaNewCallbacks(
 		VlcInstance,
-		nullptr,//&FVlcMediaReader::HandleMediaOpen,
+		nullptr,
 		&FVlcMediaSource::HandleMediaRead,
 		&FVlcMediaSource::HandleMediaSeek,
 		&FVlcMediaSource::HandleMediaClose,
@@ -31,11 +33,13 @@ FLibvlcMedia* FVlcMediaSource::OpenArchive(const TSharedRef<FArchive, ESPMode::T
 
 	if (Media == nullptr)
 	{
-		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media from archive: %s"), ANSI_TO_TCHAR(FVlc::Errmsg()));
+		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media from archive: %s (%s)"), *OriginalUrl, ANSI_TO_TCHAR(FVlc::Errmsg()));
 		Data.Reset();
 	}
-
-	CurrentUrl = OriginalUrl;
+	else
+	{
+		CurrentUrl = OriginalUrl;
+	}
 
 	return Media;
 }
@@ -43,16 +47,18 @@ FLibvlcMedia* FVlcMediaSource::OpenArchive(const TSharedRef<FArchive, ESPMode::T
 
 FLibvlcMedia* FVlcMediaSource::OpenUrl(const FString& Url)
 {
-	Close();
+	check(Media == nullptr);
 
 	Media = FVlc::MediaNewLocation(VlcInstance, TCHAR_TO_ANSI(*Url));
 
 	if (Media == nullptr)
 	{
-		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media %s: %s"), *Url, ANSI_TO_TCHAR(FVlc::Errmsg()));
+		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media from URL: %s (%s)"), *Url, ANSI_TO_TCHAR(FVlc::Errmsg()));
 	}
-
-	CurrentUrl = Url;
+	else
+	{
+		CurrentUrl = Url;
+	}
 
 	return Media;
 }

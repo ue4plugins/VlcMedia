@@ -7,6 +7,9 @@ struct FLibvlcInstance;
 struct FLibvlcMedia;
 
 
+/**
+ * Implements a media source, such as a movie file or URL.
+ */
 class FVlcMediaSource
 {
 public:
@@ -35,6 +38,8 @@ public:
 	/**
 	 * Open a media source using the given archive.
 	 *
+	 * You must call Close() if this media source is open prior to calling this method.
+	 *
 	 * @param Archive The archive to read media data from.
 	 * @return The media object.
 	 * @see OpenUrl, Close
@@ -43,6 +48,8 @@ public:
 
 	/**
 	 * Open a media source from the specified URL.
+	 *
+	 * You must call Close() if this media source is open prior to calling this method.
 	 *
 	 * @param Url The media resource locator.
 	 * @return The media object.

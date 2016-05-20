@@ -2,22 +2,24 @@
 
 #pragma once
 
-#include "IMediaInfo.h"
+#include "IMediaControls.h"
 #include "IMediaPlayer.h"
+#include "VlcMediaOutput.h"
+#include "VlcMediaSource.h"
+#include "VlcMediaTracks.h"
 
 
+class IMediaOutput;
+struct FLibvlcEventManager;
+struct FLibvlcInstance;
 struct FLibvlcMediaPlayer;
-class FVlcMediaTrack;
-class IMediaAudioTrack;
-class IMediaCaptionTrack;
-class IMediaVideoTrack;
 
 
 /**
  * Implements a media player using the Video LAN Codec (VLC) framework.
  */
 class FVlcMediaPlayer
-	: public IMediaInfo
+	: public IMediaControls
 	, public IMediaPlayer
 {
 public:
@@ -34,35 +36,34 @@ public:
 
 public:
 
-	// IMediaInfo interface
+	//~ IMediaControls interface
 
 	virtual FTimespan GetDuration() const override;
+	virtual float GetRate() const override;
 	virtual TRange<float> GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const override;
-	virtual FString GetUrl() const override;
+	virtual FTimespan GetTime() const override;
+	virtual bool IsLooping() const override;
+	virtual bool IsPaused() const override;
+	virtual bool IsPlaying() const override;
+	virtual bool IsReady() const override;
+	virtual bool Seek(const FTimespan& Time) override;
+	virtual bool SetLooping(bool Looping) override;
+	virtual bool SetRate(float Rate) override;
 	virtual bool SupportsRate(float Rate, bool Unthinned) const override;
 	virtual bool SupportsScrubbing() const override;
 	virtual bool SupportsSeeking() const override;
 
 public:
 
-	// IMediaPlayer interface
+	//~ IMediaPlayer interface
 
 	virtual void Close() override;
-	virtual const TArray<TSharedRef<IMediaAudioTrack, ESPMode::ThreadSafe>>& GetAudioTracks() const override;
-	virtual const TArray<TSharedRef<IMediaCaptionTrack, ESPMode::ThreadSafe>>& GetCaptionTracks() const override;
-	virtual const IMediaInfo& GetMediaInfo() const override;
-	virtual float GetRate() const override;
-	virtual FTimespan GetTime() const override;
-	virtual const TArray<TSharedRef<IMediaVideoTrack, ESPMode::ThreadSafe>>& GetVideoTracks() const override;
-	virtual bool IsLooping() const override;
-	virtual bool IsPaused() const override;
-	virtual bool IsPlaying() const override;
-	virtual bool IsReady() const override;
-	virtual bool Open(const FString& Url ) override;
-	virtual bool Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl) override;
-	virtual bool Seek(const FTimespan& Time) override;
-	virtual bool SetLooping(bool Looping) override;
-	virtual bool SetRate(float Rate) override;
+	virtual IMediaControls& GetControls() override;
+	virtual IMediaOutput& GetOutput() override;
+	virtual IMediaTracks& GetTracks() override;
+	virtual FString GetUrl() const override;
+	virtual bool Open(const FString& Url, const IMediaOptions& Options) override;
+	virtual bool Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl, const IMediaOptions& Options) override;
 
 	DECLARE_DERIVED_EVENT(FVlcMediaPlayer, IMediaPlayer::FOnMediaEvent, FOnMediaEvent);
 	virtual FOnMediaEvent& OnMediaEvent() override
@@ -87,17 +88,11 @@ private:
 private:
 
 	/** Handles event callbacks. */
-	static void HandleEventCallback(FLibvlcEvent* Event, void* UserData);
+	static void StaticEventCallback(FLibvlcEvent* Event, void* UserData);
 
 private:
 
-	/** The audio callback handler. */
-	FVlcMediaAudioHandler AudioHandler;
-
-	/** The available caption tracks. */
-	TArray<TSharedRef<IMediaCaptionTrack, ESPMode::ThreadSafe>> CaptionTracks;
-
-	/** Current playback time to work around VLC's broken time tracking. */
+	/** Current playback time (to work around VLC's broken time tracking). */
 	FTimespan CurrentTime;
 
 	/** The desired playback rate. */
@@ -115,6 +110,9 @@ private:
 	/** The media source (from URL or archive). */
 	FVlcMediaSource MediaSource;
 
+	/** Output manager. */
+	FVlcMediaOutput Output;
+
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;
 
@@ -124,6 +122,6 @@ private:
 	/** Handle to the registered ticker. */
 	FDelegateHandle TickerHandle;
 
-	/** The video callback handler. */
-	FVlcMediaVideoHandler VideoHandler;
+	/** Track collection. */
+	FVlcMediaTracks Tracks;
 };

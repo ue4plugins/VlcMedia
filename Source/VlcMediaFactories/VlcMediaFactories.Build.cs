@@ -6,23 +6,23 @@ namespace UnrealBuildTool.Rules
 	{
 		public VlcMediaFactories(TargetInfo Target)
 		{
-            DynamicallyLoadedModuleNames.AddRange(
-                new string[] {
-                    "Media",
+			DynamicallyLoadedModuleNames.AddRange(
+				new string[] {
+					"Media",
 				}
-            );
+			);
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[] {
 					"Core",
-                    "CoreUObject",
-                    "MediaAssets",
-                }
+					"CoreUObject",
+					"MediaAssets",
+				}
 			);
 
 			PrivateIncludePathModuleNames.AddRange(
 				new string[] {
-                    "Media",
+					"Media",
 					"VlcMedia",
 				}
 			);
@@ -43,9 +43,9 @@ namespace UnrealBuildTool.Rules
 				(Target.Platform == UnrealTargetPlatform.Win32) ||
 				(Target.Platform == UnrealTargetPlatform.Win64) ||
 				(Target.Platform == UnrealTargetPlatform.WinRT))
-			{
-				DynamicallyLoadedModuleNames.Add("VlcMedia");
-			}
+				{
+					DynamicallyLoadedModuleNames.Add("VlcMedia");
+				}
 		}
 	}
 }

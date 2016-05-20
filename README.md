@@ -5,7 +5,8 @@ Unreal Engine 4 Media Framework plug-in using the Video LAN Codec (libvlc).
 
 ## About
 
-This plug-in is still under development and likely has a lot of remaining issues to be fixed. Use in production is not yet recommended.
+This plug-in is still under development and likely has a lot of remaining issues to be fixed. Use in production is not yet recommended. Make sure to pull the *Tag* that matches your Unreal Engine version. If you sync to *Master* the code may not
+compile, because it may depend on Engine changes that are not yet available in the UE4 Master branch.
 
 
 ## Supported Platforms

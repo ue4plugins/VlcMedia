@@ -5,6 +5,9 @@
 #include "ModuleInterface.h"
 
 
+class IMediaPlayer;
+
+
 /**
  * Interface for the VlcMedia module.
  */

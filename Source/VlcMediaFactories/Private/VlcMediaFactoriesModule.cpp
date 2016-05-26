@@ -5,8 +5,6 @@
 #include "ModuleInterface.h"
 
 
-DEFINE_LOG_CATEGORY(LogVlcMediaFactories);
-
 #define LOCTEXT_NAMESPACE "FVlcMediaFactoriesModule"
 
 
@@ -68,7 +66,7 @@ public:
 		{
 			if (Options.GetMediaOption("PrecacheFile", false) && (Scheme != TEXT("file")))
 			{			
-				OutWarnings->Add(LOCTEXT("Precaching is supported for local files only"));
+				OutWarnings->Add(LOCTEXT("PrecacheFileWarning", "Precaching is supported for local files only"));
 			}
 		}
 
@@ -164,7 +162,7 @@ public:
 		// register player factory
 		auto MediaModule = FModuleManager::LoadModulePtr<IMediaModule>("Media");
 
-		if (MediaModule == nullptr)
+		if (MediaModule != nullptr)
 		{
 			MediaModule->RegisterPlayerFactory(*this);
 		}

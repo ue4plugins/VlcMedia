@@ -1,6 +1,6 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
-#include "VlcMediaPrivatePCH.h"
+#include "VlcMediaPCH.h"
 #include "Vlc.h"
 #include "VlcMediaPlayer.h"
 
@@ -430,14 +430,16 @@ void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 {
 	auto MediaPlayer = (FVlcMediaPlayer*)UserData;
 
-	if (MediaPlayer != nullptr)
+	if (MediaPlayer == nullptr)
 	{
-		if (Event->Type == ELibvlcEventType::MediaParsedChanged)
-		{
-			MediaPlayer->Tracks.Initialize(*MediaPlayer->Player);
-			MediaPlayer->Output.Initialize(*MediaPlayer->Player);
-		}
-
-		MediaPlayer->Events.Enqueue(Event->Type);
+		return;
 	}
+
+	if (Event->Type == ELibvlcEventType::MediaParsedChanged)
+	{
+		MediaPlayer->Tracks.Initialize(*MediaPlayer->Player);
+		MediaPlayer->Output.Initialize(*MediaPlayer->Player);
+	}
+
+	MediaPlayer->Events.Enqueue(Event->Type);
 }

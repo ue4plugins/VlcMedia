@@ -65,9 +65,6 @@ private:
 	/** Audio track descriptors. */
 	TArray<FVlcMediaTrack> AudioTracks;
 
-	/** Critical section for locking access to tracks. */
-	mutable FCriticalSection CriticalSection;
-
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;
 

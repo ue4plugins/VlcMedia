@@ -31,8 +31,8 @@ public:
 	 */
 	FVlcMediaPlayer(FLibvlcInstance* InInstance);
 
-	/** Destructor. */
-	~FVlcMediaPlayer();
+	/** Virtual destructor. */
+	virtual ~FVlcMediaPlayer();
 
 public:
 

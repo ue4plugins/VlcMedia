@@ -8,4 +8,4 @@
 #include "Runtime/Media/Public/IMediaOptions.h"
 #include "Runtime/MediaAssets/Public/FileMediaSource.h"
 
-#include "VlcMedia/Public/IVlcMediaModule.h"
+#include "../../VlcMedia/Public/IVlcMediaModule.h"

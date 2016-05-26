@@ -28,6 +28,16 @@ public:
 	 */
 	void Initialize(FLibvlcMediaPlayer& InPlayer);
 
+	/**
+	 * Set the current playback time.
+	 *
+	 * @param Time The time to set.
+	 */
+	void SetTime(FTimespan Time)
+	{
+		CurrentTime = Time;
+	}
+
 	/** Shut down this handler. */
 	void Shutdown();
 
@@ -82,6 +92,9 @@ private:
 
 	/** Critical section for synchronizing access to sinks. */
 	FCriticalSection CriticalSection;
+
+	/** The current playback time. */
+	FTimespan CurrentTime;
 
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;

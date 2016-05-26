@@ -1,6 +1,6 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
-#include "VlcMediaPrivatePCH.h"
+#include "VlcMediaPCH.h"
 #include "Vlc.h"
 #include "VlcMediaOutput.h"
 
@@ -11,6 +11,7 @@
 FVlcMediaOutput::FVlcMediaOutput()
 	: AudioSink(nullptr)
 	, CaptionSink(nullptr)
+	, CurrentTime(FTimespan::Zero())
 	, Player(nullptr)
 	, VideoSink(nullptr)
 { }
@@ -21,6 +22,8 @@ FVlcMediaOutput::FVlcMediaOutput()
 
 void FVlcMediaOutput::Initialize(FLibvlcMediaPlayer& InPlayer)
 {
+	Shutdown();
+
 	Player = &InPlayer;
 
 	SetupAudioOutput();
@@ -250,7 +253,7 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* /*Picture*/
 
 	if (VideoSink != nullptr)
 	{
-		VideoSink->DisplayTextureSinkBuffer();
+		VideoSink->DisplayTextureSinkBuffer(Output->CurrentTime);
 	}
 }
 
@@ -276,7 +279,7 @@ void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 }
 
 
-void FVlcMediaOutput::StaticVideoUnlockCallback(void* Opaque, void* /*Picture*/, void* const* Planes)
+void FVlcMediaOutput::StaticVideoUnlockCallback(void* Opaque, void* /*Picture*/, void* const* /*Planes*/)
 {
 	auto Output = (FVlcMediaOutput*)Opaque;
 

@@ -1,6 +1,6 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
-#include "VlcMediaPrivatePCH.h"
+#include "VlcMediaPCH.h"
 #include "Vlc.h"
 #include "VlcMediaTracks.h"
 
@@ -32,56 +32,51 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
 	FVlc::AudioSetFormat(Player, "S16N", 44100, 2);
 	FVlc::VideoSetFormat(Player, "RV32", Width, Height, Width * 4);
 
-	// initialize tracks
+	// initialize audio tracks
+	FLibvlcTrackDescription* AudioTrackDescr = FVlc::AudioGetTrackDescription(Player);
 	{
-		FScopeLock Lock(&CriticalSection);
-
-		// audio tracks
-		FLibvlcTrackDescription* AudioTrackDescr = FVlc::AudioGetTrackDescription(Player);
+		while (AudioTrackDescr != nullptr)
 		{
-			while (AudioTrackDescr != nullptr)
+			if (AudioTrackDescr->Id != -1)
 			{
-				if (AudioTrackDescr->Id != -1)
+				FVlcMediaTrack Track;
 				{
-					FVlcMediaTrack Track;
-					{
-						Track.Name = ANSI_TO_TCHAR(AudioTrackDescr->Name);
-						Track.DisplayName = Track.Name.IsEmpty()
-							? FText::Format(LOCTEXT("UnnamedTrackFormat", "Unnamed Track {0}"), FText::AsNumber((uint32)AudioTrackDescr->Id))
-							: FText::FromString(Track.Name);
-					}
-
-					AudioTracks.Add(Track);
+					Track.Name = ANSI_TO_TCHAR(AudioTrackDescr->Name);
+					Track.DisplayName = Track.Name.IsEmpty()
+						? FText::Format(LOCTEXT("AudioTrackFormat", "Audio Track {0}"), FText::AsNumber((uint32)AudioTrackDescr->Id))
+						: FText::FromString(Track.Name);
 				}
 
-				AudioTrackDescr = AudioTrackDescr->Next;
+				AudioTracks.Add(Track);
 			}
+
+			AudioTrackDescr = AudioTrackDescr->Next;
 		}
-		FVlc::TrackDescriptionListRelease(AudioTrackDescr);
-
-		// video tracks
-		FLibvlcTrackDescription* VideoTrackDescr = FVlc::VideoGetTrackDescription(Player);
-		{
-			while (VideoTrackDescr != nullptr)
-			{
-				if (VideoTrackDescr->Id != -1)
-				{
-					FVlcMediaTrack Track;
-					{
-						Track.Name = ANSI_TO_TCHAR(VideoTrackDescr->Name);
-						Track.DisplayName = Track.Name.IsEmpty()
-							? FText::Format(LOCTEXT("UnnamedTrackFormat", "Unnamed Track {0}"), FText::AsNumber((uint32)VideoTrackDescr->Id))
-							: FText::FromString(Track.Name);
-					}
-
-					VideoTracks.Add(Track);
-				}
-
-				VideoTrackDescr = VideoTrackDescr->Next;
-			}
-		}
-		FVlc::TrackDescriptionListRelease(VideoTrackDescr);
 	}
+	FVlc::TrackDescriptionListRelease(AudioTrackDescr);
+
+	// initialize video tracks
+	FLibvlcTrackDescription* VideoTrackDescr = FVlc::VideoGetTrackDescription(Player);
+	{
+		while (VideoTrackDescr != nullptr)
+		{
+			if (VideoTrackDescr->Id != -1)
+			{
+				FVlcMediaTrack Track;
+				{
+					Track.Name = ANSI_TO_TCHAR(VideoTrackDescr->Name);
+					Track.DisplayName = Track.Name.IsEmpty()
+						? FText::Format(LOCTEXT("VideoTrackFormat", "Video Track {0}"), FText::AsNumber((uint32)VideoTrackDescr->Id))
+						: FText::FromString(Track.Name);
+				}
+
+				VideoTracks.Add(Track);
+			}
+
+			VideoTrackDescr = VideoTrackDescr->Next;
+		}
+	}
+	FVlc::TrackDescriptionListRelease(VideoTrackDescr);
 }
 
 

@@ -10,7 +10,7 @@
 	"EngineVersion" : "4.13.0",
 	"Description" : "Implements a media player using the Video LAN Codec (libvlc).",
 	"Category" : "Media Players",
-	"EnabledByDefault" : false,
+	"EnabledByDefault" : true,
 	"IsBetaVersion": true,
 
 	"Modules" :

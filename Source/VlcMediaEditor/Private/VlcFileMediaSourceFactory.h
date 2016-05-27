@@ -2,8 +2,6 @@
 
 #pragma once
 
-#if WITH_EDITOR
-
 #include "Factories/Factory.h"
 #include "VlcFileMediaSourceFactory.generated.h"
 
@@ -24,6 +22,3 @@ public:
 	virtual bool FactoryCanImport(const FString& Filename) override;
 	virtual UObject* FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const FString& Filename, const TCHAR* Parms, FFeedbackContext* Warn, bool& bOutOperationCanceled) override;
 };
-
-
-#endif //WITH_EDITOR

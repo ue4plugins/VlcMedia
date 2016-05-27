@@ -28,7 +28,6 @@ FString FVlc::PluginDir;
 #endif
 
 
-
 VLC_DEFINE(New);
 VLC_DEFINE(Release);
 VLC_DEFINE(Retain);

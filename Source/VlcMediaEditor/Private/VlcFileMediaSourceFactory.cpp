@@ -1,8 +1,6 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#if WITH_EDITOR
-
-#include "VlcMediaFactoriesPCH.h"
+#include "VlcMediaEditorPCH.h"
 #include "VlcFileMediaSourceFactory.h"
 
 
@@ -69,6 +67,3 @@ UObject* UVlcFileMediaSourceFactory::FactoryCreateFile(UClass* InClass, UObject*
 
 	return MediaSource;
 }
-
-
-#endif //WITH_EDITOR

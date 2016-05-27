@@ -6,6 +6,5 @@
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
 #include "Runtime/Media/Public/IMediaModule.h"
 #include "Runtime/Media/Public/IMediaOptions.h"
-#include "Runtime/MediaAssets/Public/FileMediaSource.h"
 
 #include "../../VlcMedia/Public/IVlcMediaModule.h"

@@ -2,9 +2,9 @@
 
 namespace UnrealBuildTool.Rules
 {
-	public class VlcMediaFactories : ModuleRules
+	public class VlcMediaFactory : ModuleRules
 	{
-		public VlcMediaFactories(TargetInfo Target)
+		public VlcMediaFactory(TargetInfo Target)
 		{
 			DynamicallyLoadedModuleNames.AddRange(
 				new string[] {
@@ -29,14 +29,9 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"VlcMediaFactories/Private",
+					"VlcMediaFactory/Private",
 				}
 			);
-			
-			if (UEBuildConfiguration.bBuildEditor)
-			{
-				PrivateDependencyModuleNames.Add("UnrealEd");
-			}
 
 			if ((Target.Platform == UnrealTargetPlatform.Mac) ||
 				(Target.Platform == UnrealTargetPlatform.Linux) ||

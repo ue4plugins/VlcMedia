@@ -22,9 +22,14 @@
 			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64", "WinRT" ]
 		},
 		{
-		  "Name": "VlcMediaFactories",
-		  "Type": "Runtime",
-		  "LoadingPhase" : "PostEngineInit",
+			"Name" : "VlcMediaEditor",
+			"Type" : "Editor",
+			"LoadingPhase" : "PostEngineInit"
+		},
+		{
+			"Name": "VlcMediaFactory",
+			"Type": "Runtime",
+			"LoadingPhase" : "PostEngineInit",
 			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64", "WinRT" ]
 		}
 	],

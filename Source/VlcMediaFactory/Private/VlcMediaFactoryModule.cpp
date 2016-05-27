@@ -1,17 +1,17 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "VlcMediaFactoriesPCH.h"
+#include "VlcMediaFactoryPCH.h"
 #include "IMediaPlayerFactory.h"
 #include "ModuleInterface.h"
 
 
-#define LOCTEXT_NAMESPACE "FVlcMediaFactoriesModule"
+#define LOCTEXT_NAMESPACE "FVlcMediaFactoryModule"
 
 
 /**
- * Implements the VlcMediaFactories module.
+ * Implements the VlcMediaFactory module.
  */
-class FVlcMediaFactoriesModule
+class FVlcMediaFactoryModule
 	: public IMediaPlayerFactory
 	, public IModuleInterface
 {
@@ -141,8 +141,7 @@ public:
 		// supported platforms
 		SupportedPlatforms.Add(TEXT("Linux"));
 		SupportedPlatforms.Add(TEXT("Mac"));
-		SupportedPlatforms.Add(TEXT("Win32"));
-		SupportedPlatforms.Add(TEXT("Win64"));
+		SupportedPlatforms.Add(TEXT("Windows"));
 		SupportedPlatforms.Add(TEXT("WinRT"));
 
 		// supported schemes
@@ -194,4 +193,4 @@ private:
 
 #undef LOCTEXT_NAMESPACE
 
-IMPLEMENT_MODULE(FVlcMediaFactoriesModule, VlcMediaFactories);
+IMPLEMENT_MODULE(FVlcMediaFactoryModule, VlcMediaFactory);

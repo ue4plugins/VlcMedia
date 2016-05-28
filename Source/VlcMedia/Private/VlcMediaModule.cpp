@@ -77,13 +77,17 @@ public:
 		{
 			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
 			"--aout", "amem",
+			"--ignore-config",
 			"--intf", "dummy",
 			"--no-disable-screensaver",
 			"--no-snapshot-preview",
 			"--no-stats",
 			"--no-video-title-show",
+#if PLATFORM_LINUX
 			"--no-xlib",
-//			"--text-renderer", "dummy",
+#endif
+			"--text-renderer", "dummy",
+			"--verbose=2",
 			"--vout", "vmem",
 			"--vmem-chroma", "RV32"
 		};

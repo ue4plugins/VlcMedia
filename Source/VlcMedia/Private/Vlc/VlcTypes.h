@@ -150,6 +150,36 @@ typedef struct FLibvlcMedia FLibvlcMedia;
 /** Opaque structure representing a LibVLC media player. */
 typedef struct FLibvlcMediaPlayer FLibvlcMediaPlayer;
 
+/** FourCC code type. */
+typedef uint32 FLibvlcFourcc;
+
+
+/**
+ * Structure for chroma format descriptions.
+ */
+struct FLibvlcChromaDescription
+{
+	uint32 PlaneCount;
+
+	struct
+	{
+		struct
+		{
+			uint32 Num;
+			uint32 Den;
+		} W;
+
+		struct
+		{
+			uint32 Num;
+			uint32 Den;
+		} H;
+	} P[4];
+
+	uint32 PixelSize;
+	uint32 PixelBits;
+};
+
 
 /**
  * Structure for VLC events.

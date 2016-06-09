@@ -12,6 +12,15 @@
 		return false; \
 	}
 
+#define VLCCORE_IMPORT(Name, Func) \
+	Func = (FLibvlc##Func##Proc)FPlatformProcess::GetDllExport(CoreHandle, TEXT(#Name)); \
+	if (Func == nullptr) \
+	{ \
+		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to import VLC Core function %s"), TEXT(#Name)); \
+		Shutdown(); \
+		return false; \
+	}
+
 #define VLC_DEFINE(Func) \
 	FLibvlc##Func##Proc FVlc::Func = nullptr
 
@@ -101,6 +110,8 @@ VLC_DEFINE(VideoGetSpuDescription);
 VLC_DEFINE(VideoGetTrackDescription);
 VLC_DEFINE(TrackDescriptionListRelease);
 
+VLC_DEFINE(FourccGetChromaDescription);
+
 
 /* FVlc static functions
  *****************************************************************************/
@@ -146,6 +157,8 @@ bool FVlc::Initialize()
 		Shutdown();
 		return false;
 	}
+
+	PluginDir = FPaths::ConvertRelativePathToFull(FPaths::Combine(*LibDir, TEXT("plugins")));
 
 	// import library functions
 	VLC_IMPORT(libvlc_new, New);
@@ -221,7 +234,8 @@ bool FVlc::Initialize()
 	VLC_IMPORT(libvlc_video_get_track_description, VideoGetTrackDescription);
 	VLC_IMPORT(libvlc_track_description_release, TrackDescriptionListRelease);
 
-	PluginDir = FPaths::ConvertRelativePathToFull(FPaths::Combine(*LibDir, TEXT("plugins")));
+	// import core functions
+	VLCCORE_IMPORT(vlc_fourcc_GetChromaDescription, FourccGetChromaDescription);
 
 	return true;
 }

@@ -10,6 +10,10 @@ class FVlc
 {
 public:
 
+	static const uint32 MaxPlanes = 5;
+
+public:
+
 	static FString GetPluginDir();
 	static bool Initialize();
 	static void Shutdown();
@@ -88,6 +92,8 @@ public:
 	static FLibvlcVideoGetSpuDescriptionProc VideoGetSpuDescription;
 	static FLibvlcVideoGetTrackDescriptionProc VideoGetTrackDescription;
 	static FLibvlcTrackDescriptionListReleaseProc TrackDescriptionListRelease;
+
+	static FLibvlcFourccGetChromaDescriptionProc FourccGetChromaDescription;
 
 protected:
 

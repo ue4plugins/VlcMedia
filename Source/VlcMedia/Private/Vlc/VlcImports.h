@@ -155,3 +155,6 @@ typedef FLibvlcTrackDescription* (*FLibvlcAudioGetTrackDescriptionProc)(FLibvlcM
 typedef FLibvlcTrackDescription* (*FLibvlcVideoGetSpuDescriptionProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef FLibvlcTrackDescription* (*FLibvlcVideoGetTrackDescriptionProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef void (*FLibvlcTrackDescriptionListReleaseProc)(FLibvlcTrackDescription* /*Desription*/);
+
+// fourcc
+typedef FLibvlcChromaDescription* (*FLibvlcFourccGetChromaDescriptionProc)(FLibvlcFourcc /*Fourcc*/);

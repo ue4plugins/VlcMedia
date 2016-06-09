@@ -89,7 +89,6 @@ public:
 			"--text-renderer", "dummy",
 			"--verbose=2",
 			"--vout", "vmem",
-			"--vmem-chroma", "RV32"
 		};
 
 		int Argc = sizeof(Args) / sizeof(*Args);

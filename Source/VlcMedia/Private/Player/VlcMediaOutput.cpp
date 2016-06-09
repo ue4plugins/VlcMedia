@@ -137,8 +137,15 @@ void FVlcMediaOutput::SetupVideoOutput()
 		return;
 	}
 
-	if ((VideoSink != nullptr) && VideoSink->InitializeTextureSink(FIntPoint(FVlc::VideoGetWidth(Player), FVlc::VideoGetHeight(Player)), EMediaTextureSinkMode::Buffered))
+	if (VideoSink != nullptr)
 	{
+		// register callbacks
+		FVlc::VideoSetFormatCallbacks(
+			Player,
+			&FVlcMediaOutput::StaticVideoFormatCallback,
+			&FVlcMediaOutput::StaticVideoCleanupCallback
+		);
+
 		FVlc::VideoSetCallbacks(
 			Player,
 			&FVlcMediaOutput::StaticVideoLockCallback,
@@ -149,7 +156,9 @@ void FVlcMediaOutput::SetupVideoOutput()
 	}
 	else
 	{
+		// unregister callbacks
 		FVlc::VideoSetCallbacks(Player, nullptr, nullptr, nullptr, nullptr);
+		FVlc::VideoSetFormatCallbacks(Player, nullptr, nullptr);
 	}
 }
 
@@ -239,6 +248,19 @@ void FVlcMediaOutput::StaticAudioResumeCallback(void* Opaque, int64 Timestamp)
 }
 
 
+void FVlcMediaOutput::StaticVideoCleanupCallback(void *Opaque)
+{
+	auto Output = (FVlcMediaOutput*)Opaque;
+
+	if ((Output == nullptr) || (Output->VideoSink == nullptr))
+	{
+		return;
+	}
+
+	Output->VideoSink->ShutdownTextureSink();
+}
+
+
 void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* /*Picture*/)
 {
 	auto Output = (FVlcMediaOutput*)Opaque;
@@ -258,6 +280,88 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* /*Picture*/
 }
 
 
+unsigned FVlcMediaOutput::StaticVideoFormatCallback(void** Opaque, char* Chroma, unsigned* Width, unsigned* Height, unsigned* Pitches, unsigned* Lines)
+{
+	auto Output = *(FVlcMediaOutput**)Opaque;
+
+	if ((Output == nullptr) || (Output->VideoSink == nullptr))
+	{
+		return 0;
+	}
+
+	Output->VideoDimensions = FIntPoint::ZeroValue;
+
+	// determine decoder & sink format
+	EMediaTextureSinkFormat SinkFormat;
+
+	if (FCStringAnsi::Stricmp(Chroma, "AYUV") == 0)
+	{
+		SinkFormat = EMediaTextureSinkFormat::CharAYUV;
+		Pitches[0] = *Width * 4;
+	}
+	else if (FCStringAnsi::Stricmp(Chroma, "UYVY") == 0)
+	{
+		SinkFormat = EMediaTextureSinkFormat::CharUYVY;
+		Pitches[0] = *Width * 2;
+	}
+	else if ((FCStringAnsi::Stricmp(Chroma, "UYVY") == 0) ||
+			(FCStringAnsi::Stricmp(Chroma, "Y422") == 0) ||
+			(FCStringAnsi::Stricmp(Chroma, "UYNV") == 0) ||
+			(FCStringAnsi::Stricmp(Chroma, "HDYC") == 0))
+	{
+		SinkFormat = EMediaTextureSinkFormat::CharUYVY;
+		Pitches[0] = *Width * 2;
+	}
+	else if ((FCStringAnsi::Stricmp(Chroma, "YUY2") == 0) ||
+			(FCStringAnsi::Stricmp(Chroma, "V422") == 0) ||
+			(FCStringAnsi::Stricmp(Chroma, "YUYV") == 0))
+	{
+		SinkFormat = EMediaTextureSinkFormat::CharYUY2;
+		Pitches[0] = *Width * 2;
+	}
+	else if (FCStringAnsi::Stricmp(Chroma, "YVYU") == 0)
+	{
+		SinkFormat = EMediaTextureSinkFormat::CharYVYU;
+		Pitches[0] = *Width * 2;
+	}
+	else
+	{
+		FLibvlcChromaDescription* ChromaDescr = FVlc::FourccGetChromaDescription(*(FLibvlcFourcc*)Chroma);
+
+		if (ChromaDescr->PlaneCount == 0)
+		{
+			return 0;
+		}
+
+		if (ChromaDescr->PlaneCount > 1)
+		{
+			FMemory::Memcpy(Chroma, "UYVY", 4);
+			SinkFormat = EMediaTextureSinkFormat::CharUYVY;
+			Pitches[0] = *Width * 2;
+			Lines[0] = *Height;
+		}
+		else
+		{
+			FMemory::Memcpy(Chroma, "RV32", 4);
+			SinkFormat = EMediaTextureSinkFormat::CharBGRA;
+			Pitches[0] = *Width * 4;
+		}
+	}
+
+	Lines[0] = *Height;
+
+	// initialize sink
+	if (!Output->VideoSink->InitializeTextureSink(FIntPoint(*Width, *Height), SinkFormat, EMediaTextureSinkMode::Buffered))
+	{
+		return 0;
+	}
+
+	Output->VideoDimensions = FIntPoint(*Width, *Height);
+
+	return 1;
+}
+
+
 void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 {
 	auto Output = (FVlcMediaOutput*)Opaque;
@@ -267,6 +371,8 @@ void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 		return nullptr;
 	}
 
+	FMemory::Memzero(Planes, FVlc::MaxPlanes * sizeof(void*));
+
 	FScopeLock Lock(&Output->CriticalSection);
 	IMediaTextureSink* VideoSink = Output->VideoSink;
 
@@ -275,11 +381,20 @@ void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 		*Planes = VideoSink->AcquireTextureSinkBuffer();
 	}
 
+	if (*Planes == nullptr)
+	{
+		// VLC currently requires a valid buffer or it will crash, but the
+		// sink may not be ready yet, so we create a temporary buffer here
+		*Planes = FMemory::Malloc(Output->VideoDimensions.X * Output->VideoDimensions.Y * 4, 32);
+
+		return *Planes;
+	}
+
 	return nullptr;
 }
 
 
-void FVlcMediaOutput::StaticVideoUnlockCallback(void* Opaque, void* /*Picture*/, void* const* /*Planes*/)
+void FVlcMediaOutput::StaticVideoUnlockCallback(void* Opaque, void* Picture, void* const* /*Planes*/)
 {
 	auto Output = (FVlcMediaOutput*)Opaque;
 
@@ -288,11 +403,25 @@ void FVlcMediaOutput::StaticVideoUnlockCallback(void* Opaque, void* /*Picture*/,
 		return;
 	}
 
+	// update sink
 	FScopeLock Lock(&Output->CriticalSection);
 	IMediaTextureSink* VideoSink = Output->VideoSink;
 
 	if (VideoSink != nullptr)
 	{
-		VideoSink->ReleaseTextureSinkBuffer();
+		if (Picture != nullptr)
+		{
+			VideoSink->UpdateTextureSinkBuffer((const uint8*)Picture);
+		}
+		else
+		{
+			VideoSink->ReleaseTextureSinkBuffer();
+		}
+	}
+
+	// free temporary buffer
+	if (Picture != nullptr)
+	{
+		FMemory::Free(Picture);
 	}
 }

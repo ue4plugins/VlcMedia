@@ -73,13 +73,19 @@ private:
 	/** Handles audio resume callbacks from VLC. */
 	static void StaticAudioResumeCallback(void* Opaque, int64 Timestamp);
 
-	/** Handles the display callback from VLC. */
+	/** Handles video cleanup callbacks from VLC. */
+	static void StaticVideoCleanupCallback(void *Opaque);
+
+	/** Handles display callbacks from VLC. */
 	static void StaticVideoDisplayCallback(void* Opaque, void* Picture);
 
-	/** Handles the buffer lock callback from VLC. */
+	/** Handles video format callbacks from VLC. */
+	static unsigned StaticVideoFormatCallback(void** Opaque, char* Chroma, unsigned* Width, unsigned* Height, unsigned* Pitches, unsigned* Lines);
+
+	/** Handles buffer lock callbacks from VLC. */
 	static void* StaticVideoLockCallback(void* Opaque, void** Planes);
 
-	/** Handles the buffer unlock callback from VLC. */
+	/** Handles buffer unlock callbacks from VLC. */
 	static void StaticVideoUnlockCallback(void* Opaque, void* Picture, void* const* Planes);
 
 private:
@@ -98,6 +104,9 @@ private:
 
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;
+
+	/** Dimensions of the current video track. */
+	FIntPoint VideoDimensions;
 
 	/** The video sink. */
 	IMediaTextureSink* VideoSink;

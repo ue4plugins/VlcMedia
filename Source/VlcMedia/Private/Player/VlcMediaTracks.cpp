@@ -101,7 +101,7 @@ uint32 FVlcMediaTracks::GetAudioTrackChannels(int32 TrackIndex) const
 }
 
 
-uint32 FVlcMediaTracks::GetAudioTrackSamplesPerSeconds(int32 TrackIndex) const
+uint32 FVlcMediaTracks::GetAudioTrackSampleRate(int32 TrackIndex) const
 {
 	// @todo gmp: fix audio specs
 	return 44100;

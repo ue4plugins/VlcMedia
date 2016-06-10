@@ -49,7 +49,7 @@ public:
 	//~ IMediaTracks interface
 
 	virtual uint32 GetAudioTrackChannels(int32 TrackIndex) const override;
-	virtual uint32 GetAudioTrackSamplesPerSeconds(int32 TrackIndex) const override;
+	virtual uint32 GetAudioTrackSampleRate(int32 TrackIndex) const override;
 	virtual int32 GetNumTracks(EMediaTrackType TrackType) const override;
 	virtual int32 GetSelectedTrack(EMediaTrackType TrackType) const override;
 	virtual FText GetTrackDisplayName(EMediaTrackType TrackType, int32 TrackIndex) const override;

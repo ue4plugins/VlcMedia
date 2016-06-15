@@ -77,6 +77,7 @@ public:
 		{
 			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
 			"--aout", "amem",
+			"--drop-late-frames",
 			"--ignore-config",
 			"--intf", "dummy",
 			"--no-disable-screensaver",
@@ -87,7 +88,11 @@ public:
 			"--no-xlib",
 #endif
 			"--text-renderer", "dummy",
+#if DEBUG
 			"--verbose=2",
+#else
+			"--quiet",
+#endif
 			"--vout", "vmem",
 		};
 

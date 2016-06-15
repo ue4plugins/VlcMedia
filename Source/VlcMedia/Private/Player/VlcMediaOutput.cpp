@@ -338,7 +338,6 @@ unsigned FVlcMediaOutput::StaticVideoFormatCallback(void** Opaque, char* Chroma,
 			FMemory::Memcpy(Chroma, "UYVY", 4);
 			SinkFormat = EMediaTextureSinkFormat::CharUYVY;
 			Pitches[0] = *Width * 2;
-			Lines[0] = *Height;
 		}
 		else
 		{
@@ -378,16 +377,16 @@ void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 
 	if (VideoSink != nullptr)
 	{
-		*Planes = VideoSink->AcquireTextureSinkBuffer();
+		Planes[0] = VideoSink->AcquireTextureSinkBuffer();
 	}
 
-	if (*Planes == nullptr)
+	if (Planes[0] == nullptr)
 	{
 		// VLC currently requires a valid buffer or it will crash, but the
 		// sink may not be ready yet, so we create a temporary buffer here
-		*Planes = FMemory::Malloc(Output->VideoDimensions.X * Output->VideoDimensions.Y * 4, 32);
+		Planes[0] = FMemory::Malloc(Output->VideoDimensions.X * Output->VideoDimensions.Y * 4, 32);
 
-		return *Planes;
+		return Planes[0];
 	}
 
 	return nullptr;

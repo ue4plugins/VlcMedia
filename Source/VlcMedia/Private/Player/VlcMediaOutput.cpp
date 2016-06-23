@@ -50,13 +50,16 @@ void FVlcMediaOutput::SetAudioSink(IMediaAudioSink* Sink)
 {
 	FScopeLock Lock(&CriticalSection);
 
-	if (AudioSink != nullptr)
+	if (Sink != AudioSink)
 	{
-		AudioSink->ShutdownAudioSink();
-	}
+		if (AudioSink != nullptr)
+		{
+			AudioSink->ShutdownAudioSink();
+		}
 
-	AudioSink = Sink;
-	SetupAudioOutput();
+		AudioSink = Sink;
+		SetupAudioOutput();
+	}
 }
 
 
@@ -64,13 +67,16 @@ void FVlcMediaOutput::SetCaptionSink(IMediaStringSink* Sink)
 {
 	FScopeLock Lock(&CriticalSection);
 
-	if (CaptionSink != nullptr)
+	if (Sink != CaptionSink)
 	{
-		CaptionSink->ShutdownStringSink();
-	}
+		if (CaptionSink != nullptr)
+		{
+			CaptionSink->ShutdownStringSink();
+		}
 
-	CaptionSink = Sink;
-	SetupCaptionOutput();
+		CaptionSink = Sink;
+		SetupCaptionOutput();
+	}
 }
 
 
@@ -84,13 +90,16 @@ void FVlcMediaOutput::SetVideoSink(IMediaTextureSink* Sink)
 {
 	FScopeLock Lock(&CriticalSection);
 
-	if (VideoSink != nullptr)
+	if (Sink != VideoSink)
 	{
-		VideoSink->ShutdownTextureSink();
-	}
+		if (VideoSink != nullptr)
+		{
+			VideoSink->ShutdownTextureSink();
+		}
 
-	VideoSink = Sink;
-	SetupVideoOutput();
+		VideoSink = Sink;
+		SetupVideoOutput();
+	}
 }
 
 

@@ -113,9 +113,15 @@ void FVlcMediaOutput::SetupAudioOutput()
 		return;
 	}
 
-	// @todo gmp: vlc: fix audio specs
-	if ((AudioSink != nullptr) && AudioSink->InitializeAudioSink(2, 44100))
+	if (AudioSink != nullptr)
 	{
+		// register callbacks
+		FVlc::AudioSetFormatCallbacks(
+			Player,
+			&FVlcMediaOutput::StaticAudioSetupCallback,
+			&FVlcMediaOutput::StaticAudioCleanupCallback
+		);
+
 		FVlc::AudioSetCallbacks(
 			Player,
 			&FVlcMediaOutput::StaticAudioPlayCallback,
@@ -128,7 +134,9 @@ void FVlcMediaOutput::SetupAudioOutput()
 	}
 	else
 	{
+		// unregister callbacks
 		FVlc::AudioSetCallbacks(Player, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+		FVlc::AudioSetFormatCallbacks(Player, nullptr, nullptr);
 	}
 }
 
@@ -151,7 +159,7 @@ void FVlcMediaOutput::SetupVideoOutput()
 		// register callbacks
 		FVlc::VideoSetFormatCallbacks(
 			Player,
-			&FVlcMediaOutput::StaticVideoFormatCallback,
+			&FVlcMediaOutput::StaticVideoSetupCallback,
 			&FVlcMediaOutput::StaticVideoCleanupCallback
 		);
 
@@ -174,6 +182,25 @@ void FVlcMediaOutput::SetupVideoOutput()
 
 /* FVlcMediaOutput static functions
 *****************************************************************************/
+
+void FVlcMediaOutput::StaticAudioCleanupCallback(void* Opaque)
+{
+	auto Output = (FVlcMediaOutput*)Opaque;
+
+	if (Output == nullptr)
+	{
+		return;
+	}
+
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaAudioSink* AudioSink = Output->AudioSink;
+
+	if (AudioSink != nullptr)
+	{
+		AudioSink->ShutdownAudioSink();
+	}
+}
+
 
 void FVlcMediaOutput::StaticAudioDrainCallback(void* Opaque)
 {
@@ -233,7 +260,7 @@ void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint3
 
 	if (AudioSink != nullptr)
 	{
-		AudioSink->PlayAudioSink((uint8*)Samples, Count, FTimespan::FromMicroseconds(Timestamp));
+		AudioSink->PlayAudioSink((uint8*)Samples, Count * sizeof(int16), FTimespan::FromMicroseconds(Timestamp));
 	}
 }
 
@@ -257,16 +284,57 @@ void FVlcMediaOutput::StaticAudioResumeCallback(void* Opaque, int64 Timestamp)
 }
 
 
+int FVlcMediaOutput::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, uint32* Rate, uint32* Channels)
+{
+	auto Output = *(FVlcMediaOutput**)Opaque;
+
+	if ((Output == nullptr) || (Output->VideoSink == nullptr))
+	{
+		return -1;
+	}
+
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaAudioSink* AudioSink = Output->AudioSink;
+
+	if (AudioSink == nullptr)
+	{
+		return -1;
+	}
+
+	// set decoder format
+	FMemory::Memcpy(Format, "S16N", 4);
+
+	if ((*Channels != 1) && (*Channels != 2) && (*Channels != 6))
+	{
+		*Channels = 2;
+	}
+
+	// initialize sink
+	if (!AudioSink->InitializeAudioSink(*Channels, *Rate))
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+
 void FVlcMediaOutput::StaticVideoCleanupCallback(void *Opaque)
 {
 	auto Output = (FVlcMediaOutput*)Opaque;
 
-	if ((Output == nullptr) || (Output->VideoSink == nullptr))
+	if (Output == nullptr)
 	{
 		return;
 	}
 
-	Output->VideoSink->ShutdownTextureSink();
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaTextureSink* VideoSink = Output->VideoSink;
+
+	if (VideoSink != nullptr)
+	{
+		VideoSink->ShutdownTextureSink();
+	}
 }
 
 
@@ -289,11 +357,51 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* /*Picture*/
 }
 
 
-unsigned FVlcMediaOutput::StaticVideoFormatCallback(void** Opaque, char* Chroma, unsigned* Width, unsigned* Height, unsigned* Pitches, unsigned* Lines)
+void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
+{
+	auto Output = (FVlcMediaOutput*)Opaque;
+
+	if (Output == nullptr)
+	{
+		return nullptr;
+	}
+
+	FMemory::Memzero(Planes, FVlc::MaxPlanes * sizeof(void*));
+
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaTextureSink* VideoSink = Output->VideoSink;
+
+	if (VideoSink != nullptr)
+	{
+		Planes[0] = VideoSink->AcquireTextureSinkBuffer();
+	}
+
+	if (Planes[0] == nullptr)
+	{
+		// VLC currently requires a valid buffer or it will crash, but the
+		// sink may not be ready yet, so we create a temporary buffer here
+		Planes[0] = FMemory::Malloc(Output->VideoDimensions.X * Output->VideoDimensions.Y * 4, 32);
+
+		return Planes[0];
+	}
+
+	return nullptr;
+}
+
+
+unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, unsigned* Width, unsigned* Height, unsigned* Pitches, unsigned* Lines)
 {
 	auto Output = *(FVlcMediaOutput**)Opaque;
 
 	if ((Output == nullptr) || (Output->VideoSink == nullptr))
+	{
+		return 0;
+	}
+
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaTextureSink* VideoSink = Output->VideoSink;
+
+	if (VideoSink == nullptr)
 	{
 		return 0;
 	}
@@ -359,7 +467,7 @@ unsigned FVlcMediaOutput::StaticVideoFormatCallback(void** Opaque, char* Chroma,
 	Lines[0] = *Height;
 
 	// initialize sink
-	if (!Output->VideoSink->InitializeTextureSink(FIntPoint(*Width, *Height), SinkFormat, EMediaTextureSinkMode::Buffered))
+	if (!VideoSink->InitializeTextureSink(FIntPoint(*Width, *Height), SinkFormat, EMediaTextureSinkMode::Buffered))
 	{
 		return 0;
 	}
@@ -367,38 +475,6 @@ unsigned FVlcMediaOutput::StaticVideoFormatCallback(void** Opaque, char* Chroma,
 	Output->VideoDimensions = FIntPoint(*Width, *Height);
 
 	return 1;
-}
-
-
-void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
-{
-	auto Output = (FVlcMediaOutput*)Opaque;
-
-	if (Output == nullptr)
-	{
-		return nullptr;
-	}
-
-	FMemory::Memzero(Planes, FVlc::MaxPlanes * sizeof(void*));
-
-	FScopeLock Lock(&Output->CriticalSection);
-	IMediaTextureSink* VideoSink = Output->VideoSink;
-
-	if (VideoSink != nullptr)
-	{
-		Planes[0] = VideoSink->AcquireTextureSinkBuffer();
-	}
-
-	if (Planes[0] == nullptr)
-	{
-		// VLC currently requires a valid buffer or it will crash, but the
-		// sink may not be ready yet, so we create a temporary buffer here
-		Planes[0] = FMemory::Malloc(Output->VideoDimensions.X * Output->VideoDimensions.Y * 4, 32);
-
-		return Planes[0];
-	}
-
-	return nullptr;
 }
 
 

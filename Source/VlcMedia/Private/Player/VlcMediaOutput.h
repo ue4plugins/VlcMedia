@@ -58,6 +58,9 @@ protected:
 
 private:
 
+	/** Handles audio cleanup callbacks from VLC.*/
+	static void StaticAudioCleanupCallback(void* Opaque);
+
 	/** Handles audio drain callbacks from VLC. */
 	static void StaticAudioDrainCallback(void* Opaque);
 
@@ -73,17 +76,20 @@ private:
 	/** Handles audio resume callbacks from VLC. */
 	static void StaticAudioResumeCallback(void* Opaque, int64 Timestamp);
 
+	/** Handles audio setup callbacks from VLC. */
+	static int StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, uint32* Rate, uint32* Channels);
+
 	/** Handles video cleanup callbacks from VLC. */
 	static void StaticVideoCleanupCallback(void *Opaque);
 
 	/** Handles display callbacks from VLC. */
 	static void StaticVideoDisplayCallback(void* Opaque, void* Picture);
 
-	/** Handles video format callbacks from VLC. */
-	static unsigned StaticVideoFormatCallback(void** Opaque, char* Chroma, unsigned* Width, unsigned* Height, unsigned* Pitches, unsigned* Lines);
-
 	/** Handles buffer lock callbacks from VLC. */
 	static void* StaticVideoLockCallback(void* Opaque, void** Planes);
+
+	/** Handles video setup callbacks from VLC. */
+	static unsigned StaticVideoSetupCallback(void** Opaque, char* Chroma, unsigned* Width, unsigned* Height, unsigned* Pitches, unsigned* Lines);
 
 	/** Handles buffer unlock callbacks from VLC. */
 	static void StaticVideoUnlockCallback(void* Opaque, void* Picture, void* const* Planes);

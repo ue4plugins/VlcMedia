@@ -135,18 +135,8 @@ bool FVlc::Initialize()
 #elif PLATFORM_WINDOWS
 	#if PLATFORM_64BITS
 		const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Win64"));
-
-		if (!LoadDependency(LibDir, TEXT("libgcc_s_seh-1"), GccHandle))
-		{
-			return false;
-		}
 	#else
 		const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Win32"));
-
-		if (!LoadDependency(LibDir, TEXT("libgcc_s_sjlj-1"), GccHandle))
-		{
-			return false;
-		}
 	#endif
 #endif
 

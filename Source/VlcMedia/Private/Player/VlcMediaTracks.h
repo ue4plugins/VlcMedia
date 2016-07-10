@@ -9,24 +9,17 @@ struct FLibvlcMediaPlayer;
 
 
 /**
- * Track descriptor.
- */
-struct FVlcMediaTrack
-{
-	/** The track's human readable name. */
-	FText DisplayName;
-
-	/** The track's name. */
-	FString Name;
-};
-
-
-/**
  * Implements the track collection for VLC based media players.
  */
 class FVlcMediaTracks
 	: public IMediaTracks
 {
+	struct FTrack
+	{
+		FText DisplayName;
+		FString Name;
+	}; 
+
 public:
 
 	/** Default constructor. */
@@ -63,11 +56,11 @@ public:
 private:
 
 	/** Audio track descriptors. */
-	TArray<FVlcMediaTrack> AudioTracks;
+	TArray<FTrack> AudioTracks;
 
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;
 
 	/** Video track descriptors. */
-	TArray<FVlcMediaTrack> VideoTracks;
+	TArray<FTrack> VideoTracks;
 };

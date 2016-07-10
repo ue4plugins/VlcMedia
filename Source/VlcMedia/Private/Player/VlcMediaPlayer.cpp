@@ -36,7 +36,7 @@ bool FVlcMediaPlayer::Tick(float DeltaTime)
 	}
 
 	// interpolate time, because VLC's timer is too low-res
-	if (IsPlaying())
+	if (FVlc::MediaPlayerGetState(Player) == ELibvlcState::Playing)
 	{
 		double PlatformSeconds = FPlatformTime::Seconds();
 		CurrentTime += FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
@@ -108,12 +108,48 @@ FTimespan FVlcMediaPlayer::GetDuration() const
 
 float FVlcMediaPlayer::GetRate() const
 {
-	if ((Player == nullptr) || !IsPlaying())
+	if ((Player == nullptr) || (FVlc::MediaPlayerGetState(Player) != ELibvlcState::Playing))
 	{
 		return 0.0f;
 	}
 
 	return FVlc::MediaPlayerGetRate(Player);
+}
+
+
+EMediaState FVlcMediaPlayer::GetState() const
+{
+	if (Player == nullptr)
+	{
+		return EMediaState::Closed;
+	}
+
+	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
+
+	switch (State)
+	{
+	case ELibvlcState::Buffering:
+	case ELibvlcState::NothingSpecial:
+		return EMediaState::Closed;
+
+	case ELibvlcState::Error:
+		return EMediaState::Error;
+
+	case ELibvlcState::Opening:
+		return EMediaState::Preparing;
+
+	case ELibvlcState::Paused:
+		return EMediaState::Paused;
+
+	case ELibvlcState::Playing:
+		return EMediaState::Playing;
+
+	case ELibvlcState::Ended:
+	case ELibvlcState::Stopped:
+		return EMediaState::Stopped;
+	}
+
+	return EMediaState::Error; // should never get here
 }
 
 
@@ -140,45 +176,6 @@ bool FVlcMediaPlayer::IsLooping() const
 }
 
 
-bool FVlcMediaPlayer::IsPaused() const
-{
-	if (Player == nullptr)
-	{
-		return false;
-	}
-	
-	return (FVlc::MediaPlayerGetState(Player) == ELibvlcState::Paused);
-}
-
-
-bool FVlcMediaPlayer::IsPlaying() const
-{
-	if (Player == nullptr)
-	{
-		return false;
-	}
-
-	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
-
-	return (State == ELibvlcState::Buffering) || (State == ELibvlcState::Playing);
-}
-
-
-bool FVlcMediaPlayer::IsReady() const
-{
-	if (Player == nullptr)
-	{
-		return false;
-	}
-
-	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
-
-	return ((State != ELibvlcState::Opening) &&
-			(State != ELibvlcState::Buffering) &&
-			(State != ELibvlcState::Error));
-}
-
-
 bool FVlcMediaPlayer::SetLooping(bool Looping)
 {
 	ShouldLoop = Looping;
@@ -200,7 +197,7 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 
 	if (FMath::IsNearlyZero(Rate))
 	{
-		if (IsPlaying())
+		if (FVlc::MediaPlayerGetState(Player) == ELibvlcState::Playing)
 		{
 			if (FVlc::MediaPlayerCanPause(Player) == 0)
 			{
@@ -210,7 +207,7 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 			FVlc::MediaPlayerPause(Player);
 		}
 	}
-	else if (!IsPlaying())
+	else if (FVlc::MediaPlayerGetState(Player) != ELibvlcState::Playing)
 	{
 		if (FVlc::MediaPlayerPlay(Player) == -1)
 		{
@@ -277,9 +274,21 @@ IMediaControls& FVlcMediaPlayer::GetControls()
 }
 
 
+FString FVlcMediaPlayer::GetInfo() const
+{
+	return TEXT("VlcMedia media information not implemented yet");
+}
+
+
 IMediaOutput& FVlcMediaPlayer::GetOutput()
 {
 	return Output;
+}
+
+
+FString FVlcMediaPlayer::GetStats() const
+{
+	return TEXT("VlcMedia stats information not implemented yet");
 }
 
 
@@ -356,12 +365,7 @@ bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Arch
 {
 	Close();
 
-	if ((Archive->TotalSize() == 0) || OriginalUrl.IsEmpty())
-	{
-		return false;
-	}
-
-	if (!MediaSource.OpenArchive(Archive, OriginalUrl))
+	if (OriginalUrl.IsEmpty() || !MediaSource.OpenArchive(Archive, OriginalUrl))
 	{
 		return false;
 	}
@@ -372,7 +376,11 @@ bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Arch
 
 bool FVlcMediaPlayer::Seek(const FTimespan& Time)
 {
-	if (!IsReady())
+	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
+
+	if ((State != ELibvlcState::Opening) ||
+		(State == ELibvlcState::Buffering) ||
+		(State == ELibvlcState::Error))
 	{
 		return false;
 	}

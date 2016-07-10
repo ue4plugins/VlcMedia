@@ -21,24 +21,27 @@ FLibvlcMedia* FVlcMediaSource::OpenArchive(const TSharedRef<FArchive, ESPMode::T
 {
 	check(Media == nullptr);
 
-	Data = Archive;
-	Media = FVlc::MediaNewCallbacks(
-		VlcInstance,
-		nullptr,
-		&FVlcMediaSource::HandleMediaRead,
-		&FVlcMediaSource::HandleMediaSeek,
-		&FVlcMediaSource::HandleMediaClose,
-		this
-	);
+	if (Archive->TotalSize() > 0)
+	{
+		Data = Archive;
+		Media = FVlc::MediaNewCallbacks(
+			VlcInstance,
+			nullptr,
+			&FVlcMediaSource::HandleMediaRead,
+			&FVlcMediaSource::HandleMediaSeek,
+			&FVlcMediaSource::HandleMediaClose,
+			this
+		);
 
-	if (Media == nullptr)
-	{
-		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media from archive: %s (%s)"), *OriginalUrl, ANSI_TO_TCHAR(FVlc::Errmsg()));
-		Data.Reset();
-	}
-	else
-	{
-		CurrentUrl = OriginalUrl;
+		if (Media == nullptr)
+		{
+			UE_LOG(LogVlcMedia, Warning, TEXT("Failed to open media from archive: %s (%s)"), *OriginalUrl, ANSI_TO_TCHAR(FVlc::Errmsg()));
+			Data.Reset();
+		}
+		else
+		{
+			CurrentUrl = OriginalUrl;
+		}
 	}
 
 	return Media;

@@ -47,12 +47,10 @@ public:
 
 	virtual FTimespan GetDuration() const override;
 	virtual float GetRate() const override;
+	virtual EMediaState GetState() const override;
 	virtual TRange<float> GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const override;
 	virtual FTimespan GetTime() const override;
 	virtual bool IsLooping() const override;
-	virtual bool IsPaused() const override;
-	virtual bool IsPlaying() const override;
-	virtual bool IsReady() const override;
 	virtual bool Seek(const FTimespan& Time) override;
 	virtual bool SetLooping(bool Looping) override;
 	virtual bool SetRate(float Rate) override;
@@ -66,7 +64,9 @@ public:
 
 	virtual void Close() override;
 	virtual IMediaControls& GetControls() override;
+	virtual FString GetInfo() const override;
 	virtual IMediaOutput& GetOutput() override;
+	virtual FString GetStats() const override;
 	virtual IMediaTracks& GetTracks() override;
 	virtual FString GetUrl() const override;
 	virtual bool Open(const FString& Url, const IMediaOptions& Options) override;

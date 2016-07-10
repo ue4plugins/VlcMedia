@@ -39,7 +39,7 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
 		{
 			if (AudioTrackDescr->Id != -1)
 			{
-				FVlcMediaTrack Track;
+				FTrack Track;
 				{
 					Track.Name = ANSI_TO_TCHAR(AudioTrackDescr->Name);
 					Track.DisplayName = Track.Name.IsEmpty()
@@ -62,7 +62,7 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
 		{
 			if (VideoTrackDescr->Id != -1)
 			{
-				FVlcMediaTrack Track;
+				FTrack Track;
 				{
 					Track.Name = ANSI_TO_TCHAR(VideoTrackDescr->Name);
 					Track.DisplayName = Track.Name.IsEmpty()
@@ -124,6 +124,11 @@ int32 FVlcMediaTracks::GetNumTracks(EMediaTrackType TrackType) const
 
 int32 FVlcMediaTracks::GetSelectedTrack(EMediaTrackType TrackType) const
 {
+	if (Player == nullptr)
+	{
+		return INDEX_NONE;
+	}
+
 	switch (TrackType)
 	{
 	case EMediaTrackType::Audio:
@@ -168,7 +173,7 @@ FText FVlcMediaTracks::GetTrackDisplayName(EMediaTrackType TrackType, int32 Trac
 
 FString FVlcMediaTracks::GetTrackLanguage(EMediaTrackType TrackType, int32 TrackIndex) const
 {
-	return TEXT("und");
+	return TEXT("und"); // libvlc currently doesn't provide language codes
 }
 
 
@@ -213,12 +218,17 @@ FIntPoint FVlcMediaTracks::GetVideoTrackDimensions(int32 TrackIndex) const
 
 float FVlcMediaTracks::GetVideoTrackFrameRate(int32 TrackIndex) const
 {
-	return FVlc::MediaPlayerGetFps(Player);
+	return (Player != nullptr) ? FVlc::MediaPlayerGetFps(Player) : 0;
 }
 
 
 bool FVlcMediaTracks::SelectTrack(EMediaTrackType TrackType, int32 TrackIndex)
 {
+	if (Player == nullptr)
+	{
+		return false;
+	}
+
 	switch (TrackType)
 	{
 	case EMediaTrackType::Audio:

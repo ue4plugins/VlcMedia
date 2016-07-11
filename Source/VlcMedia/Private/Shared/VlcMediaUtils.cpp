@@ -29,8 +29,8 @@ namespace VlcMedia
 		case ELibvlcEventType::MediaPlayerBackward: return TEXT("Player Backward");
 		case ELibvlcEventType::MediaPlayerEndReached: return TEXT("Player End Reached");
 		case ELibvlcEventType::MediaPlayerEncounteredError: return TEXT("Player Encountered Error");
-		case ELibvlcEventType::MediaPlayerTimeChanged: return FString::Printf(TEXT("Player Time Changed: %s"), Event->Descriptor.MediaPlayerTimeChanged.NewTime);
-		case ELibvlcEventType::MediaPlayerPositionChanged: return FString::Printf(TEXT("Position Changed: %s"), Event->Descriptor.MediaPlayerPositionChanged.NewPosition);
+		case ELibvlcEventType::MediaPlayerTimeChanged: return FString::Printf(TEXT("Player Time Changed: %s"), *FTimespan::FromMilliseconds(Event->Descriptor.MediaPlayerTimeChanged.NewTime).ToString());
+		case ELibvlcEventType::MediaPlayerPositionChanged: return FString::Printf(TEXT("Position Changed: %f"), Event->Descriptor.MediaPlayerPositionChanged.NewPosition);
 		case ELibvlcEventType::MediaPlayerSeekableChanged: return FString::Printf(TEXT("Player Seekable Changed: %s"), Event->Descriptor.MediaPlayerSeekableChanged.new_seekable ? *GTrue.ToString() : *GFalse.ToString());
 		case ELibvlcEventType::MediaPlayerPausableChanged: return FString::Printf(TEXT("Player Pausable Changed: %s"), Event->Descriptor.MediaPlayerPausableChanged.NewPausable ? *GTrue.ToString() : *GFalse.ToString());
 		case ELibvlcEventType::MediaPlayerTitleChanged: return FString::Printf(TEXT("Player Title Changed: %s"), Event->Descriptor.MediaPlayerTitleChanged.NewTitle);

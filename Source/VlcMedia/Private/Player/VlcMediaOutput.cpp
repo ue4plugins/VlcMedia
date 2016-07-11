@@ -352,7 +352,7 @@ void FVlcMediaOutput::StaticVideoCleanupCallback(void *Opaque)
 }
 
 
-void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* /*Picture*/)
+void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 {
 	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoDisplayCallback"));
 
@@ -368,7 +368,18 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* /*Picture*/
 
 	if (VideoSink != nullptr)
 	{
-		VideoSink->DisplayTextureSinkBuffer(Output->CurrentTime);
+		// The lock/unlock/display callback protocol broke in LibVLC. Currently, lock is called only once
+		// at the beginning of playback, and unlock only at the end of playback. The display callback
+		// continues to be called once for each frame. For details on the breaking change in VLC see:
+		// http://git.videolan.org/?p=vlc.git;a=commitdiff;h=a5b262e23b580e655fcc5c74902c1de6d027ac9b
+
+//		VideoSink->DisplayTextureSinkBuffer(Output->CurrentTime);
+
+		if (Picture != nullptr)
+		{
+			VideoSink->UpdateTextureSinkBuffer((const uint8*)Picture);
+			VideoSink->DisplayTextureSinkBuffer(Output->CurrentTime);
+		}
 	}
 }
 
@@ -391,7 +402,12 @@ void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 
 	if (VideoSink != nullptr)
 	{
-		Planes[0] = VideoSink->AcquireTextureSinkBuffer();
+		// The lock/unlock/display callback protocol broke in LibVLC. Currently, lock is called only once
+		// at the beginning of playback, and unlock only at the end of playback. The display callback
+		// continues to be called once for each frame. For details on the breaking change in VLC see:
+		// http://git.videolan.org/?p=vlc.git;a=commitdiff;h=a5b262e23b580e655fcc5c74902c1de6d027ac9b
+
+//		Planes[0] = VideoSink->AcquireTextureSinkBuffer();
 	}
 
 	if (Planes[0] == nullptr)

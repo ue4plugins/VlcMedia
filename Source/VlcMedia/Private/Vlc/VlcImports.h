@@ -16,8 +16,8 @@ typedef void (*FLibvlcClearerrProc)();
 
 // events
 typedef void (*FLibvlcCallback)(FLibvlcEvent* /*Event*/, void* /*UserData*/);
-typedef int (*FLibvlcEventAttachProc)(FLibvlcEventManager* /*EventManager*/, ELibvlcEventType /*EventType*/, FLibvlcCallback /*Callback*/, void* /*UserData*/);
-typedef int (*FLibvlcEventDetachProc)(FLibvlcEventManager* /*EventManager*/, ELibvlcEventType /*EventType*/, FLibvlcCallback /*Callback*/, void* /*UserData*/);
+typedef int32 (*FLibvlcEventAttachProc)(FLibvlcEventManager* /*EventManager*/, ELibvlcEventType /*EventType*/, FLibvlcCallback /*Callback*/, void* /*UserData*/);
+typedef int32 (*FLibvlcEventDetachProc)(FLibvlcEventManager* /*EventManager*/, ELibvlcEventType /*EventType*/, FLibvlcCallback /*Callback*/, void* /*UserData*/);
 typedef const ANSICHAR* (*FLibvlcEventTypeNameProc)(ELibvlcEventType /*EventType*/);
 
 // logging
@@ -25,12 +25,14 @@ typedef void (*FLibvlcLogCb)(void* /*Data*/, ELibvlcLogLevel /*Level*/, FLibvlcL
 typedef void (*FLibvlcLogSetProc)(FLibvlcInstance* /*Instance*/, FLibvlcLogCb /*Callback*/, void* /*Data*/);
 typedef void (*FLibvlcLogUnsetProc)(FLibvlcInstance* /*Instance*/);
 
+// time
+typedef int64 (*FLibvlcClockProc)();
 
 // media callbacks
 typedef void (*FLibvlcMediaCloseCb)(void* /*Opaque*/);
-typedef int (*FLibvlcMediaOpenCb)(void* /*Opaque*/, void** /*OutData*/, uint64* /*OutSize*/);
+typedef int32 (*FLibvlcMediaOpenCb)(void* /*Opaque*/, void** /*OutData*/, uint64* /*OutSize*/);
 typedef SSIZE_T (*FLibvlcMediaReadCb)(void* /*Opaque*/, void* /*Buffer*/, SIZE_T /*Length*/);
-typedef int (*FLibvlcMediaSeekCb)(void* /*Opaque*/, uint64 /*Offset*/);
+typedef int32 (*FLibvlcMediaSeekCb)(void* /*Opaque*/, uint64 /*Offset*/);
 
 // media
 typedef FLibvlcEventManager* (*FLibvlcMediaEventManagerProc)(FLibvlcMedia* /*Media*/);
@@ -104,7 +106,7 @@ typedef void (*FLibvlcAudioSetFormatProc)(
 	uint32 Rate,
 	uint32 Channels);
 
-typedef int (*FLibvlcAudioSetupCb)(void** /*Opaque*/, ANSICHAR* /*Format*/, uint32* /*Rate*/, uint32* /*Channels*/);
+typedef int32 (*FLibvlcAudioSetupCb)(void** /*Opaque*/, ANSICHAR* /*Format*/, uint32* /*Rate*/, uint32* /*Channels*/);
 typedef void (*FLibvlcAudioCleanupCb)(void* /*Opaque*/);
 
 typedef void (*FLibvlcAudioSetFormatCallbacksProc)(

@@ -34,6 +34,8 @@ public:
 	static FLibvlcLogSetProc LogSet;
 	static FLibvlcLogUnsetProc LogUnset;
 
+	static FLibvlcClockProc Clock;
+
 	static FLibvlcMediaEventManagerProc MediaEventManager;
 	static FLibvlcMediaGetStatsProc MediaGetStats;
 	static FLibvlcMediaNewCallbacksProc MediaNewCallbacks;

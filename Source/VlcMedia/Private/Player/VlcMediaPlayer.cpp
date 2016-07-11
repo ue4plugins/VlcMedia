@@ -36,7 +36,7 @@ bool FVlcMediaPlayer::Tick(float DeltaTime)
 		return true;
 	}
 
-	// interpolate time, because VLC's timer is too low-res
+	// interpolate time, because FVlc::MediaPlayerGetTime is too low-res
 	if (FVlc::MediaPlayerGetState(Player) == ELibvlcState::Playing)
 	{
 		double PlatformSeconds = FPlatformTime::Seconds();
@@ -56,20 +56,28 @@ bool FVlcMediaPlayer::Tick(float DeltaTime)
 			break;
 
 		case ELibvlcEventType::MediaPlayerEndReached:
-			// this causes a short delay, but there seems to be no other way.
-			// looping via VLC media list players is also broken. sadness.
+			// begin hack: this causes a short delay, but there seems to be no
+			// other way. looping via VLC Media List players is also broken :(
 			FVlc::MediaPlayerStop(Player);
+			// end hack
 
 			if (ShouldLoop && (DesiredRate != 0.0f))
 			{
 				SetRate(DesiredRate);
 			}
 
+			MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
 			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
+			break;
+
+		case ELibvlcEventType::MediaPlayerPaused:
+			LastPlatformSeconds = FPlatformTime::Seconds();
+			MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
 			break;
 
 		case ELibvlcEventType::MediaPlayerPlaying:
 			LastPlatformSeconds = FPlatformTime::Seconds();
+			MediaEvent.Broadcast(EMediaEvent::PlaybackResumed);
 			break;
 
 		case ELibvlcEventType::MediaPlayerPositionChanged:
@@ -434,7 +442,7 @@ bool FVlcMediaPlayer::InitializePlayer()
 
 void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("LibVLC event: %s"), *VlcMedia::EventToString(Event));
+	UE_LOG(LogVlcMedia, Verbose, TEXT("LibVLC event: %s"), *VlcMedia::EventToString(Event));
 
 	auto MediaPlayer = (FVlcMediaPlayer*)UserData;
 
@@ -447,6 +455,10 @@ void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 	{
 		MediaPlayer->Tracks.Initialize(*MediaPlayer->Player);
 		MediaPlayer->Output.Initialize(*MediaPlayer->Player);
+	}
+	else if (Event->Type == ELibvlcEventType::MediaPlayerPlaying)
+	{
+		MediaPlayer->Output.Resume(MediaPlayer->CurrentTime);
 	}
 
 	MediaPlayer->Events.Enqueue(Event->Type);

@@ -29,14 +29,14 @@ public:
 	void Initialize(FLibvlcMediaPlayer& InPlayer);
 
 	/**
-	 * Set the current playback time.
+	 * Notify sinks that playback was resumed.
 	 *
-	 * @param Time The time to set.
+	 * LibVLC does not call StaticAudioResumeCallback when playback
+	 * beings, so we're resuming the audio sink via this method.
+	 *
+	 * @param InResumeTime Time at which playback resumed.
 	 */
-	void SetTime(FTimespan Time)
-	{
-		CurrentTime = Time;
-	}
+	void Resume(FTimespan InResumeTime);
 
 	/** Shut down this handler. */
 	void Shutdown();
@@ -52,9 +52,25 @@ public:
 
 protected:
 
+	/** Set up audio related callbacks. */
 	void SetupAudioOutput();
+
+	/** Set up caption related callbacks. */
 	void SetupCaptionOutput();
+
+	/** Set up video related callbacks. */
 	void SetupVideoOutput();
+
+	/**
+	 * Convert a VLC timestamp to a playback timespan.
+	 *
+	 * @param Timestamp The timestamp to convert.
+	 * @return The corresponding timespan.
+	 */
+	FTimespan TimestampToTimespan(int64 Timestamp)
+	{
+		return ResumeTime + FTimespan::FromMicroseconds(Timestamp - ResumeOrigin);
+	}
 
 private:
 
@@ -105,11 +121,14 @@ private:
 	/** Critical section for synchronizing access to sinks. */
 	FCriticalSection CriticalSection;
 
-	/** The current playback time. */
-	FTimespan CurrentTime;
-
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;
+
+	/** Origin of timestamps. */
+	int64 ResumeOrigin;
+
+	/** The time at which playback resumed. */
+	FTimespan ResumeTime;
 
 	/** Dimensions of the current video track. */
 	FIntPoint VideoDimensions;

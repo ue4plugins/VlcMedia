@@ -11,8 +11,9 @@
 FVlcMediaOutput::FVlcMediaOutput()
 	: AudioSink(nullptr)
 	, CaptionSink(nullptr)
-	, CurrentTime(FTimespan::Zero())
 	, Player(nullptr)
+	, ResumeOrigin(0)
+	, ResumeTime(FTimespan::Zero())
 	, VideoSink(nullptr)
 { }
 
@@ -29,6 +30,22 @@ void FVlcMediaOutput::Initialize(FLibvlcMediaPlayer& InPlayer)
 	SetupAudioOutput();
 	SetupCaptionOutput();
 	SetupVideoOutput();
+}
+
+
+void FVlcMediaOutput::Resume(FTimespan InResumeTime)
+{
+	UE_LOG(LogVlcMedia, Verbose, TEXT("Resuming output at %s"), *InResumeTime.ToString());
+
+	FScopeLock Lock(&CriticalSection);
+
+	ResumeOrigin = FVlc::Clock();
+	ResumeTime = InResumeTime;
+
+	if (AudioSink != nullptr)
+	{
+		AudioSink->ResumeAudioSink();
+	}
 }
 
 
@@ -212,7 +229,7 @@ void FVlcMediaOutput::StaticAudioDrainCallback(void* Opaque)
 
 void FVlcMediaOutput::StaticAudioFlushCallback(void* Opaque, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioFlushCallback: Timestamp=%s"), *FTimespan::FromMilliseconds(Timestamp).ToString());
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioFlushCallback"));
 
 	auto Output = (FVlcMediaOutput*)Opaque;
 
@@ -233,7 +250,7 @@ void FVlcMediaOutput::StaticAudioFlushCallback(void* Opaque, int64 Timestamp)
 
 void FVlcMediaOutput::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPauseCallback: Timestamp=%s"), *FTimespan::FromMilliseconds(Timestamp).ToString());
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPauseCallback"));
 
 	auto Output = (FVlcMediaOutput*)Opaque;
 
@@ -254,7 +271,7 @@ void FVlcMediaOutput::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 
 void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint32 Count, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPlayCallback: Count=%i Timestamp=%s"), Count, *FTimespan::FromMilliseconds(Timestamp).ToString());
+	UE_LOG(LogVlcMedia, Verbose, TEXT("StaticAudioPlayCallback: Count=%i"), Count);
 
 	auto Output = (FVlcMediaOutput*)Opaque;
 
@@ -268,14 +285,14 @@ void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint3
 
 	if (AudioSink != nullptr)
 	{
-		AudioSink->PlayAudioSink((uint8*)Samples, Count * sizeof(int16), FTimespan::FromMicroseconds(Timestamp));
+		AudioSink->PlayAudioSink((uint8*)Samples, Count * AudioSink->GetAudioSinkChannels() * sizeof(int16), Output->TimestampToTimespan(Timestamp));
 	}
 }
 
 
 void FVlcMediaOutput::StaticAudioResumeCallback(void* Opaque, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioResumeCallback: Timestamp=%s"), *FTimespan::FromMilliseconds(Timestamp).ToString());
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioResumeCallback"));
 
 	auto Output = (FVlcMediaOutput*)Opaque;
 
@@ -319,6 +336,11 @@ int FVlcMediaOutput::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, u
 	if ((*Channels != 1) && (*Channels != 2) && (*Channels != 6))
 	{
 		*Channels = 2;
+	}
+
+	if (*Rate != 44100u)
+	{
+		UE_LOG(LogVlcMedia, Warning, TEXT("Possible loss of audio quality due to sample rate != 44100 Hz"));
 	}
 
 	// initialize sink
@@ -373,12 +395,12 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 		// continues to be called once for each frame. For details on the breaking change in VLC see:
 		// http://git.videolan.org/?p=vlc.git;a=commitdiff;h=a5b262e23b580e655fcc5c74902c1de6d027ac9b
 
-//		VideoSink->DisplayTextureSinkBuffer(Output->CurrentTime);
+//		VideoSink->DisplayTextureSinkBuffer(FTimespan::FromMicroseconds(FVlc::Clock() - Output->TimeOrigin));
 
 		if (Picture != nullptr)
 		{
 			VideoSink->UpdateTextureSinkBuffer((const uint8*)Picture);
-			VideoSink->DisplayTextureSinkBuffer(Output->CurrentTime);
+			VideoSink->DisplayTextureSinkBuffer(Output->TimestampToTimespan(FVlc::Clock()));
 		}
 	}
 }

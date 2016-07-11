@@ -488,8 +488,8 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 
 		if (ChromaDescr->PlaneCount > 1)
 		{
-			FMemory::Memcpy(Chroma, "UYVY", 4);
-			SinkFormat = EMediaTextureSinkFormat::CharUYVY;
+			FMemory::Memcpy(Chroma, "YUY2", 4);
+			SinkFormat = EMediaTextureSinkFormat::CharYUY2;
 			Pitches[0] = *Width * 2;
 		}
 		else

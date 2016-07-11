@@ -185,6 +185,8 @@ void FVlcMediaOutput::SetupVideoOutput()
 
 void FVlcMediaOutput::StaticAudioCleanupCallback(void* Opaque)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioCleanupCallback"));
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)
@@ -204,12 +206,14 @@ void FVlcMediaOutput::StaticAudioCleanupCallback(void* Opaque)
 
 void FVlcMediaOutput::StaticAudioDrainCallback(void* Opaque)
 {
-	// do nothing
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioDrainCallback"));
 }
 
 
 void FVlcMediaOutput::StaticAudioFlushCallback(void* Opaque, int64 Timestamp)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioFlushCallback: Timestamp=%s"), *FTimespan::FromMilliseconds(Timestamp).ToString());
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)
@@ -229,6 +233,8 @@ void FVlcMediaOutput::StaticAudioFlushCallback(void* Opaque, int64 Timestamp)
 
 void FVlcMediaOutput::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPauseCallback: Timestamp=%s"), *FTimespan::FromMilliseconds(Timestamp).ToString());
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)
@@ -248,6 +254,8 @@ void FVlcMediaOutput::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 
 void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint32 Count, int64 Timestamp)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPlayCallback: Count=%i Timestamp=%s"), Count, *FTimespan::FromMilliseconds(Timestamp).ToString());
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)
@@ -267,6 +275,8 @@ void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint3
 
 void FVlcMediaOutput::StaticAudioResumeCallback(void* Opaque, int64 Timestamp)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioResumeCallback: Timestamp=%s"), *FTimespan::FromMilliseconds(Timestamp).ToString());
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)
@@ -286,6 +296,8 @@ void FVlcMediaOutput::StaticAudioResumeCallback(void* Opaque, int64 Timestamp)
 
 int FVlcMediaOutput::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, uint32* Rate, uint32* Channels)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioSetupCallback: Format=%s Rate=%i Channels=%i"), ANSI_TO_TCHAR(Format), *Rate, *Channels);
+
 	auto Output = *(FVlcMediaOutput**)Opaque;
 
 	if ((Output == nullptr) || (Output->VideoSink == nullptr))
@@ -321,6 +333,8 @@ int FVlcMediaOutput::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, u
 
 void FVlcMediaOutput::StaticVideoCleanupCallback(void *Opaque)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoCleanupCallback"));
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)
@@ -340,6 +354,8 @@ void FVlcMediaOutput::StaticVideoCleanupCallback(void *Opaque)
 
 void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* /*Picture*/)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoDisplayCallback"));
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)
@@ -359,6 +375,8 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* /*Picture*/
 
 void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoLockCallback"));
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)
@@ -391,6 +409,8 @@ void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 
 unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, unsigned* Width, unsigned* Height, unsigned* Pitches, unsigned* Lines)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoSetupCallback: Chroma=%s Dim=%ix%i"), ANSI_TO_TCHAR(Chroma), *Width, *Height);
+
 	auto Output = *(FVlcMediaOutput**)Opaque;
 
 	if ((Output == nullptr) || (Output->VideoSink == nullptr))
@@ -480,6 +500,8 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 
 void FVlcMediaOutput::StaticVideoUnlockCallback(void* Opaque, void* Picture, void* const* /*Planes*/)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoUnlockCallback"));
+
 	auto Output = (FVlcMediaOutput*)Opaque;
 
 	if (Output == nullptr)

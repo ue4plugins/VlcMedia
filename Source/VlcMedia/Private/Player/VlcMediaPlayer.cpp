@@ -3,6 +3,7 @@
 #include "VlcMediaPCH.h"
 #include "Vlc.h"
 #include "VlcMediaPlayer.h"
+#include "VlcMediaUtils.h"
 
 
 /* FVlcMediaPlayer structors
@@ -433,6 +434,8 @@ bool FVlcMediaPlayer::InitializePlayer()
 
 void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("LibVLC event: %s"), *VlcMedia::EventToString(Event));
+
 	auto MediaPlayer = (FVlcMediaPlayer*)UserData;
 
 	if (MediaPlayer == nullptr)

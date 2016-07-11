@@ -271,7 +271,7 @@ void FVlcMediaOutput::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 
 void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint32 Count, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, Verbose, TEXT("StaticAudioPlayCallback: Count=%i"), Count);
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPlayCallback: Count=%i"), Count);
 
 	auto Output = (FVlcMediaOutput*)Opaque;
 

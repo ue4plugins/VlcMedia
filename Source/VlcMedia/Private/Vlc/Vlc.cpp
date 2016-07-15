@@ -131,7 +131,7 @@ bool FVlc::Initialize()
 	const FString VlcDir = FPaths::Combine(*BaseDir, TEXT("ThirdParty"), TEXT("vlc"));
 
 #if PLATFORM_LINUX
-	const FString LibDir = FString();
+	const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Linux"), TEXT("x86_64-unknown-linux-gnu"));
 #elif PLATFORM_MAC
 	const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Mac"));
 #elif PLATFORM_WINDOWS

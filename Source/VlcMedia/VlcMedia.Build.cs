@@ -48,9 +48,15 @@ namespace UnrealBuildTool.Rules
 
             if (Target.Platform == UnrealTargetPlatform.Linux)
             {
-                // We expect libvlc to be installed for now until we can figure
-                // out how to configure package dependencies at installation time.
-            }
+				VlcDirectory = Path.Combine(VlcDirectory, Target.Architecture);
+
+				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so.5.5.0")));
+				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so.8.0")));
+				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so.5")));
+				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so.8")));
+				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so")));
+				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so")));
+			}
             else if (Target.Platform == UnrealTargetPlatform.Mac)
             {
                 RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.dylib")));

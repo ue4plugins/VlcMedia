@@ -3,8 +3,8 @@
 #pragma once
 
 #if WITH_EDITOR
-#include "Developer/Settings/Public/ISettingsModule.h"
-#include "Developer/Settings/Public/ISettingsSection.h"
+	#include "Developer/Settings/Public/ISettingsModule.h"
+	#include "Developer/Settings/Public/ISettingsSection.h"
 #endif
 
 #include "Runtime/Core/Public/Core.h"

@@ -13,6 +13,11 @@ class UVlcMediaSettings
 
 public:
 
+	/** Default constructor. */
+	UVlcMediaSettings();
+
+public:
+
 	/** Whether VLC log messages should be logged. */
 	UPROPERTY(config, EditAnywhere, Category=Debugging)
 	bool EnableLog;

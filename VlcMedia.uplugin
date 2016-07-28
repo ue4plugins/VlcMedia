@@ -19,7 +19,7 @@
 			"Name" : "VlcMedia",
 			"Type" : "RuntimeNoCommandlet",
 			"LoadingPhase" : "PreLoadingScreen",
-			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64", "WinRT" ]
+			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64" ]
 		},
 		{
 			"Name" : "VlcMediaEditor",
@@ -30,7 +30,7 @@
 			"Name": "VlcMediaFactory",
 			"Type": "Runtime",
 			"LoadingPhase" : "PostEngineInit",
-			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64", "WinRT" ]
+			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64" ]
 		}
 	],
 

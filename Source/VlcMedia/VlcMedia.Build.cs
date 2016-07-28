@@ -76,11 +76,6 @@ namespace UnrealBuildTool.Rules
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.dll")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.dll")));
 			}
-			else if (Target.Platform == UnrealTargetPlatform.WinRT)
-			{
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.dll")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.dll")));
-			}
 
 			// add VLC plug-ins
 			string PluginDirectory = Path.Combine(VlcDirectory, "plugins");

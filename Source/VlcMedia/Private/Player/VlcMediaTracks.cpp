@@ -55,6 +55,29 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
 	}
 	FVlc::TrackDescriptionListRelease(AudioTrackDescr);
 
+	// initialize caption tracks
+	FLibvlcTrackDescription* CaptionTrackDescr = FVlc::VideoGetSpuDescription(Player);
+	{
+		while (CaptionTrackDescr != nullptr)
+		{
+			if (CaptionTrackDescr->Id != -1)
+			{
+				FTrack Track;
+				{
+					Track.Name = ANSI_TO_TCHAR(CaptionTrackDescr->Name);
+					Track.DisplayName = Track.Name.IsEmpty()
+						? FText::Format(LOCTEXT("CaptionTrackFormat", "Caption Track {0}"), FText::AsNumber((uint32)CaptionTrackDescr->Id))
+						: FText::FromString(Track.Name);
+				}
+
+				CaptionTracks.Add(Track);
+			}
+
+			CaptionTrackDescr = CaptionTrackDescr->Next;
+		}
+	}
+	FVlc::TrackDescriptionListRelease(CaptionTrackDescr);
+
 	// initialize video tracks
 	FLibvlcTrackDescription* VideoTrackDescr = FVlc::VideoGetTrackDescription(Player);
 	{
@@ -114,8 +137,13 @@ int32 FVlcMediaTracks::GetNumTracks(EMediaTrackType TrackType) const
 	{
 	case EMediaTrackType::Audio:
 		return AudioTracks.Num();
+
+	case EMediaTrackType::Caption:
+		return CaptionTracks.Num();
+	
 	case EMediaTrackType::Video:
 		return VideoTracks.Num();
+	
 	default:
 		return 0;
 	}
@@ -157,6 +185,13 @@ FText FVlcMediaTracks::GetTrackDisplayName(EMediaTrackType TrackType, int32 Trac
 		}
 		break;
 
+	case EMediaTrackType::Caption:
+		if (CaptionTracks.IsValidIndex(TrackIndex))
+		{
+			return CaptionTracks[TrackIndex].DisplayName;
+		}
+		break;
+
 	case EMediaTrackType::Video:
 		if (VideoTracks.IsValidIndex(TrackIndex))
 		{
@@ -185,6 +220,13 @@ FString FVlcMediaTracks::GetTrackName(EMediaTrackType TrackType, int32 TrackInde
 		if (AudioTracks.IsValidIndex(TrackIndex))
 		{
 			return AudioTracks[TrackIndex].Name;
+		}
+		break;
+
+	case EMediaTrackType::Caption:
+		if (CaptionTracks.IsValidIndex(TrackIndex))
+		{
+			return CaptionTracks[TrackIndex].Name;
 		}
 		break;
 

@@ -148,6 +148,7 @@ typedef void (*FLibvlcVideoSetFormatCallbacksProc)(
 typedef int32 (*FLibvlcVideoGetHeightProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoGetWidthProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoGetSpuProc)(FLibvlcMediaPlayer* /*Player*/);
+typedef int32 (*FLibvlcVideoGetSpuCountProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoGetTrackProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoSetSpuProc)(FLibvlcMediaPlayer* /*Player*/, int32 /*SpuId*/);
 typedef int32 (*FLibvlcVideoSetTrackProc)(FLibvlcMediaPlayer* /*Player*/, int32 /*TrackId*/);

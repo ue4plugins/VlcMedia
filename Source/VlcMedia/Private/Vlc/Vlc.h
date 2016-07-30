@@ -86,6 +86,7 @@ public:
 	static FLibvlcVideoSetFormatProc VideoSetFormat;
 	static FLibvlcVideoSetFormatCallbacksProc VideoSetFormatCallbacks;
 	static FLibvlcVideoGetSpuProc VideoGetSpu;
+	static FLibvlcVideoGetSpuCountProc VideoGetSpuCount;
 	static FLibvlcVideoSetSpuProc VideoSetSpu;
 	static FLibvlcVideoGetTrackProc VideoGetTrack;
 	static FLibvlcVideoSetTrackProc VideoSetTrack;

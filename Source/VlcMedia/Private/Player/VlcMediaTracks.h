@@ -58,6 +58,9 @@ private:
 	/** Audio track descriptors. */
 	TArray<FTrack> AudioTracks;
 
+	/** Caption track descriptors. */
+	TArray<FTrack> CaptionTracks;
+
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;
 

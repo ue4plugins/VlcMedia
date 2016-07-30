@@ -137,13 +137,10 @@ EMediaState FVlcMediaPlayer::GetState() const
 
 	switch (State)
 	{
-	case ELibvlcState::Buffering:
-	case ELibvlcState::NothingSpecial:
-		return EMediaState::Closed;
-
 	case ELibvlcState::Error:
 		return EMediaState::Error;
 
+	case ELibvlcState::Buffering:
 	case ELibvlcState::Opening:
 		return EMediaState::Preparing;
 
@@ -154,6 +151,7 @@ EMediaState FVlcMediaPlayer::GetState() const
 		return EMediaState::Playing;
 
 	case ELibvlcState::Ended:
+	case ELibvlcState::NothingSpecial:
 	case ELibvlcState::Stopped:
 		return EMediaState::Stopped;
 	}

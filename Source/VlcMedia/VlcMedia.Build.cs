@@ -51,7 +51,7 @@ namespace UnrealBuildTool.Rules
 				VlcDirectory = Path.Combine(VlcDirectory, Target.Architecture);
 
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so.5.5.0")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so.8.0")));
+				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so.8.0.0")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so.5")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so.8")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so")));

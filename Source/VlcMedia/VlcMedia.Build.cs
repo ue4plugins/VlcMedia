@@ -66,13 +66,11 @@ namespace UnrealBuildTool.Rules
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Win32)
 			{
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libgcc_s_sjlj-1.dll")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.dll")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.dll")));
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Win64)
 			{
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libgcc_s_seh-1.dll")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.dll")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.dll")));
 			}

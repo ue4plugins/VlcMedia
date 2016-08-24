@@ -136,6 +136,7 @@ public:
 		SupportedFileExtensions.Add(TEXT("ty"));
 		SupportedFileExtensions.Add(TEXT("vid"));
 		SupportedFileExtensions.Add(TEXT("wav"));
+		SupportedFileExtensions.Add(TEXT("webm"));
 		SupportedFileExtensions.Add(TEXT("wmv"));
 		SupportedFileExtensions.Add(TEXT("xa"));
 

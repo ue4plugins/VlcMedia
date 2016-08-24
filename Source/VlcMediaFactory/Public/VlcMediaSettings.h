@@ -6,7 +6,7 @@
 
 
 UCLASS(config=Engine)
-class UVlcMediaSettings
+class VLCMEDIAFACTORY_API UVlcMediaSettings
 	: public UObject
 {
 	GENERATED_BODY()

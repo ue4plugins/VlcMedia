@@ -23,6 +23,9 @@ public:
 	 */
 	virtual TSharedPtr<IMediaPlayer> CreatePlayer() = 0;
 
+	/** Initialize VLC's log output. */
+	virtual void InitializeLogging() = 0;
+
 public:
 
 	/** Virtual destructor. */

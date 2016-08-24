@@ -158,6 +158,25 @@ public:
 		SupportedUriSchemes.Add(TEXT("screen"));
 		SupportedUriSchemes.Add(TEXT("vcd"));
 
+#if WITH_EDITOR
+		// register settings
+		ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+
+		if (SettingsModule != nullptr)
+		{
+			ISettingsSectionPtr SettingsSection = SettingsModule->RegisterSettings("Project", "Plugins", "VlcMedia",
+				LOCTEXT("VlcMediaSettingsName", "VLC Media"),
+				LOCTEXT("VlcMediaSettingsDescription", "Configure the VLC Media plug-in."),
+				GetMutableDefault<UVlcMediaSettings>()
+			);
+
+			if (SettingsSection.IsValid())
+			{
+				SettingsSection->OnModified().BindRaw(this, &FVlcMediaFactoryModule::HandleSettingsSaved);
+			}
+		}
+#endif //WITH_EDITOR
+
 		// register player factory
 		auto MediaModule = FModuleManager::LoadModulePtr<IMediaModule>("Media");
 
@@ -176,6 +195,31 @@ public:
 		{
 			MediaModule->UnregisterPlayerFactory(*this);
 		}
+
+#if WITH_EDITOR
+		// unregister settings
+		ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
+
+		if (SettingsModule != nullptr)
+		{
+			SettingsModule->UnregisterSettings("Project", "Plugins", "VlcMedia");
+		}
+#endif //WITH_EDITOR
+	}
+
+private:
+
+	/** Callback for when the settings were saved. */
+	bool HandleSettingsSaved()
+	{
+		auto VlcMediaModule = FModuleManager::LoadModulePtr<IVlcMediaModule>("VlcMedia");
+		
+		if (VlcMediaModule != nullptr)
+		{
+			VlcMediaModule->InitializeLogging();
+		}
+
+		return true;
 	}
 
 private:

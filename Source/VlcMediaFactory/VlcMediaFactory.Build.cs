@@ -33,6 +33,12 @@ namespace UnrealBuildTool.Rules
 				}
 			);
 
+			if (Target.Type == TargetRules.TargetType.Editor)
+			{
+				DynamicallyLoadedModuleNames.Add("Settings");
+				PrivateIncludePathModuleNames.Add("Settings");
+			}
+
 			if ((Target.Platform == UnrealTargetPlatform.Mac) ||
 				(Target.Platform == UnrealTargetPlatform.Linux) ||
 				(Target.Platform == UnrealTargetPlatform.Win32) ||

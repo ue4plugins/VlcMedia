@@ -13,7 +13,6 @@ namespace UnrealBuildTool.Rules
 			DynamicallyLoadedModuleNames.AddRange(
 				new string[] {
 					"Media",
-					"Settings",
 				}
 			);
 
@@ -23,13 +22,13 @@ namespace UnrealBuildTool.Rules
 					"CoreUObject",
 					"Projects",
 					"RenderCore",
+					"VlcMediaFactory",
 				}
 			);
 
 			PrivateIncludePathModuleNames.AddRange(
 				new string[] {
 					"Media",
-					"Settings",
 				}
 			);
 

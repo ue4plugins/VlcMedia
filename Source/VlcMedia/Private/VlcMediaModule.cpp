@@ -39,6 +39,18 @@ public:
 		return MakeShareable(new FVlcMediaPlayer(VlcInstance));
 	}
 
+	virtual void InitializeLogging() override
+	{
+		if (GetDefault<UVlcMediaSettings>()->EnableLog)
+		{
+			FVlc::LogSet(VlcInstance, &FVlcMediaModule::HandleVlcLog, nullptr);
+		}
+		else
+		{
+			FVlc::LogUnset(VlcInstance);
+		}
+	}
+
 public:
 
 	//~ IModuleInterface interface
@@ -52,25 +64,6 @@ public:
 
 			return;
 		}
-
-#if WITH_EDITOR
-		// register settings
-		ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
-
-		if (SettingsModule != nullptr)
-		{
-			ISettingsSectionPtr SettingsSection = SettingsModule->RegisterSettings("Project", "Plugins", "VlcMedia",
-				LOCTEXT("VlcMediaSettingsName", "VLC Media"),
-				LOCTEXT("VlcMediaSettingsDescription", "Configure the VLC Media plug-in."),
-				GetMutableDefault<UVlcMediaSettings>()
-			);
-
-			if (SettingsSection.IsValid())
-			{
-				SettingsSection->OnModified().BindRaw(this, &FVlcMediaModule::HandleSettingsSaved);
-			}
-		}
-#endif // WITH_EDITOR
 
 		// create LibVLC instance
 		const ANSICHAR* Args[] =
@@ -131,42 +124,9 @@ public:
 
 		// shut down LibVLC
 		FVlc::Shutdown();
-
-#if WITH_EDITOR
-		// unregister settings
-		ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
-
-		if (SettingsModule != nullptr)
-		{
-			SettingsModule->UnregisterSettings("Project", "Plugins", "VlcMedia");
-		}
-#endif // WITH_EDITOR
-	}
-
-protected:
-
-	/** Initializes VLC logging. */
-	void InitializeLogging()
-	{
-		if (GetDefault<UVlcMediaSettings>()->EnableLog)
-		{
-			FVlc::LogSet(VlcInstance, &FVlcMediaModule::HandleVlcLog, nullptr);
-		}
-		else
-		{
-			FVlc::LogUnset(VlcInstance);
-		}
 	}
 
 private:
-
-	/** Callback for when the settings were saved. */
-	bool HandleSettingsSaved()
-	{
-		InitializeLogging();
-
-		return true;
-	}
 
 	/** Handles log messages from LibVLC. */
 	static void HandleVlcLog(void* /*Data*/, ELibvlcLogLevel Level, FLibvlcLog* Context, const char* Format, va_list Args)

@@ -3,6 +3,7 @@
 #include "VlcMediaFactoryPCH.h"
 #include "IMediaPlayerFactory.h"
 #include "ModuleInterface.h"
+#include "VlcMediaSettings.h"
 
 
 #define LOCTEXT_NAMESPACE "FVlcMediaFactoryModule"

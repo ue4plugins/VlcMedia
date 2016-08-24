@@ -2,6 +2,7 @@
 
 #include "VlcMediaPCH.h"
 #include "VlcMediaUtils.h"
+#include "VlcTypes.h"
 
 
 namespace VlcMedia

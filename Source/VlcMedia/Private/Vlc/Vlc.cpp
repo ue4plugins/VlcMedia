@@ -1,6 +1,7 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
 #include "VlcMediaPCH.h"
+#include "Vlc.h"
 
 
 #define VLC_IMPORT(Name, Func) \

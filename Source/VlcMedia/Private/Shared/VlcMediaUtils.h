@@ -3,6 +3,7 @@
 #pragma once
 
 
+enum class ELibvlcState;
 struct FLibvlcEvent;
 
 

@@ -4,7 +4,6 @@
 #include "IVlcMediaModule.h"
 #include "Vlc.h"
 #include "VlcMediaPlayer.h"
-#include "VlcMediaSettings.h"
 
 
 DEFINE_LOG_CATEGORY(LogVlcMedia);

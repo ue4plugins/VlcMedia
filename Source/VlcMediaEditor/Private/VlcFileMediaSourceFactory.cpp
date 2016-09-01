@@ -63,7 +63,7 @@ bool UVlcFileMediaSourceFactory::FactoryCanImport(const FString& Filename)
 UObject* UVlcFileMediaSourceFactory::FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const FString& Filename, const TCHAR* Parms, FFeedbackContext* Warn, bool& bOutOperationCanceled)
 {
 	UFileMediaSource* MediaSource = NewObject<UFileMediaSource>(InParent, InClass, InName, Flags);
-	MediaSource->FilePath = CurrentFilename;
+	MediaSource->SetFilePath(CurrentFilename);
 
 	return MediaSource;
 }

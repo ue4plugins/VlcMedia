@@ -3,4 +3,5 @@
 #pragma once
 
 #include "Runtime/Core/Public/Core.h"
+#include "Runtime/CoreUObject/Public/CoreUObject.h"
 #include "Runtime/MediaAssets/Public/FileMediaSource.h"

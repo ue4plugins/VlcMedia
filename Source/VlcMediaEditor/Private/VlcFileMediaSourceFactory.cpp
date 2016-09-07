@@ -56,7 +56,11 @@ UVlcFileMediaSourceFactory::UVlcFileMediaSourceFactory(const FObjectInitializer&
 
 bool UVlcFileMediaSourceFactory::FactoryCanImport(const FString& Filename)
 {
-	return true;
+	// @hack: disable file extensions that are used in other factories
+	// @todo gmp: add support for multiple factories per file extension
+	const FString FileExtension = FPaths::GetExtension(Filename);
+
+	return (FileExtension.ToUpper() != FString("WAV"));
 }
 
 

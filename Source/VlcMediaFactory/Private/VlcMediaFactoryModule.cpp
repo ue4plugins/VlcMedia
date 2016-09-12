@@ -66,7 +66,7 @@ public:
 		if (OutWarnings != nullptr)
 		{
 			if (Options.GetMediaOption("PrecacheFile", false) && (Scheme != TEXT("file")))
-			{			
+			{
 				OutWarnings->Add(LOCTEXT("PrecacheFileWarning", "Precaching is supported for local files only"));
 			}
 		}
@@ -130,6 +130,7 @@ public:
 		SupportedFileExtensions.Add(TEXT("rm"));
 		SupportedFileExtensions.Add(TEXT("rmvb"));
 		SupportedFileExtensions.Add(TEXT("rv"));
+		SupportedFileExtensions.Add(TEXT("sdp"));
 		SupportedFileExtensions.Add(TEXT("ts"));
 		SupportedFileExtensions.Add(TEXT("tac"));
 		SupportedFileExtensions.Add(TEXT("tta"));

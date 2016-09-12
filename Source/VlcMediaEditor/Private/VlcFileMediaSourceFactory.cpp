@@ -37,6 +37,7 @@ UVlcFileMediaSourceFactory::UVlcFileMediaSourceFactory(const FObjectInitializer&
 	Formats.Add(TEXT("rm;Real Media"));
 	Formats.Add(TEXT("rmvb;Real Media VBR"));
 	Formats.Add(TEXT("rv;Real Video"));
+	Formats.Add(TEXT("sdp;Session Description Protocol File"));
 	Formats.Add(TEXT("ts;MPEG-2 Transport Stream"));
 	Formats.Add(TEXT("tac;True Audio Codec File"));
 	Formats.Add(TEXT("tta;True Audio Codec File"));

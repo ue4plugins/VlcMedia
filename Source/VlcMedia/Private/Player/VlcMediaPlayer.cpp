@@ -287,6 +287,13 @@ FString FVlcMediaPlayer::GetInfo() const
 }
 
 
+FName FVlcMediaPlayer::GetName() const
+{
+	static FName PlayerName(TEXT("VlcMedia"));
+	return PlayerName;
+}
+
+
 IMediaOutput& FVlcMediaPlayer::GetOutput()
 {
 	return Output;

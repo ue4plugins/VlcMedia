@@ -65,6 +65,7 @@ public:
 	virtual void Close() override;
 	virtual IMediaControls& GetControls() override;
 	virtual FString GetInfo() const override;
+	virtual FName GetName() const override;
 	virtual IMediaOutput& GetOutput() override;
 	virtual FString GetStats() const override;
 	virtual IMediaTracks& GetTracks() override;

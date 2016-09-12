@@ -33,10 +33,6 @@ void* FVlc::CoreHandle = nullptr;
 void* FVlc::LibHandle = nullptr;
 FString FVlc::PluginDir;
 
-#if PLATFORM_WINDOWS
-	void* FVlc::GccHandle = nullptr;
-#endif
-
 
 VLC_DEFINE(New);
 VLC_DEFINE(Release);
@@ -145,10 +141,15 @@ bool FVlc::Initialize()
 #endif
 
 	// load required libraries in the correct order
-	if (!LoadDependency(LibDir, TEXT("libvlccore"), CoreHandle) ||
-		!LoadDependency(LibDir, TEXT("libvlc"), LibHandle))
+	if (!LoadDependency(LibDir, TEXT("libvlccore"), CoreHandle))
 	{
-		Shutdown();
+		return false;
+	}
+
+	if (!LoadDependency(LibDir, TEXT("libvlc"), LibHandle))
+	{
+		FreeDependency(CoreHandle);
+
 		return false;
 	}
 
@@ -244,10 +245,6 @@ void FVlc::Shutdown()
 
 	FreeDependency(LibHandle);
 	FreeDependency(CoreHandle);
-
-#if PLATFORM_WINDOWS
-	FreeDependency(GccHandle);
-#endif
 }
 
 

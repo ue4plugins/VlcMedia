@@ -97,12 +97,6 @@ void FVlcMediaOutput::SetCaptionSink(IMediaStringSink* Sink)
 }
 
 
-void FVlcMediaOutput::SetImageSink(IMediaTextureSink* Sink)
-{
-	// not supported
-}
-
-
 void FVlcMediaOutput::SetVideoSink(IMediaTextureSink* Sink)
 {
 	FScopeLock Lock(&CriticalSection);

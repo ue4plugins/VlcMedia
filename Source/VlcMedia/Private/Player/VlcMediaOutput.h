@@ -47,7 +47,6 @@ public:
 
 	virtual void SetAudioSink(IMediaAudioSink* Sink) override;
 	virtual void SetCaptionSink(IMediaStringSink* Sink) override;
-	virtual void SetImageSink(IMediaTextureSink* Sink) override;
 	virtual void SetVideoSink(IMediaTextureSink* Sink) override;
 
 protected:
@@ -129,6 +128,9 @@ private:
 
 	/** The time at which playback resumed. */
 	FTimespan ResumeTime;
+
+	/** The subtitle sink. */
+	IMediaStringSink* SubtitleSink;
 
 	/** Dimensions of the current video track. */
 	FIntPoint VideoDimensions;

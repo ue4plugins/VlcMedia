@@ -268,6 +268,7 @@ void FVlcMediaPlayer::Close()
 	// reset fields
 	CurrentTime = FTimespan::Zero();
 	MediaSource.Close();
+	Info.Empty();
 
 	// notify listeners
 	MediaEvent.Broadcast(EMediaEvent::TracksChanged);
@@ -283,7 +284,7 @@ IMediaControls& FVlcMediaPlayer::GetControls()
 
 FString FVlcMediaPlayer::GetInfo() const
 {
-	return TEXT("VlcMedia media information not implemented yet");
+	return Info;
 }
 
 
@@ -458,7 +459,7 @@ void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 
 	if (Event->Type == ELibvlcEventType::MediaParsedChanged)
 	{
-		MediaPlayer->Tracks.Initialize(*MediaPlayer->Player);
+		MediaPlayer->Tracks.Initialize(*MediaPlayer->Player, MediaPlayer->Info);
 		MediaPlayer->Output.Initialize(*MediaPlayer->Player);
 	}
 	else if (Event->Type == ELibvlcEventType::MediaPlayerPlaying)

@@ -31,8 +31,9 @@ public:
 	 * Initialize this object for the specified VLC media player.
 	 *
 	 * @param InPlayer The VLC media player.
+	 * @param OutInfo Will contain information about the available media tracks.
 	 */
-	void Initialize(FLibvlcMediaPlayer& InPlayer);
+	void Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo);
 
 	/** Shut down this object. */
 	void Shutdown();
@@ -52,6 +53,10 @@ public:
 	virtual FIntPoint GetVideoTrackDimensions(int32 TrackIndex) const override;
 	virtual float GetVideoTrackFrameRate(int32 TrackIndex) const override;
 	virtual bool SelectTrack(EMediaTrackType TrackType, int32 TrackIndex) override;
+
+protected:
+
+	static void PrintTrackInfo(const& FTrack Track, int32 StreamNumber, const TCHAR* TrackType, FString& OutInfo);
 
 private:
 

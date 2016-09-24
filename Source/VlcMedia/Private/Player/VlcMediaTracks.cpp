@@ -19,7 +19,7 @@ FVlcMediaTracks::FVlcMediaTracks()
 /* FVlcMediaTracks interface
 *****************************************************************************/
 
-void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
+void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo)
 {
 	Shutdown();
 
@@ -27,6 +27,7 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
 
 	int32 Width = FVlc::VideoGetWidth(Player);
 	int32 Height = FVlc::VideoGetHeight(Player);
+	int32 StreamCount = 0;
 
 	// @todo gmp: fix audio specs
 	FVlc::AudioSetFormat(Player, "S16N", 44100, 2);
@@ -48,6 +49,13 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
 				}
 
 				AudioTracks.Add(Track);
+
+				OutInfo += FString::Printf(TEXT("Stream %i\n"), StreamCount);
+				OutInfo += TEXT("    Type: Audio\n");
+				OutInfo += FString::Printf(TEXT("    Name: %s\n"), *Track.Name);
+				OutInfo += TEXT("\n");
+
+				++StreamCount;
 			}
 
 			AudioTrackDescr = AudioTrackDescr->Next;
@@ -71,6 +79,13 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
 				}
 
 				CaptionTracks.Add(Track);
+				
+				OutInfo += FString::Printf(TEXT("Stream %i\n"), StreamCount);
+				OutInfo += TEXT("    Type: Caption\n");
+				OutInfo += FString::Printf(TEXT("    Name: %s\n"), *Track.Name);
+				OutInfo += TEXT("\n");
+
+				++StreamCount;
 			}
 
 			CaptionTrackDescr = CaptionTrackDescr->Next;
@@ -94,6 +109,13 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer)
 				}
 
 				VideoTracks.Add(Track);
+
+				OutInfo += FString::Printf(TEXT("Stream %i\n"), StreamCount);
+				OutInfo += TEXT("    Type: Video\n");
+				OutInfo += FString::Printf(TEXT("    Name: %s\n"), *Track.Name);
+				OutInfo += TEXT("\n");
+
+				++StreamCount;
 			}
 
 			VideoTrackDescr = VideoTrackDescr->Next;

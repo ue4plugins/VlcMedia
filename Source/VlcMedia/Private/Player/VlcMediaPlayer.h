@@ -104,6 +104,9 @@ private:
 	/** Collection of received player events. */
 	TQueue<ELibvlcEventType, EQueueMode::Mpsc> Events;
 
+	/** Media information string. */
+	FString Info;
+
 	/** Platform time seconds at the last playback position change. */
 	double LastPlatformSeconds;
 

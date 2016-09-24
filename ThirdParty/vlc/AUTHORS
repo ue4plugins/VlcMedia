@@ -5,25 +5,25 @@ Programming
 Rémi Denis-Courmont
 Jean-Baptiste Kempf
 Laurent Aimar
-Rafaël Carré
-Felix Paul Kühne
 Gildas Bazin
+Felix Paul Kühne
+Rafaël Carré
 Pierre d'Herbemont
 Rémi Duraffort
 Derk-Jan Hartman
 Antoine Cellerier
-Jean-Paul Saman
 Samuel Hocevar
+Jean-Paul Saman
 Christophe Mutricy
 Clément Stenac
 Christophe Massiot
-François Cartegnie
 Ilkka Ollakka
-David Fuhrmann
 Pierre Ynard
+François Cartegnie
 Damien Fouilleul
 Sigmund Augdal Helberg
 Erwan Tulou
+David Fuhrmann
 Olivier Teulière
 Cyril Deguet
 Eric Petit
@@ -37,26 +37,22 @@ Benjamin Pracht
 Jean-Philippe André
 Steve Lhomme
 Stéphane Borel
-Ludovic Fauvet
-Martin Storsjö
 JP Dinger
 Geoffroy Couprie
-KO Myung-Hun
+Martin Storsjö
 Marian Ďurkovič
+Ludovic Fauvet
 Yoann Peronneau
 Sébastien Escudier
-Denis Charmet
-Edward Wang
 Jon Lech Johansen
-Felix Abecassis
-Tristan Matthews
+KO Myung-Hun
+Edward Wang
 Dennis van Amerongen
-Mirsal Ennaime
 Faustino Osuna
+Mirsal Ennaime
+Denis Charmet
 Jérôme Decoodt
 Loïc Minier
-Christoph Miebach
-Adrien Maglo
 David Flynn
 Frédéric Yhuel
 Kaarlo Raiha
@@ -73,103 +69,89 @@ Simon Latapie
 Bernie Purcell
 Henri Fallon
 Sebastien Zwickert
+Christoph Miebach
+Adrien Maglo
 Emmanuel Puig
-Sean McGovern
 Renaud Dartus
 Alexis de Lattre
-Naohiro Koriyama
 Vincent Penquerc'h
 Arnaud de Bossoreille de Ribou
 Mohammed Adnène Trojette
-Petri Hintukainen
 Boris Dorès
-Hannes Domani
 Jai Menon
 Anil Daoud
 Daniel Mierswa
-Dominique Leuenberger
+Naohiro Koriyama
 Rob Jonson
 Pierre Baillet
+Dominique Leuenberger
 Andre Pang
-Michał Trzebiatowski
 Zoran Turalija
 Akash Mehrotra
 André Weber
 Anthony Loiseau
-Devin Heitmueller
 Lukas Durfina
 Xavier Marchesini
 Cyril Mathé
-Tobias Güntner
+Devin Heitmueller
 Juho Vähä-Herttua
 Ken Self
-Luca Barbato
-Steinar H. Gunderson
-Sébastien Toque
 Alexis Ballier
 Juha Jeronen
 Nicolas Chauvet
 Richard Hosking
-Thomas Guillem
-Timothy B. Terriberry
 Éric Lassauge
 Marc Ariberti
-Matthias Keiser
-Vittorio Giovara
+Sébastien Toque
+Tobias Güntner
 Benoit Steiner
-Maxim Bublis
 Michel Lespinasse
 Carlo Calabrò
 Cheng Sun
-Gleb Pinigin
+Michał Trzebiatowski
 Brad Smith
 Brendon Justin
-Daniel Verkamp
-Mark Lee
-Ronald Wright
 Alexey Sokolov
 Basos G
 Philippe Morin
-Thomas De Rocker
+Steinar H. Gunderson
 Vicente Jimenez Aguilar
 Yuval Tze
-Benjamin Drung
 Yves Duret
-Julien 'Lta' BALLET
+Benjamin Drung
 Michael Hanselmann
-Vianney Boyer
 Alex Merry
 Damien Lucas
 Grigori Goronzy
-Julian Scheel
 Richard Shepherd
 Gaël Hendryckx
 Michael Feurstein
-Rui Zhang
 Stephan Assmus
 Adrien Grand
-Alexander Lakhin
-Anatoliy Anischovich
 Colin Guthrie
 David Menestrina
 Dominique Martinet
+Gleb Pinigin
 Jason Luka
 Luc Saillard
+Luca Barbato
 Mario Speiß
 Pankaj Yadav
 Ramiro Polla
+Ronald Wright
+Rui Zhang
 Can Wu
 Christophe Courtaut
 FUJISAWA Tooru
-François Revol
+Hannes Domani
 Manol Manolov
-Nicolas Bertrand
-Andrey Utkin
+Timothy B. Terriberry
 Antoine Lejeune
 Arnaud Schauly
 Branko Kokanovic
 Dylan Yudaken
 Florian G. Pflug
+François Revol
 G Finch
 Keary Griffin
 Konstanty Bialkowski
@@ -177,7 +159,7 @@ Ming Hu
 Philippe Coent
 Przemyslaw Fiala
 Tanguy Krotoff
-Wieland Hoffmann
+Vianney BOYER
 Casian Andrei
 Chris Smowton
 David Kaplan
@@ -186,12 +168,12 @@ Fabian Keil
 Guillaume Poussel
 John Peterson
 Justus Piater
+Mark Lee
 Martin T. H. Sandsmark
 Rune Botten
-Sergey Radionov
 Søren Bøg
 Toralf Niebuhr
-Adrian Yanes
+Tristan Matthews
 Angelo Haller
 Aurélien Nephtali
 Austin Burrow
@@ -199,64 +181,52 @@ Bill C. Riemers
 Colin Delacroix
 Cristian Maglie
 Elminster2031
-Georgi Chorbadzhiyski
-Gilles Sabourin
 Jakub Wieczorek
 John Freed
 Mark Hassman
 Martin Briza
 Mike Houben
 Romain Goyet
+Adrian Yanes
+Alexander Lakhin
+Anatoliy Anischovich
 Barry Wardell
 Ben Hutchings
 Besnard Jean-Baptiste
 Brian Weaver
 Clement Chesnin
 David Geldreich
-David Robison
-Dennis Hamester
 Diego Elio Pettenò
 Diego Fernando Nieto
-Fabian Yamaguchi
-Frode Tennebø
-Jerome Forissier
-John Stebbins
+Georgi Chorbadzhiyski
 Jon Stacey
 Jonathan Rosser
 Joris van Rooij
-Josh Watzman
 Kaloyan Kovachev
 Katsushi Kobayashi
 Kelly Anderson
 Loren Merritt
 Maciej Blizinski
 Mark Bidewell
-Martell Malone
 Miguel Angel Cabrera Moya
 Niles Bindel
 Samuel Pitoiset
 Scott Caudle
 Sean Robinson
-Sergio Ammirata
+Sergey Radionov
 Simon Hailes
 Stephen Parry
 Sukrit Sangwan
 Thierry Reding
-Uwe L. Korn
-Valentin Vetter
 Xavier Martin
-Adam Leggett
 Alex Converse
 Alexander Bethke
 Alexandre Ratchov
 Andres Krapf
+Andrey Utkin
 Andri Pálsson
 Andy Chenee
-Andy Tather
 Anuradha Suraparaju
-Arun Pandian G
-Avishay Spitzer
-Ben Littler
 Benjamin Poulain
 Brieuc Jeunhomme
 Chris Clayton
@@ -267,17 +237,15 @@ Danny Wood
 David K
 Edouard Gomez
 Emmanuel de Roux
-Finn Hughes
+Frode Tennebø
 GBX
 Gaurav Narula
 Geraud CONTINSOUZAS
-Gilles Chanteperdrix
-Gwenole Beauchesne
 Hugues Fruchet
 Jan Winter
 Jean-François Massol
 Jean-Philippe Grimaldi
-Jean-Yves Avenard
+Josh Watzman
 Kai Lauterbach
 Konstantin Bogdanov
 Kuan-Chung Chiu
@@ -287,51 +255,40 @@ Michael McEll
 Michael Ploujnikov
 Mike Schrag
 Nickolai Zeldovich
+Nicolas Bertrand
 Niklas Hayer
 Olafs Vandāns
 Olivier Gambier
 Paul Corke
-Reka Inovan
 Ron Frederick
-Ross Finlayson
 Rov Juvano
+Sabourin Gilles
 Sam Lade
 Sandeep Kumar
 Sasha Koruga
-Simona-Marinela Prodea
 Sreng Jean
 Sven Petai
-Timo Rothenpieler
 Tomas Krotil
 Tomer Barletz
 Tristan Leteurtre
-Vikram Fugro
+Vittorio Giovara
 Wang Bo
 maxime Ripard
 xxcv
 Adam Hoka
-Adrian Haensler
 Adrian Knoth
 Adrien Cunin
-Ago Allikmaa
-Alain Degreffe
 Alan Fischer
 Alan McCosh
 Alex Helfet
-Alex Peak
-Alex Warhawk
-Alex Woods
 Alexander Terentyev
 Alexandre Ferreira
-Alexandre Pereira Nunes
 Alina Friedrichsen
-Allan Odgaard
 An L. Ber
 Andreas Schlick
 Andrew Schubert
 Andrey Makhnutin
 Arnaud Vallat
-Arne de Bruijn
 Asad Mehmood
 Ashok Bhat
 Austin English
@@ -342,12 +299,9 @@ Blake Livingston
 Brandon Brooks
 Brian Johnson
 Brian Kurle
-Brian Schmidt
-Brion Vibber
 Cezar Elnazli
 Chris White
 Christian Masus
-Christian Suloway
 Christoph Pfister
 Christoph Seibert
 Christopher Key
@@ -364,34 +318,29 @@ Dominik 'Rathann' Mierzejewski
 Duncan Salerno
 Edward Sheldrake
 Elliot Murphy
-Elodie Thomann
 Eren Inan Canpolat
 Ernest E. Teem III
 Etienne Membrives
-Fabrizio Ge
 Fargier Sylvain
 Fathi Boudra
 Felix Geyer
 Filipe Azevedo
-Florent Pillet
+Finn Hughes
 Florian Hubold
 Florian Roeske
-Forteve Zepushisti
 Frank Enderle
 Frédéric Crozat
-Gal Vinograd
-Gaurav Pruthi
 Georg Seifert
 Gertjan Van Droogenbroeck
+Gilles Chanteperdrix
 Greg Farrell
 Gregory Maxwell
+Gwenole Beauchesne
 Götz Waschk
 Hans-Kristian Arntzen
 Harry Sintonen
-Heorhi Valakhanovich
 Iain Wade
 Ibraheem Paredath
-Igor Prokopenkov
 Isamu Arimoto
 Ismael Luceno
 James Bates
@@ -402,15 +351,16 @@ Janne Kujanpää
 Jarmo Torvinen
 Jason Scheunemann
 Jeff Lu
-Jeremy Huddleston Sequoia
 Jeroen Ost
 Joe Taber
 Johann Ransay
 Johannes Weißl
 John Hendrikx
+John Stebbins
 Jonas Gehring
 Joseph S. Atkinson
 Juergen Lock
+Julien 'Lta' BALLET
 Julien / Gellule
 Julien Humbert
 Kamil Baldyga
@@ -418,18 +368,12 @@ Kamil Klimek
 Karlheinz Wohlmuth
 Kevin Anthony
 Kevin DuBois
-Konstantin Pavlov
-Konstantinos Tsanaktsidis
-LANGLOIS Olivier PIS -EXT
 Lari Natri
 Lorenzo Pistone
 Lucas C. Villa Real
-Lukas Juhrich
 Lukáš Lalinský
 Mal Graty
 Malte Tancred
-Marc Aldorasi
-Marc Etcheverry
 Martin Pöhlmann
 Martin Zeman
 Marton Balint
@@ -437,7 +381,6 @@ Mathew King
 Mathieu Sonet
 Matthew A. Townsend
 Matthias Bauer
-Max Dilipovich
 Mika Tiainen
 Mike Cardillo
 Mounir Lamouri (volkmar)
@@ -446,38 +389,28 @@ Nathan Phillip Brink
 Nick Briggs
 Nick Pope
 Nil Geiswiller
-O. Hartmann
 Pascal Thomet
-Paul Clark
-Paweł Stankowski
 Pere Orga
 Peter Bak Nielsen
 Phil Roffe and David Grellscheid
 Philip Sequeira
 Pierre Souchay
-Pierre-Hugues Husson
 Piotr Fusik
 Pádraig Brady
 R.M
 Ralph Giles
 Ramon Gabarró
-Ray Tiley
 Robert Forsman
 Robert Jedrzejczyk
 Robert Paciorek
 Rolf Ahrenberg
-Romain FLIEDEL
 Roman Pen
 Ruud Althuizen
-Salah-Eddin Shaban
-Sam Malone
 Samuli Suominen
-Santiago Gimeno
 Scott Lyons
 Sebastian Birk
-Sebastian Ramacher
-Sergey Bolshakov
 Sergey Puzanov
+Sergio Ammirata
 Sharad Dixit
 Song Ye Wen
 Stephan Krempel
@@ -488,27 +421,23 @@ Sylvain Cadhillac
 Sylver Bruneau
 Takahito HIRANO
 Theron Lewis
-Thierry Foucu
 Thijs Alkemade
 Tillmann Karras
-Tim Walker
 Timo Paulssen
+Timo Rothenpieler
 Tobias Rapp
 Tomasen
 Tony Vankrunkelsven
 Tristan Heaven
-Tzu-Jung Lee
 Varphone Wong
 Vasily Fomin
 Vikram Narayanan
-Wills Wang
 Yannick Bréhon
 Yavor Doganov
 Yohann Martineau
 dharani.prabhu.s
 suheaven
 wucan
-أحمد المحم ودي (Ahmed El-Mahmoudy)
 김정은
 Adam Sampson
 Alexander Gall

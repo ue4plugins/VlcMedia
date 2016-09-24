@@ -14,6 +14,7 @@ FVlcMediaOutput::FVlcMediaOutput()
 	, Player(nullptr)
 	, ResumeOrigin(0)
 	, ResumeTime(FTimespan::Zero())
+	, SubtitleSink(nullptr)
 	, VideoSink(nullptr)
 { }
 
@@ -96,6 +97,23 @@ void FVlcMediaOutput::SetCaptionSink(IMediaStringSink* Sink)
 	}
 }
 
+/*
+void FVlcMediaOutput::SetSubtitleSink(IMediaStringSink* Sink)
+{
+	FScopeLock Lock(&CriticalSection);
+
+	if (Sink != SubtitleSink)
+	{
+		if (SubtitleSink != nullptr)
+		{
+			SubtitleSink->ShutdownStringSink();
+		}
+
+		SubtitleSink = Sink;
+		SetupSubtitleOutput();
+	}
+}*/
+
 
 void FVlcMediaOutput::SetVideoSink(IMediaTextureSink* Sink)
 {
@@ -155,6 +173,12 @@ void FVlcMediaOutput::SetupAudioOutput()
 void FVlcMediaOutput::SetupCaptionOutput()
 {
 	// @todo gmp: vlc: implement caption tracks
+}
+
+
+void FVlcMediaOutput::SetupSubtitleOutput()
+{
+	// @todo gmp: vlc: implement subtitle tracks
 }
 
 
@@ -384,18 +408,7 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 
 	if (VideoSink != nullptr)
 	{
-		// The lock/unlock/display callback protocol broke in LibVLC. Currently, lock is called only once
-		// at the beginning of playback, and unlock only at the end of playback. The display callback
-		// continues to be called once for each frame. For details on the breaking change in VLC see:
-		// http://git.videolan.org/?p=vlc.git;a=commitdiff;h=a5b262e23b580e655fcc5c74902c1de6d027ac9b
-
-//		VideoSink->DisplayTextureSinkBuffer(FTimespan::FromMicroseconds(FVlc::Clock() - Output->TimeOrigin));
-
-		if (Picture != nullptr)
-		{
-			VideoSink->UpdateTextureSinkBuffer((const uint8*)Picture);
-			VideoSink->DisplayTextureSinkBuffer(Output->TimestampToTimespan(FVlc::Clock()));
-		}
+		VideoSink->DisplayTextureSinkBuffer(Output->TimestampToTimespan(FVlc::Clock()));
 	}
 }
 
@@ -418,12 +431,7 @@ void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 
 	if (VideoSink != nullptr)
 	{
-		// The lock/unlock/display callback protocol broke in LibVLC. Currently, lock is called only once
-		// at the beginning of playback, and unlock only at the end of playback. The display callback
-		// continues to be called once for each frame. For details on the breaking change in VLC see:
-		// http://git.videolan.org/?p=vlc.git;a=commitdiff;h=a5b262e23b580e655fcc5c74902c1de6d027ac9b
-
-//		Planes[0] = VideoSink->AcquireTextureSinkBuffer();
+		Planes[0] = VideoSink->AcquireTextureSinkBuffer();
 	}
 
 	if (Planes[0] == nullptr)

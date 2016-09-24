@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+    <assemblyIdentity
+        version="1.0.0.0"
+        processorArchitecture="*"
+        name="libvlc.dll"
+        type="win32"
+    />
+    <description>LibVLC</description>
+    <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"> 
+        <application> 
+            <!--The ID below indicates app support for Windows Vista -->
+            <supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/> 
+        </application>
+    </compatibility>
+</assembly>

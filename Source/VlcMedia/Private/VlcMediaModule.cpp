@@ -91,6 +91,13 @@ public:
 		int Argc = sizeof(Args) / sizeof(*Args);
 		VlcInstance = FVlc::New(Argc, Args);
 
+#if PLATFORM_WINDOWS && (WINVER >= _WIN32_WINNT_VISTA)
+		// LibVLC currently insists on enforcing LOAD_LIBRARY_SEARCH_SYSTEM32 for the entire applications,
+		// which breaks the loading of subsequent modules in UE4. We therefore reset the DLL search flags.
+		// see also: https://github.com/videolan/vlc/commit/c220ddc927d1a97f72a0c5bf86de56301e3483ad
+		::SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+#endif
+
 		if (VlcInstance == nullptr)
 		{
 			UE_LOG(LogVlcMedia, Warning, TEXT("Failed to create VLC instance (%s)"), ANSI_TO_TCHAR(FVlc::Errmsg()));

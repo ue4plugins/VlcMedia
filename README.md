@@ -45,16 +45,19 @@ A relatively recent version of libvlc is required. The latest stable release
 (currently 2.2.1) is not sufficient.
 
 For Mac and Windows, the following nightly builds are currently included:
-* Mac: vlc-3.0.0-x86_64-20160113-0109
-* Win32: vlc-3.0.0-git-20151221-0002-win32
-* Win64: vlc-3.0.0-git-20151220-0402-win64
+* Mac: vlc-3.0.0-20160923-0342-git
+* Win32: vlc-3.0.0-20160923-0300-git-win32
+* Win64: vlc-3.0.0-20160923-0439-git-win64
 
 Nightly builds can be downloaded from the VideoLAN web site (see below).
+
+For debugging on Win32 and Win64, you can download debug builds and replace the
+corresponding files and folders in the *VlcMedia/ThirdParty/vlc/* directory.
 
 ### Linux
 
 A suitable version of **libvlc** must be installed or compiled from source. If
-you ship your game on  Linux, you will likely want to include libvlc with it, so
+you ship your game on Linux, you will likely want to include libvlc with it, so
 that users don't have to install it themselves. We will eventually include those
 binaries in this repository, although it is not clear what distros should be
 supported and where the builds are coming from. A better workflow needs to be

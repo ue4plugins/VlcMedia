@@ -47,6 +47,7 @@ public:
 
 	virtual void SetAudioSink(IMediaAudioSink* Sink) override;
 	virtual void SetCaptionSink(IMediaStringSink* Sink) override;
+//	virtual void SetSubtitleSink(IMediaStringSink* Sink) override;
 	virtual void SetVideoSink(IMediaTextureSink* Sink) override;
 
 protected:
@@ -56,6 +57,9 @@ protected:
 
 	/** Set up caption related callbacks. */
 	void SetupCaptionOutput();
+
+	/** Set up subtitle related callbacks. */
+	void SetupSubtitleOutput();
 
 	/** Set up video related callbacks. */
 	void SetupVideoOutput();

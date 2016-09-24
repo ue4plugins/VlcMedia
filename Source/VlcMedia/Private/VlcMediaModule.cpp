@@ -74,7 +74,9 @@ public:
 			"--intf", "dummy",
 			"--no-disable-screensaver",
 			"--no-snapshot-preview",
+#if (UE_BUILD_SHIPPING || UE_BUILD_TEST)
 			"--no-stats",
+#endif
 			"--no-video-title-show",
 #if PLATFORM_LINUX
 			"--no-xlib",

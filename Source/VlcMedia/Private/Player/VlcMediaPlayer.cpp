@@ -303,7 +303,51 @@ IMediaOutput& FVlcMediaPlayer::GetOutput()
 
 FString FVlcMediaPlayer::GetStats() const
 {
-	return TEXT("VlcMedia stats information not implemented yet");
+	FLibvlcMedia* Media = MediaSource.GetMedia();
+
+	if (Media == nullptr)
+	{
+		return TEXT("No media opened.");
+	}
+
+	FLibvlcMediaStats Stats;
+	
+	if (!FVlc::MediaGetStats(Media, &Stats))
+	{
+		return TEXT("Stats currently not available.");
+	}
+
+	FString StatsString;
+	{
+		StatsString += TEXT("General\n");
+		StatsString += FString::Printf(TEXT("    Decoded Video: %i\n"), Stats.DecodedVideo);
+		StatsString += FString::Printf(TEXT("    Decoded Audio: %i\n"), Stats.DecodedAudio);
+		StatsString += FString::Printf(TEXT("    Displayed Pictures: %i\n"), Stats.DisplayedPictures);
+		StatsString += FString::Printf(TEXT("    Lost Pictures: %i\n"), Stats.LostPictures);
+		StatsString += FString::Printf(TEXT("    Played A-Buffers: %i\n"), Stats.PlayedAbuffers);
+		StatsString += FString::Printf(TEXT("    Lost Lost A-Buffers: %i\n"), Stats.LostAbuffers);
+		StatsString += TEXT("\n");
+
+		StatsString += TEXT("Input\n");
+		StatsString += FString::Printf(TEXT("    Bit Rate: %i\n"), Stats.InputBitrate);
+		StatsString += FString::Printf(TEXT("    Bytes Read: %i\n"), Stats.ReadBytes);
+		StatsString += TEXT("\n");
+
+		StatsString += TEXT("Demux\n");
+		StatsString += FString::Printf(TEXT("    Bit Rate: %f\n"), Stats.DemuxBitrate);
+		StatsString += FString::Printf(TEXT("    Bytes Read: %i\n"), Stats.DemuxReadBytes);
+		StatsString += FString::Printf(TEXT("    Corrupted: %i\n"), Stats.DemuxCorrupted);
+		StatsString += FString::Printf(TEXT("    Discontinuity: %i\n"), Stats.DemuxDiscontinuity);
+		StatsString += TEXT("\n");
+
+		StatsString += TEXT("Network\n");
+		StatsString += FString::Printf(TEXT("    Bitrate: %f\n"), Stats.SendBitrate);
+		StatsString += FString::Printf(TEXT("    Sent Bytes: %i\n"), Stats.SentBytes);
+		StatsString += FString::Printf(TEXT("    Sent Packets: %i\n"), Stats.SentPackets);
+		StatsString += TEXT("\n");
+	}
+
+	return StatsString;
 }
 
 

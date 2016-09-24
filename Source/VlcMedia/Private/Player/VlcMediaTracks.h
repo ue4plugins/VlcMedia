@@ -54,10 +54,6 @@ public:
 	virtual float GetVideoTrackFrameRate(int32 TrackIndex) const override;
 	virtual bool SelectTrack(EMediaTrackType TrackType, int32 TrackIndex) override;
 
-protected:
-
-	static void PrintTrackInfo(const& FTrack Track, int32 StreamNumber, const TCHAR* TrackType, FString& OutInfo);
-
 private:
 
 	/** Audio track descriptors. */

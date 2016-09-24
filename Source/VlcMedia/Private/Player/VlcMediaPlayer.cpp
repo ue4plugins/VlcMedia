@@ -76,6 +76,7 @@ bool FVlcMediaPlayer::Tick(float DeltaTime)
 			break;
 
 		case ELibvlcEventType::MediaPlayerPlaying:
+			CurrentTime = FTimespan::Zero();
 			LastPlatformSeconds = FPlatformTime::Seconds();
 			MediaEvent.Broadcast(EMediaEvent::PlaybackResumed);
 			break;

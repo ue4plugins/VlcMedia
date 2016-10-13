@@ -37,11 +37,17 @@ bool FVlcMediaPlayer::Tick(float DeltaTime)
 	}
 
 	// interpolate time, because FVlc::MediaPlayerGetTime is too low-res
-	if (FVlc::MediaPlayerGetState(Player) == ELibvlcState::Playing)
+	const ELibvlcState State = FVlc::MediaPlayerGetState(Player);
+
+	if (State == ELibvlcState::Playing)
 	{
 		double PlatformSeconds = FPlatformTime::Seconds();
 		CurrentTime += FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
 		LastPlatformSeconds = PlatformSeconds;
+	}
+	else if (State == ELibvlcState::Paused)
+	{
+		CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player)));
 	}
 
 	// process events
@@ -181,6 +187,23 @@ FTimespan FVlcMediaPlayer::GetTime() const
 bool FVlcMediaPlayer::IsLooping() const
 {
 	return ShouldLoop;
+}
+
+
+bool FVlcMediaPlayer::Seek(const FTimespan& Time)
+{
+	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
+
+	if ((State == ELibvlcState::Opening) ||
+		(State == ELibvlcState::Buffering) ||
+		(State == ELibvlcState::Error))
+	{
+		return false;
+	}
+
+	FVlc::MediaPlayerSetTime(Player, Time.GetTotalMilliseconds());
+
+	return true;
 }
 
 
@@ -431,23 +454,6 @@ bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Arch
 	}
 	
 	return InitializePlayer();
-}
-
-
-bool FVlcMediaPlayer::Seek(const FTimespan& Time)
-{
-	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
-
-	if ((State != ELibvlcState::Opening) ||
-		(State == ELibvlcState::Buffering) ||
-		(State == ELibvlcState::Error))
-	{
-		return false;
-	}
-
-	FVlc::MediaPlayerSetTime(Player, Time.GetTotalMilliseconds());
-
-	return true;
 }
 
 

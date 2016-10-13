@@ -12,6 +12,7 @@
 
 FVlcMediaPlayer::FVlcMediaPlayer(FLibvlcInstance* InVlcInstance)
 	: CurrentTime(FTimespan::Zero())
+	, CurrentTimeDrift(FTimespan::Zero())
 	, DesiredRate(0.0)
 	, LastPlatformSeconds(0.0)
 	, MediaSource(InVlcInstance)
@@ -36,18 +37,23 @@ bool FVlcMediaPlayer::Tick(float DeltaTime)
 		return true;
 	}
 
-	// interpolate time, because FVlc::MediaPlayerGetTime is too low-res
+	// update playback time
 	const ELibvlcState State = FVlc::MediaPlayerGetState(Player);
 
 	if (State == ELibvlcState::Playing)
 	{
-		double PlatformSeconds = FPlatformTime::Seconds();
-		CurrentTime += FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
+		// interpolate time (FVlc::MediaPlayerGetTime is too inacurate)
+		const double PlatformSeconds = FPlatformTime::Seconds();
+		const FTimespan TimeCorrection = FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
+
+		CurrentTime += TimeCorrection;
+		CurrentTimeDrift += TimeCorrection;
 		LastPlatformSeconds = PlatformSeconds;
 	}
 	else if (State == ELibvlcState::Paused)
 	{
-		CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player)));
+		// update time (no MediaPlayerPositionChanged events when scrubbing)
+		CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player))) + CurrentTimeDrift;
 	}
 
 	// process events
@@ -83,12 +89,14 @@ bool FVlcMediaPlayer::Tick(float DeltaTime)
 
 		case ELibvlcEventType::MediaPlayerPlaying:
 			CurrentTime = FTimespan::Zero();
+			CurrentTimeDrift = FTimespan::Zero();
 			LastPlatformSeconds = FPlatformTime::Seconds();
 			MediaEvent.Broadcast(EMediaEvent::PlaybackResumed);
 			break;
 
 		case ELibvlcEventType::MediaPlayerPositionChanged:
 			CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player)));
+			CurrentTimeDrift = FTimespan::Zero();
 			LastPlatformSeconds = FPlatformTime::Seconds();
 			break;
 
@@ -201,7 +209,11 @@ bool FVlcMediaPlayer::Seek(const FTimespan& Time)
 		return false;
 	}
 
-	FVlc::MediaPlayerSetTime(Player, Time.GetTotalMilliseconds());
+	if (Time != CurrentTime)
+	{
+		CurrentTimeDrift = FTimespan::Zero();
+		FVlc::MediaPlayerSetTime(Player, Time.GetTotalMilliseconds());
+	}
 
 	return true;
 }

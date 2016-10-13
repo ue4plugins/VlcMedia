@@ -98,6 +98,9 @@ private:
 	/** Current playback time (to work around VLC's broken time tracking). */
 	FTimespan CurrentTime;
 
+	/** Current difference between reported and interpolated time. */
+	FTimespan CurrentTimeDrift;
+
 	/** The desired playback rate. */
 	float DesiredRate;
 

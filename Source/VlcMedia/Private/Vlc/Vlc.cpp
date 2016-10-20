@@ -99,6 +99,7 @@ VLC_DEFINE(VideoGetWidth);
 VLC_DEFINE(VideoSetCallbacks);
 VLC_DEFINE(VideoSetFormat);
 VLC_DEFINE(VideoSetFormatCallbacks);
+VLC_DEFINE(VideoGetSize);
 VLC_DEFINE(VideoGetSpu);
 VLC_DEFINE(VideoGetSpuCount);
 VLC_DEFINE(VideoSetSpu);
@@ -221,6 +222,7 @@ bool FVlc::Initialize()
 	VLC_IMPORT(libvlc_video_set_callbacks, VideoSetCallbacks);
 	VLC_IMPORT(libvlc_video_set_format, VideoSetFormat);
 	VLC_IMPORT(libvlc_video_set_format_callbacks, VideoSetFormatCallbacks);
+	VLC_IMPORT(libvlc_video_get_size, VideoGetSize);
 	VLC_IMPORT(libvlc_video_get_spu, VideoGetSpu);
 	VLC_IMPORT(libvlc_video_get_spu_count, VideoGetSpuCount);
 	VLC_IMPORT(libvlc_video_set_spu, VideoSetSpu);

@@ -8,7 +8,7 @@
 #include "Runtime/CoreUObject/Public/CoreUObject.h"
 #include "Runtime/Media/Public/IMediaAudioSink.h"
 #include "Runtime/Media/Public/IMediaOptions.h"
-#include "Runtime/Media/Public/IMediaStringSink.h"
+#include "Runtime/Media/Public/IMediaOverlaySink.h"
 #include "Runtime/Media/Public/IMediaTextureSink.h"
 #include "Runtime/Projects/Public/Interfaces/IPluginManager.h"
 

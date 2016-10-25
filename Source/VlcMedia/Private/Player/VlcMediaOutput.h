@@ -46,8 +46,7 @@ public:
 	//~ IMediaOutput interface
 
 	virtual void SetAudioSink(IMediaAudioSink* Sink) override;
-	virtual void SetCaptionSink(IMediaStringSink* Sink) override;
-//	virtual void SetSubtitleSink(IMediaStringSink* Sink) override;
+	virtual void SetOverlaySink(IMediaOverlaySink* Sink) override;
 	virtual void SetVideoSink(IMediaTextureSink* Sink) override;
 
 protected:
@@ -117,10 +116,7 @@ private:
 
 	/** The audio sink. */
 	IMediaAudioSink* AudioSink;
-
-	/** The caption text sink. */
-	IMediaStringSink* CaptionSink;
-
+	
 	/** Critical section for synchronizing access to sinks. */
 	FCriticalSection CriticalSection;
 
@@ -133,8 +129,8 @@ private:
 	/** The time at which playback resumed. */
 	FTimespan ResumeTime;
 
-	/** The subtitle sink. */
-	IMediaStringSink* SubtitleSink;
+	/** The text overlay sink. */
+	IMediaOverlaySink* OverlaySink;
 
 	/** Dimensions of the current video track. */
 	FIntPoint VideoDimensions;

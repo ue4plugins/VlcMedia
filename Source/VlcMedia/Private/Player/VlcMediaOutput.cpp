@@ -10,11 +10,10 @@
 
 FVlcMediaOutput::FVlcMediaOutput()
 	: AudioSink(nullptr)
-	, CaptionSink(nullptr)
 	, Player(nullptr)
 	, ResumeOrigin(0)
 	, ResumeTime(FTimespan::Zero())
-	, SubtitleSink(nullptr)
+	, OverlaySink(nullptr)
 	, VideoSink(nullptr)
 { }
 
@@ -81,38 +80,23 @@ void FVlcMediaOutput::SetAudioSink(IMediaAudioSink* Sink)
 }
 
 
-void FVlcMediaOutput::SetCaptionSink(IMediaStringSink* Sink)
+void FVlcMediaOutput::SetOverlaySink(IMediaOverlaySink* Sink)
 {
 	FScopeLock Lock(&CriticalSection);
 
-	if (Sink != CaptionSink)
+	if (Sink != OverlaySink)
 	{
-		if (CaptionSink != nullptr)
+		if (OverlaySink != nullptr)
 		{
-			CaptionSink->ShutdownStringSink();
+			OverlaySink->ShutdownOverlaySink();
 		}
 
-		CaptionSink = Sink;
+		OverlaySink = Sink;
+
 		SetupCaptionOutput();
-	}
-}
-
-/*
-void FVlcMediaOutput::SetSubtitleSink(IMediaStringSink* Sink)
-{
-	FScopeLock Lock(&CriticalSection);
-
-	if (Sink != SubtitleSink)
-	{
-		if (SubtitleSink != nullptr)
-		{
-			SubtitleSink->ShutdownStringSink();
-		}
-
-		SubtitleSink = Sink;
 		SetupSubtitleOutput();
 	}
-}*/
+}
 
 
 void FVlcMediaOutput::SetVideoSink(IMediaTextureSink* Sink)
@@ -487,16 +471,16 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 		Pitches[0] = *Width * 2;
 	}
 	else if ((FCStringAnsi::Stricmp(Chroma, "UYVY") == 0) ||
-			(FCStringAnsi::Stricmp(Chroma, "Y422") == 0) ||
-			(FCStringAnsi::Stricmp(Chroma, "UYNV") == 0) ||
-			(FCStringAnsi::Stricmp(Chroma, "HDYC") == 0))
+		(FCStringAnsi::Stricmp(Chroma, "Y422") == 0) ||
+		(FCStringAnsi::Stricmp(Chroma, "UYNV") == 0) ||
+		(FCStringAnsi::Stricmp(Chroma, "HDYC") == 0))
 	{
 		SinkFormat = EMediaTextureSinkFormat::CharUYVY;
 		Pitches[0] = *Width * 2;
 	}
 	else if ((FCStringAnsi::Stricmp(Chroma, "YUY2") == 0) ||
-			(FCStringAnsi::Stricmp(Chroma, "V422") == 0) ||
-			(FCStringAnsi::Stricmp(Chroma, "YUYV") == 0))
+		(FCStringAnsi::Stricmp(Chroma, "V422") == 0) ||
+		(FCStringAnsi::Stricmp(Chroma, "YUYV") == 0))
 	{
 		SinkFormat = EMediaTextureSinkFormat::CharYUY2;
 		Pitches[0] = *Width * 2;

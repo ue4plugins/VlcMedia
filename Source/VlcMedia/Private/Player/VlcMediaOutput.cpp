@@ -367,6 +367,11 @@ int FVlcMediaOutput::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, u
 		return -1;
 	}
 
+	if (FVlc::MediaPlayerGetState(Output->Player) == ELibvlcState::Playing)
+	{
+		AudioSink->ResumeAudioSink();
+	}
+
 	return 0;
 }
 

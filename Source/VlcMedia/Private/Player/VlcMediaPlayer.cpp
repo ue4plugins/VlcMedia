@@ -27,88 +27,6 @@ FVlcMediaPlayer::~FVlcMediaPlayer()
 }
 
 
-/* FTickerObjectBase interface
- *****************************************************************************/
-
-bool FVlcMediaPlayer::Tick(float DeltaTime)
-{
-	if (Player == nullptr)
-	{
-		return true;
-	}
-
-	// update playback time
-	const ELibvlcState State = FVlc::MediaPlayerGetState(Player);
-
-	if (State == ELibvlcState::Playing)
-	{
-		// interpolate time (FVlc::MediaPlayerGetTime is too inacurate)
-		const double PlatformSeconds = FPlatformTime::Seconds();
-		const FTimespan TimeCorrection = FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
-
-		CurrentTime += TimeCorrection;
-		CurrentTimeDrift += TimeCorrection;
-		LastPlatformSeconds = PlatformSeconds;
-	}
-	else if (State == ELibvlcState::Paused)
-	{
-		// update time (no MediaPlayerPositionChanged events when scrubbing)
-		CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player))) + CurrentTimeDrift;
-	}
-
-	// process events
-	ELibvlcEventType Event;
-
-	while (Events.Dequeue(Event))
-	{
-		switch (Event)
-		{
-		case ELibvlcEventType::MediaParsedChanged:
-			MediaEvent.Broadcast(EMediaEvent::TracksChanged);
-			break;
-
-		case ELibvlcEventType::MediaPlayerEndReached:
-			// begin hack: this causes a short delay, but there seems to be no
-			// other way. looping via VLC Media List players is also broken :(
-			FVlc::MediaPlayerStop(Player);
-			// end hack
-
-			if (ShouldLoop && (DesiredRate != 0.0f))
-			{
-				SetRate(DesiredRate);
-			}
-
-			MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
-			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
-			break;
-
-		case ELibvlcEventType::MediaPlayerPaused:
-			LastPlatformSeconds = FPlatformTime::Seconds();
-			MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
-			break;
-
-		case ELibvlcEventType::MediaPlayerPlaying:
-			CurrentTime = FTimespan::Zero();
-			CurrentTimeDrift = FTimespan::Zero();
-			LastPlatformSeconds = FPlatformTime::Seconds();
-			MediaEvent.Broadcast(EMediaEvent::PlaybackResumed);
-			break;
-
-		case ELibvlcEventType::MediaPlayerPositionChanged:
-			CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player)));
-			CurrentTimeDrift = FTimespan::Zero();
-			LastPlatformSeconds = FPlatformTime::Seconds();
-			break;
-
-		default:
-			continue;
-		}
-	}
-
-	return true;
-}
-
-
 /* IMediaControls interface
  *****************************************************************************/
 
@@ -466,6 +384,89 @@ bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Arch
 	}
 	
 	return InitializePlayer();
+}
+
+
+void FVlcMediaPlayer::TickPlayer(float DeltaTime)
+{
+	if (Player == nullptr)
+	{
+		return;
+	}
+
+	// update playback time
+	const ELibvlcState State = FVlc::MediaPlayerGetState(Player);
+
+	if (State == ELibvlcState::Playing)
+	{
+		// interpolate time (FVlc::MediaPlayerGetTime is too inacurate)
+		const double PlatformSeconds = FPlatformTime::Seconds();
+		const FTimespan TimeCorrection = FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
+
+		CurrentTime += TimeCorrection;
+		CurrentTimeDrift += TimeCorrection;
+		LastPlatformSeconds = PlatformSeconds;
+	}
+	else if (State == ELibvlcState::Paused)
+	{
+		// update time (no MediaPlayerPositionChanged events when scrubbing)
+		CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player))) + CurrentTimeDrift;
+	}
+
+	// process events
+	ELibvlcEventType Event;
+
+	while (Events.Dequeue(Event))
+	{
+		switch (Event)
+		{
+		case ELibvlcEventType::MediaParsedChanged:
+			MediaEvent.Broadcast(EMediaEvent::TracksChanged);
+			break;
+
+		case ELibvlcEventType::MediaPlayerEndReached:
+			// begin hack: this causes a short delay, but there seems to be no
+			// other way. looping via VLC Media List players is also broken :(
+			FVlc::MediaPlayerStop(Player);
+			// end hack
+
+			if (ShouldLoop && (DesiredRate != 0.0f))
+			{
+				SetRate(DesiredRate);
+			}
+
+			MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
+			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
+			break;
+
+		case ELibvlcEventType::MediaPlayerPaused:
+			LastPlatformSeconds = FPlatformTime::Seconds();
+			MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
+			break;
+
+		case ELibvlcEventType::MediaPlayerPlaying:
+			CurrentTime = FTimespan::Zero();
+			CurrentTimeDrift = FTimespan::Zero();
+			LastPlatformSeconds = FPlatformTime::Seconds();
+			MediaEvent.Broadcast(EMediaEvent::PlaybackResumed);
+			break;
+
+		case ELibvlcEventType::MediaPlayerPositionChanged:
+			CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player)));
+			CurrentTimeDrift = FTimespan::Zero();
+			LastPlatformSeconds = FPlatformTime::Seconds();
+			break;
+
+		default:
+			continue;
+		}
+	}
+}
+
+
+void FVlcMediaPlayer::TickVideo(float DeltaTime)
+{
+	// do nothing
 }
 
 

@@ -80,6 +80,12 @@ void FVlcMediaOutput::SetAudioSink(IMediaAudioSink* Sink)
 }
 
 
+void FVlcMediaOutput::SetMetadataSink(IMediaBinarySink* Sink)
+{
+	// not supported
+}
+
+
 void FVlcMediaOutput::SetOverlaySink(IMediaOverlaySink* Sink)
 {
 	FScopeLock Lock(&CriticalSection);
@@ -457,12 +463,27 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 
 	Output->VideoDimensions = FIntPoint::ZeroValue;
 
-	// determine decoder & sink format
+	// output dimensions
+	FIntPoint OutputDim;
+	{
+		if (FVlc::VideoGetSize(Output->Player, 0, (uint32*)&OutputDim.X, (uint32*)&OutputDim.Y) != 0)
+		{
+			return 0;
+		}
+	}
+
+	// determine decoder & sink options
+	FIntPoint BufferDim(*Width, *Height);
 	EMediaTextureSinkFormat SinkFormat;
 
 	if (FCStringAnsi::Stricmp(Chroma, "AYUV") == 0)
 	{
 		SinkFormat = EMediaTextureSinkFormat::CharAYUV;
+		Pitches[0] = *Width * 4;
+	}
+	else if (FCStringAnsi::Stricmp(Chroma, "RV32") == 0)
+	{
+		SinkFormat = EMediaTextureSinkFormat::CharBGRA;
 		Pitches[0] = *Width * 4;
 	}
 	else if (FCStringAnsi::Stricmp(Chroma, "UYVY") == 0)
@@ -492,6 +513,7 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 	}
 	else
 	{
+		// reconfigure output for natively supported format
 		FLibvlcChromaDescription* ChromaDescr = FVlc::FourccGetChromaDescription(*(FLibvlcFourcc*)Chroma);
 
 		if (ChromaDescr->PlaneCount == 0)
@@ -502,26 +524,30 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 		if (ChromaDescr->PlaneCount > 1)
 		{
 			FMemory::Memcpy(Chroma, "YUY2", 4);
+
+			BufferDim = FIntPoint(Align(OutputDim.X, 16) / 2, Align(OutputDim.Y, 16));
 			SinkFormat = EMediaTextureSinkFormat::CharYUY2;
-			Pitches[0] = *Width * 2;
+			Pitches[0] = BufferDim.X * 4;
 		}
 		else
 		{
 			FMemory::Memcpy(Chroma, "RV32", 4);
+
+			BufferDim = OutputDim;
 			SinkFormat = EMediaTextureSinkFormat::CharBGRA;
-			Pitches[0] = *Width * 4;
+			Pitches[0] = BufferDim.X * 4;
 		}
 	}
 
 	Lines[0] = *Height;
 
 	// initialize sink
-	if (!VideoSink->InitializeTextureSink(FIntPoint(*Width, *Height), SinkFormat, EMediaTextureSinkMode::Buffered))
+	if (!VideoSink->InitializeTextureSink(OutputDim, BufferDim, SinkFormat, EMediaTextureSinkMode::Buffered))
 	{
 		return 0;
 	}
 
-	Output->VideoDimensions = FIntPoint(*Width, *Height);
+	Output->VideoDimensions = OutputDim;
 
 	return 1;
 }

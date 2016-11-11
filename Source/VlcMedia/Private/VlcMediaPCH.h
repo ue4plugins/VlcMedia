@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Runtime/Core/Public/Core.h"
-#include "Runtime/Core/Public/Containers/Ticker.h"
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
 #include "Runtime/CoreUObject/Public/CoreUObject.h"
 #include "Runtime/Media/Public/IMediaAudioSink.h"

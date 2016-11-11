@@ -60,7 +60,6 @@ public:
 		if (!FVlc::Initialize())
 		{
 			UE_LOG(LogVlcMedia, Error, TEXT("Failed to initialize libvlc"));
-
 			return;
 		}
 

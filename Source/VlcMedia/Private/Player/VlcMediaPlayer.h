@@ -19,8 +19,7 @@ struct FLibvlcMediaPlayer;
  * Implements a media player using the Video LAN Codec (VLC) framework.
  */
 class FVlcMediaPlayer
-	: public FTickerObjectBase
-	, public IMediaControls
+	: public IMediaControls
 	, public IMediaPlayer
 {
 public:
@@ -34,12 +33,6 @@ public:
 
 	/** Virtual destructor. */
 	virtual ~FVlcMediaPlayer();
-
-public:
-
-	//~ FTickerObjectBase interface
-
-	virtual bool Tick(float DeltaTime) override;
 
 public:
 
@@ -72,6 +65,8 @@ public:
 	virtual FString GetUrl() const override;
 	virtual bool Open(const FString& Url, const IMediaOptions& Options) override;
 	virtual bool Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl, const IMediaOptions& Options) override;
+	virtual void TickPlayer(float DeltaTime) override;
+	virtual void TickVideo(float DeltaTime) override;
 
 	DECLARE_DERIVED_EVENT(FVlcMediaPlayer, IMediaPlayer::FOnMediaEvent, FOnMediaEvent);
 	virtual FOnMediaEvent& OnMediaEvent() override

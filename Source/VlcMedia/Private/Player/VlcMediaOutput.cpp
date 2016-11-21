@@ -528,6 +528,7 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 			BufferDim = FIntPoint(Align(OutputDim.X, 16) / 2, Align(OutputDim.Y, 16));
 			SinkFormat = EMediaTextureSinkFormat::CharYUY2;
 			Pitches[0] = BufferDim.X * 4;
+			*Height = BufferDim.Y;
 		}
 		else
 		{

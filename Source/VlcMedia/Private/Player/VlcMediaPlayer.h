@@ -10,6 +10,10 @@
 
 
 class IMediaOutput;
+
+enum class ELibvlcEventType;
+
+struct FLibvlcEvent;
 struct FLibvlcEventManager;
 struct FLibvlcInstance;
 struct FLibvlcMediaPlayer;

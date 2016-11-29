@@ -1,8 +1,12 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
-#include "VlcMediaPCH.h"
-#include "Vlc.h"
 #include "VlcMediaPlayer.h"
+#include "VlcMediaPrivate.h"
+
+#include "ArrayReader.h"
+#include "FileHelper.h"
+#include "IMediaOptions.h"
+#include "Vlc.h"
 #include "VlcMediaUtils.h"
 
 

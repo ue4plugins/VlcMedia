@@ -1,8 +1,12 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
-#include "VlcMediaPCH.h"
-#include "Vlc.h"
 #include "VlcMediaOutput.h"
+#include "VlcMediaPrivate.h"
+
+#include "IMediaAudioSink.h"
+#include "IMediaOverlaySink.h"
+#include "IMediaTextureSink.h"
+#include "Vlc.h"
 
 
 /* FVlcMediaOutput structors

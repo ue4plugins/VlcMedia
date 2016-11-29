@@ -1,8 +1,9 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
-#include "VlcMediaPCH.h"
-#include "Vlc.h"
 #include "VlcMediaSource.h"
+#include "VlcMediaPrivate.h"
+
+#include "Vlc.h"
 
 
 /* FVlcMediaReader structors

@@ -1,8 +1,13 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 
-#include "VlcMediaFactoryPCH.h"
 #include "IMediaPlayerFactory.h"
+#include "IMediaModule.h"
+#include "IMediaOptions.h"
+#include "ISettingsModule.h"
+#include "ISettingsSection.h"
+#include "IVlcMediaModule.h"
 #include "ModuleInterface.h"
+#include "ModuleManager.h"
 #include "VlcMediaSettings.h"
 
 

@@ -1,7 +1,9 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
-#include "VlcMediaPCH.h"
 #include "Vlc.h"
+#include "VlcMediaPrivate.h"
+
+#include "IPluginManager.h"
 
 
 #define VLC_DEFINE(Func) \

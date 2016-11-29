@@ -1,8 +1,7 @@
 // Copyright 2015 Headcrash Industries LLC. All Rights Reserved.
 
-#include "VlcMediaPCH.h"
-#include "Vlc.h"
 #include "VlcMediaTracks.h"
+#include "Vlc.h"
 
 
 #define LOCTEXT_NAMESPACE "FVlcMediaTracks"

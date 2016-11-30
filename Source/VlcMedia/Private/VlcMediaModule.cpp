@@ -3,6 +3,10 @@
 #include "IVlcMediaModule.h"
 #include "VlcMediaPrivate.h"
 
+#include "Modules/ModuleManager.h"
+#include "UObject/Class.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/WeakObjectPtr.h"
 #include "Vlc.h"
 #include "VlcMediaPlayer.h"
 

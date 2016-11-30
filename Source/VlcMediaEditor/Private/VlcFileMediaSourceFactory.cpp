@@ -3,6 +3,7 @@
 #include "VlcFileMediaSourceFactory.h"
 
 #include "FileMediaSource.h"
+#include "Misc/Paths.h"
 
 
 /* UVlcFileMediaSourceFactory structors

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+
 
 /** Enumerates event types. */
 enum class ELibvlcEventType

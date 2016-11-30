@@ -4,6 +4,8 @@
 #include "VlcMediaPrivate.h"
 
 #include "IPluginManager.h"
+#include "HAL/PlatformProcess.h"
+#include "Misc/Paths.h"
 
 
 #define VLC_DEFINE(Func) \

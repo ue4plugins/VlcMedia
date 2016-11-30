@@ -6,6 +6,7 @@
 #include "IMediaAudioSink.h"
 #include "IMediaOverlaySink.h"
 #include "IMediaTextureSink.h"
+#include "Misc/ScopeLock.h"
 #include "Vlc.h"
 
 

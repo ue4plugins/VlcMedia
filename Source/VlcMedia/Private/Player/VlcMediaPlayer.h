@@ -2,11 +2,13 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "IMediaControls.h"
 #include "IMediaPlayer.h"
 #include "VlcMediaOutput.h"
 #include "VlcMediaSource.h"
 #include "VlcMediaTracks.h"
+#include "Containers/Queue.h"
 
 
 class IMediaOutput;

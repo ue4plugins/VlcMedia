@@ -4,8 +4,6 @@
 #include "IMediaPlayerFactory.h"
 #include "IMediaModule.h"
 #include "IMediaOptions.h"
-#include "ISettingsModule.h"
-#include "ISettingsSection.h"
 #include "IVlcMediaModule.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleInterface.h"
@@ -13,7 +11,12 @@
 #include "UObject/Class.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/WeakObjectPtr.h"
-#include "VlcMediaSettings.h"
+
+#if WITH_EDITOR
+	#include "ISettingsModule.h"
+	#include "ISettingsSection.h"
+	#include "VlcMediaSettings.h"
+#endif
 
 
 #define LOCTEXT_NAMESPACE "FVlcMediaFactoryModule"

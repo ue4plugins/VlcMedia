@@ -14,8 +14,6 @@ namespace UnrealBuildTool.Rules
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[] {
-					"Core",
-					"CoreUObject",
 					"MediaAssets",
 				}
 			);
@@ -33,7 +31,14 @@ namespace UnrealBuildTool.Rules
 				}
 			);
 
-			if (Target.Type == TargetRules.TargetType.Editor)
+            PublicDependencyModuleNames.AddRange(
+                new string[] {
+                    "Core",
+                    "CoreUObject",
+                }
+            );
+
+            if (Target.Type == TargetRules.TargetType.Editor)
 			{
 				DynamicallyLoadedModuleNames.Add("Settings");
 				PrivateIncludePathModuleNames.Add("Settings");
@@ -43,9 +48,9 @@ namespace UnrealBuildTool.Rules
 				(Target.Platform == UnrealTargetPlatform.Linux) ||
 				(Target.Platform == UnrealTargetPlatform.Win32) ||
 				(Target.Platform == UnrealTargetPlatform.Win64))
-				{
-					DynamicallyLoadedModuleNames.Add("VlcMedia");
-				}
+			{
+				DynamicallyLoadedModuleNames.Add("VlcMedia");
+			}
 		}
 	}
 }

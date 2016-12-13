@@ -373,6 +373,8 @@ bool FVlcMediaPlayer::Open(const FString& Url, const IMediaOptions& Options)
 			return false;
 		}
 	}
+
+	Output.ApplyOptions(Options);
 	
 	return InitializePlayer();
 }
@@ -479,6 +481,7 @@ void FVlcMediaPlayer::TickVideo(float DeltaTime)
 
 bool FVlcMediaPlayer::InitializePlayer()
 {
+	// create player for media source
 	Player = FVlc::MediaPlayerNewFromMedia(MediaSource.GetMedia());
 
 	if (Player == nullptr)

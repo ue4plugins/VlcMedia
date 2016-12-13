@@ -4,6 +4,7 @@
 #include "VlcMediaPrivate.h"
 
 #include "IMediaAudioSink.h"
+#include "IMediaOptions.h"
 #include "IMediaOverlaySink.h"
 #include "IMediaTextureSink.h"
 #include "Misc/ScopeLock.h"
@@ -19,12 +20,28 @@ FVlcMediaOutput::FVlcMediaOutput()
 	, ResumeOrigin(0)
 	, ResumeTime(FTimespan::Zero())
 	, OverlaySink(nullptr)
+	, VideoColorSpace(EMediaTextureSinkColorSpace::Srgb)
 	, VideoSink(nullptr)
 { }
 
 
 /* FVlcMediaOutput interface
 *****************************************************************************/
+
+void FVlcMediaOutput::ApplyOptions(const IMediaOptions& Options)
+{
+	int64 ColorSpace = Options.GetMediaOption("ColorSpace", (int64)EMediaTextureSinkColorSpace::Srgb);
+	{
+		if (ColorSpace > (int64)EMediaTextureSinkColorSpace::Srgb)
+		{
+			UE_LOG(LogVlcMedia, Warning, TEXT("Unsupported ColorSpace option in media source. Falling back to sRGB."));
+			ColorSpace = (int64)EMediaTextureSinkColorSpace::Srgb;
+		}
+
+		VideoColorSpace = (EMediaTextureSinkColorSpace)ColorSpace;
+	}
+}
+
 
 void FVlcMediaOutput::Initialize(FLibvlcMediaPlayer& InPlayer)
 {
@@ -548,7 +565,7 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 	Lines[0] = *Height;
 
 	// initialize sink
-	if (!VideoSink->InitializeTextureSink(OutputDim, BufferDim, SinkFormat, EMediaTextureSinkMode::Buffered))
+	if (!VideoSink->InitializeTextureSink(OutputDim, BufferDim, SinkFormat, Output->VideoColorSpace, EMediaTextureSinkMode::Buffered))
 	{
 		return 0;
 	}

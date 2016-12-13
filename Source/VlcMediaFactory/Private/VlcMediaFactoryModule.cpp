@@ -95,7 +95,7 @@ public:
 
 	virtual FText GetDisplayName() const override
 	{
-		return LOCTEXT("MediaPlayerDisplayName", "VideoLAN Media Player");
+		return LOCTEXT("MediaPlayerDisplayName", "VideoLAN Player");
 	}
 
 	virtual FName GetName() const override

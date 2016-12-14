@@ -86,7 +86,7 @@ public:
 			"--no-xlib",
 #endif
 			"--text-renderer", "dummy",
-#if DEBUG
+#if UE_BUILD_DEBUG
 			"--verbose=2",
 #else
 			"--quiet",

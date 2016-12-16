@@ -7,7 +7,6 @@
 
 
 class IMediaOptions;
-enum class EMediaTextureSinkColorSpace;
 struct FLibvlcMediaPlayer;
 
 
@@ -23,13 +22,6 @@ public:
 	FVlcMediaOutput();
 
 public:
-
-	/**
-	 * Apply the given media options.
-	 *
-	 * @param Options The media options.
-	 */
-	void ApplyOptions(const IMediaOptions& Options);
 
 	/**
 	 * Initialize this handler for the specified media player.
@@ -142,9 +134,6 @@ private:
 
 	/** The text overlay sink. */
 	IMediaOverlaySink* OverlaySink;
-
-	/** The color space of incoming buffer frames. */
-	EMediaTextureSinkColorSpace VideoColorSpace;
 
 	/** Dimensions of the current video track. */
 	FIntPoint VideoDimensions;

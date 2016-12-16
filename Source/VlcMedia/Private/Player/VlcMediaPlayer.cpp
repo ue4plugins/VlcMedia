@@ -374,8 +374,6 @@ bool FVlcMediaPlayer::Open(const FString& Url, const IMediaOptions& Options)
 		}
 	}
 
-	Output.ApplyOptions(Options);
-	
 	return InitializePlayer();
 }
 

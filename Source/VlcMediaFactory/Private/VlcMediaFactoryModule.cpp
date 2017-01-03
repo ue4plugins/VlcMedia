@@ -162,6 +162,7 @@ public:
 
 		// supported schemes
 		SupportedUriSchemes.Add(TEXT("cdda"));
+		SupportedUriSchemes.Add(TEXT("dshow"));
 		SupportedUriSchemes.Add(TEXT("file"));
 		SupportedUriSchemes.Add(TEXT("dvd"));
 		SupportedUriSchemes.Add(TEXT("ftp"));
@@ -172,6 +173,7 @@ public:
 		SupportedUriSchemes.Add(TEXT("rtsp"));
 		SupportedUriSchemes.Add(TEXT("sap"));
 		SupportedUriSchemes.Add(TEXT("screen"));
+		SupportedUriSchemes.Add(TEXT("v4l2"));
 		SupportedUriSchemes.Add(TEXT("vcd"));
 
 #if WITH_EDITOR

@@ -28,7 +28,7 @@
 		},
 		{
 			"Name": "VlcMediaFactory",
-			"Type": "Runtime",
+			"Type": "RuntimeNoCommandlet",
 			"LoadingPhase" : "PostEngineInit",
 			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64" ]
 		}

@@ -4,7 +4,7 @@ namespace UnrealBuildTool.Rules
 {
 	public class VlcMediaEditor : ModuleRules
 	{
-		public VlcMediaEditor(TargetInfo Target)
+		public VlcMediaEditor(ReadOnlyTargetRules Target) : base(Target)
 		{
 			PrivateDependencyModuleNames.AddRange(
 				new string[] {

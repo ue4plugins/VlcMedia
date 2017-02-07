@@ -15,10 +15,9 @@
 
 
 FVlcMediaPlayer::FVlcMediaPlayer(FLibvlcInstance* InVlcInstance)
-	: CurrentTime(FTimespan::Zero())
+	: CurrentRate(0.0f)
+	, CurrentTime(FTimespan::Zero())
 	, CurrentTimeDrift(FTimespan::Zero())
-	, DesiredRate(0.0)
-	, LastPlatformSeconds(0.0)
 	, MediaSource(InVlcInstance)
 	, Player(nullptr)
 	, ShouldLoop(false)
@@ -54,12 +53,7 @@ FTimespan FVlcMediaPlayer::GetDuration() const
 
 float FVlcMediaPlayer::GetRate() const
 {
-	if ((Player == nullptr) || (FVlc::MediaPlayerGetState(Player) != ELibvlcState::Playing))
-	{
-		return 0.0f;
-	}
-
-	return FVlc::MediaPlayerGetRate(Player);
+	return CurrentRate;
 }
 
 
@@ -97,14 +91,20 @@ EMediaState FVlcMediaPlayer::GetState() const
 }
 
 
-TRange<float> FVlcMediaPlayer::GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const
+TRangeSet<float> FVlcMediaPlayer::GetSupportedRates(EMediaRateThinning Thinning) const
 {
-	if (Direction == EMediaPlaybackDirections::Reverse)
+	TRangeSet<float> Result;
+
+	if (Thinning == EMediaRateThinning::Thinned)
 	{
-		return TRange<float>::Empty();
+		Result.Add(TRange<float>(0.0f, 10.0f));
+	}
+	else
+	{
+		Result.Add(TRange<float>(0.0f, 1.0f));
 	}
 
-	return TRange<float>(0.0f, 10.0f);
+	return Result;
 }
 
 
@@ -180,27 +180,25 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 		}
 	}
 
-	DesiredRate = Rate;
-
 	return true;
 }
 
 
-bool FVlcMediaPlayer::SupportsRate(float Rate, bool Unthinned) const
+bool FVlcMediaPlayer::SupportsFeature(EMediaFeature Feature) const
+{
+	if ((Feature == EMediaFeature::Scrubbing) || (Feature == EMediaFeature::Seeking))
+	{
+		return ((Player != nullptr) && (FVlc::MediaPlayerIsSeekable(Player) != 0));
+	}
+
+	return ((Feature == EMediaFeature::AudioSink) ||
+			(Feature == EMediaFeature::VideoSink));
+}
+
+
+bool FVlcMediaPlayer::SupportsRate(float Rate, EMediaRateThinning Thinning) const
 {
 	return (Rate >= 0.0f) && (Rate <= 10.0f);
-}
-
-
-bool FVlcMediaPlayer::SupportsScrubbing() const
-{
-	return ((Player != nullptr) && (FVlc::MediaPlayerIsSeekable(Player) != 0));
-}
-
-
-bool FVlcMediaPlayer::SupportsSeeking() const
-{
-	return ((Player != nullptr) && (FVlc::MediaPlayerIsSeekable(Player) != 0));
 }
 
 
@@ -224,6 +222,7 @@ void FVlcMediaPlayer::Close()
 	Player = nullptr;
 
 	// reset fields
+	CurrentRate = 0.0f;
 	CurrentTime = FTimespan::Zero();
 	MediaSource.Close();
 	Info.Empty();
@@ -366,12 +365,9 @@ bool FVlcMediaPlayer::Open(const FString& Url, const IMediaOptions& Options)
 			return false;
 		}
 	}
-	else
+	else if (!MediaSource.OpenUrl(Url))
 	{
-		if (!MediaSource.OpenUrl(Url))
-		{
-			return false;
-		}
+		return false;
 	}
 
 	return InitializePlayer();
@@ -391,30 +387,14 @@ bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Arch
 }
 
 
-void FVlcMediaPlayer::TickPlayer(float DeltaTime)
+/* IMediaTickable interface
+ *****************************************************************************/
+
+void FVlcMediaPlayer::TickInput(FTimespan Timecode, FTimespan DeltaTime, bool /*Locked*/)
 {
 	if (Player == nullptr)
 	{
 		return;
-	}
-
-	// update playback time
-	const ELibvlcState State = FVlc::MediaPlayerGetState(Player);
-
-	if (State == ELibvlcState::Playing)
-	{
-		// interpolate time (FVlc::MediaPlayerGetTime is too inacurate)
-		const double PlatformSeconds = FPlatformTime::Seconds();
-		const FTimespan TimeCorrection = FTimespan::FromSeconds(DesiredRate * (PlatformSeconds - LastPlatformSeconds));
-
-		CurrentTime += TimeCorrection;
-		CurrentTimeDrift += TimeCorrection;
-		LastPlatformSeconds = PlatformSeconds;
-	}
-	else if (State == ELibvlcState::Paused)
-	{
-		// update time (no MediaPlayerPositionChanged events when scrubbing)
-		CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player))) + CurrentTimeDrift;
 	}
 
 	// process events
@@ -434,43 +414,65 @@ void FVlcMediaPlayer::TickPlayer(float DeltaTime)
 			FVlc::MediaPlayerStop(Player);
 			// end hack
 
-			if (ShouldLoop && (DesiredRate != 0.0f))
-			{
-				SetRate(DesiredRate);
-			}
-
-			MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
 			MediaEvent.Broadcast(EMediaEvent::PlaybackEndReached);
+
+			if (ShouldLoop && (CurrentRate != 0.0f))
+			{
+				SetRate(CurrentRate);
+			}
+			else
+			{
+				MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
+			}
 			break;
 
 		case ELibvlcEventType::MediaPlayerPaused:
-			LastPlatformSeconds = FPlatformTime::Seconds();
 			MediaEvent.Broadcast(EMediaEvent::PlaybackSuspended);
 			break;
 
 		case ELibvlcEventType::MediaPlayerPlaying:
-			CurrentTime = FTimespan::Zero();
 			CurrentTimeDrift = FTimespan::Zero();
-			LastPlatformSeconds = FPlatformTime::Seconds();
 			MediaEvent.Broadcast(EMediaEvent::PlaybackResumed);
 			break;
 
 		case ELibvlcEventType::MediaPlayerPositionChanged:
 			CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player)));
 			CurrentTimeDrift = FTimespan::Zero();
-			LastPlatformSeconds = FPlatformTime::Seconds();
 			break;
 
 		default:
 			continue;
 		}
 	}
-}
 
+	const ELibvlcState State = FVlc::MediaPlayerGetState(Player);
 
-void FVlcMediaPlayer::TickVideo(float DeltaTime)
-{
-	// do nothing
+	// update current time & rate
+	if (State == ELibvlcState::Playing)
+	{
+		CurrentRate = FVlc::MediaPlayerGetRate(Player);
+
+		// interpolate time (FVlc::MediaPlayerGetTime is too inacurate)
+		const FTimespan TimeCorrection = DeltaTime * CurrentRate;
+
+		CurrentTime += TimeCorrection;
+		CurrentTimeDrift += TimeCorrection;
+	}
+	else
+	{
+		CurrentRate = 0.0f;
+
+		// poll time when paused (VLC doesn't send events when scrubbing)
+		if (State == ELibvlcState::Paused)
+		{
+			CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player))) + CurrentTimeDrift;
+		}
+	}
+
+	if (State == ELibvlcState::Playing)
+	{
+		Output.Update(Timecode, CurrentTime, CurrentRate);
+	}
 }
 
 
@@ -505,6 +507,12 @@ bool FVlcMediaPlayer::InitializePlayer()
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerEndReached, &FVlcMediaPlayer::StaticEventCallback, this);
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPlaying, &FVlcMediaPlayer::StaticEventCallback, this);
 	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerPositionChanged, &FVlcMediaPlayer::StaticEventCallback, this);
+	FVlc::EventAttach(PlayerEventManager, ELibvlcEventType::MediaPlayerStopped, &FVlcMediaPlayer::StaticEventCallback, this);
+
+	// initialize player
+	CurrentRate = 0.0f;
+	CurrentTime = FTimespan::Zero();
+	CurrentTimeDrift = FTimespan::Zero();
 
 	MediaEvent.Broadcast(EMediaEvent::MediaOpened);
 
@@ -530,10 +538,6 @@ void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 	{
 		MediaPlayer->Tracks.Initialize(*MediaPlayer->Player, MediaPlayer->Info);
 		MediaPlayer->Output.Initialize(*MediaPlayer->Player);
-	}
-	else if (Event->Type == ELibvlcEventType::MediaPlayerPlaying)
-	{
-		MediaPlayer->Output.Resume(MediaPlayer->CurrentTime);
 	}
 
 	MediaPlayer->Events.Enqueue(Event->Type);

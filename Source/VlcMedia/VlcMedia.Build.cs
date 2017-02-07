@@ -8,7 +8,7 @@ namespace UnrealBuildTool.Rules
 
 	public class VlcMedia : ModuleRules
 	{
-		public VlcMedia(TargetInfo Target)
+		public VlcMedia(ReadOnlyTargetRules Target) : base(Target)
 		{
 			DynamicallyLoadedModuleNames.AddRange(
 				new string[] {

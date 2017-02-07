@@ -3,10 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IMediaAudioSample.h"
 #include "IMediaOutput.h"
-
+#include "IMediaTextureSample.h"
 
 class IMediaOptions;
+class IMediaAudioSink;
+class IMediaOverlaySink;
+class IMediaTextureSink;
+
 struct FLibvlcMediaPlayer;
 
 
@@ -16,6 +21,35 @@ struct FLibvlcMediaPlayer;
 class FVlcMediaOutput
 	: public IMediaOutput
 {
+	/** */
+	struct FVlcMediaTimeInfo
+	{
+		/** The player's current play rate. */
+		float Rate;
+
+		/** The player's current time when StartTimecode was set. */
+		FTimespan StartOffset;
+
+		/** Time code at which playback was started with the current play rate. */
+		FTimespan StartTimecode;
+
+		/** The player's current play time. */
+		FTimespan Time;
+
+		/** The current time code. */
+		FTimespan Timecode;
+
+
+		/** Default constructor. */
+		FVlcMediaTimeInfo()
+			: Rate(0.0f)
+			, StartOffset(FTimespan::Zero())
+			, StartTimecode(FTimespan::Zero())
+			, Time(FTimespan::Zero())
+			, Timecode(FTimespan::Zero())
+		{ }
+	};
+
 public:
 
 	/** Default constructor. */
@@ -30,52 +64,46 @@ public:
 	 */
 	void Initialize(FLibvlcMediaPlayer& InPlayer);
 
-	/**
-	 * Notify sinks that playback was resumed.
-	 *
-	 * LibVLC does not call StaticAudioResumeCallback when playback
-	 * beings, so we're resuming the audio sink via this method.
-	 *
-	 * @param InResumeTime Time at which playback resumed.
-	 */
-	void Resume(FTimespan InResumeTime);
-
 	/** Shut down this handler. */
 	void Shutdown();
+
+	/**
+	 * Update this output.
+	 *
+	 * @param Timecode The current time code.
+	 * @param Time The player's play time.
+	 * @param Rate The player's play rate.
+	 */
+	void Update(FTimespan Timecode, FTimespan Time, float Rate);
 
 public:
 
 	//~ IMediaOutput interface
 
-	virtual void SetAudioSink(IMediaAudioSink* Sink) override;
-	virtual void SetMetadataSink(IMediaBinarySink* Sink) override;
-	virtual void SetOverlaySink(IMediaOverlaySink* Sink) override;
-	virtual void SetVideoSink(IMediaTextureSink* Sink) override;
+	virtual bool SetAudioNative(bool Enabled) override;
+	virtual void SetAudioNativeVolume(float Volume) override;
+	virtual void SetAudioSink(TSharedPtr<IMediaAudioSink, ESPMode::ThreadSafe> Sink) override;
+	virtual void SetMetadataSink(TSharedPtr<IMediaBinarySink, ESPMode::ThreadSafe> Sink) override;
+	virtual void SetOverlaySink(TSharedPtr<IMediaOverlaySink, ESPMode::ThreadSafe> Sink) override;
+	virtual void SetVideoSink(TSharedPtr<IMediaTextureSink, ESPMode::ThreadSafe> Sink) override;
 
 protected:
+
+	/**
+	 * Flush the output sinks.
+	 *
+	 * @param Shutdown Whether the sinks should be shut down.
+	 */
+	void FlushSinks(bool Shutdown);
 
 	/** Set up audio related callbacks. */
 	void SetupAudioOutput();
 
-	/** Set up caption related callbacks. */
-	void SetupCaptionOutput();
-
-	/** Set up subtitle related callbacks. */
-	void SetupSubtitleOutput();
+	/** Set up overlay text related callbacks. */
+	void SetupOverlayOutput();
 
 	/** Set up video related callbacks. */
 	void SetupVideoOutput();
-
-	/**
-	 * Convert a VLC timestamp to a playback timespan.
-	 *
-	 * @param Timestamp The timestamp to convert.
-	 * @return The corresponding timespan.
-	 */
-	FTimespan TimestampToTimespan(int64 Timestamp)
-	{
-		return ResumeTime + FTimespan::FromMicroseconds(Timestamp - ResumeOrigin);
-	}
 
 private:
 
@@ -118,26 +146,46 @@ private:
 private:
 
 	/** The audio sink. */
-	IMediaAudioSink* AudioSink;
-	
-	/** Critical section for synchronizing access to sinks. */
-	FCriticalSection CriticalSection;
+	TWeakPtr<IMediaAudioSink, ESPMode::ThreadSafe> AudioSinkPtr;
+
+	/** The text overlay sink. */
+	TWeakPtr<IMediaOverlaySink, ESPMode::ThreadSafe> OverlaySinkPtr;
+
+	/** The video sink. */
+	TWeakPtr<IMediaTextureSink, ESPMode::ThreadSafe> VideoSinkPtr;
+
+private:
+
+	/** Current number of channels in audio samples( accessed by VLC thread only). */
+	uint32 AudioChannels;
+
+	/** Current audio sample format (accessed by VLC thread only). */
+	EMediaAudioSampleFormat AudioSampleFormat;
+
+	/** Current audio sample rate (accessed by VLC thread only). */
+	uint32 AudioSampleRate;
+
+	/** Size of a single audio sample (in bytes). */
+	SIZE_T AudioSampleSize;
 
 	/** The VLC media player object. */
 	FLibvlcMediaPlayer* Player;
 
-	/** Origin of timestamps. */
-	int64 ResumeOrigin;
+	/** Current time information (updated via Update). */
+	TSharedPtr<FVlcMediaTimeInfo, ESPMode::ThreadSafe> TimeInfo;
 
-	/** The time at which playback resumed. */
-	FTimespan ResumeTime;
+	/** Current video buffer dimensions (accessed by VLC thread only; may be larger than VideoOutputDim). */
+	FIntPoint VideoBufferDim;
 
-	/** The text overlay sink. */
-	IMediaOverlaySink* OverlaySink;
+	/** Number of bytes per row of video pixels. */
+	uint32 VideoBufferStride;
 
-	/** Dimensions of the current video track. */
-	FIntPoint VideoDimensions;
+	/** Current video output dimensions (accessed by VLC thread only). */
+	FIntPoint VideoOutputDim;
 
-	/** The video sink. */
-	IMediaTextureSink* VideoSink;
+	/** Play time of the previous frame. */
+	FTimespan VideoPreviousTime;
+
+	/** Current video sample format (accessed by VLC thread only). */
+	EMediaTextureSampleFormat VideoSampleFormat;
 };

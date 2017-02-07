@@ -4,7 +4,7 @@ namespace UnrealBuildTool.Rules
 {
 	public class VlcMediaFactory : ModuleRules
 	{
-		public VlcMediaFactory(TargetInfo Target)
+		public VlcMediaFactory(ReadOnlyTargetRules Target) : base(Target)
 		{
 			DynamicallyLoadedModuleNames.AddRange(
 				new string[] {

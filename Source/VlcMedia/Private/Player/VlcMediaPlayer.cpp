@@ -469,10 +469,7 @@ void FVlcMediaPlayer::TickInput(FTimespan Timecode, FTimespan DeltaTime, bool /*
 		}
 	}
 
-	if (State == ELibvlcState::Playing)
-	{
-		Output.Update(Timecode, CurrentTime, CurrentRate);
-	}
+	Output.Update(Timecode, CurrentTime, (State == ELibvlcState::Playing) ? CurrentRate : 0.0f);
 }
 
 

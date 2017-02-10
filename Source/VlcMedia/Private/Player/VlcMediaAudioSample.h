@@ -20,7 +20,7 @@ public:
 	 * Create and initialize a new instance.
 	 *
 	 * @param InBuffer The sample's audio buffer.
-	 * @param InCount Number of samples in the buffer.
+	 * @param InFrames Number of frames in the buffer.
 	 * @param InChannels Number of audio channels.
 	 * @param InSampleFormat The sample format.
 	 * @param InSampleRate The sample rate.
@@ -30,7 +30,7 @@ public:
 	 */
 	FVlcMediaAudioSample(
 		const TSharedPtr<void, ESPMode::ThreadSafe>& InBuffer,
-		uint32 InCount,
+		uint32 InFrames,
 		uint32 InChannels,
 		EMediaAudioSampleFormat InSampleFormat,
 		uint32 InSampleRate,
@@ -40,8 +40,8 @@ public:
 	)
 		: Buffer(InBuffer)
 		, Channels(InChannels)
-		, Count(InCount)
 		, Duration(InDuration)
+		, Frames(InFrames)
 		, SampleFormat(InSampleFormat)
 		, SampleRate(InSampleRate)
 		, Time(InTime)
@@ -62,9 +62,9 @@ public:
 		return Channels;
 	}
 
-	virtual uint32 GetCount() const override
+	virtual uint32 GetFrames() const override
 	{
-		return Count;
+		return Frames;
 	}
 
 	virtual FTimespan GetDuration() const override
@@ -100,11 +100,11 @@ private:
 	/** Number of audio channels. */
 	uint32 Channels;
 
-	/** Number of samples in the buffer. */
-	uint32 Count;
-
 	/** Duration for which the sample is valid. */
 	FTimespan Duration;
+
+	/** Number of frames in the buffer. */
+	uint32 Frames;
 
 	/** The sample format. */
 	EMediaAudioSampleFormat SampleFormat;

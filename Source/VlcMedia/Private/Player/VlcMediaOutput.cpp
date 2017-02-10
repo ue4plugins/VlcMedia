@@ -24,7 +24,7 @@ FVlcMediaOutput::FVlcMediaOutput()
 	, AudioSampleRate(0)
 	, AudioSampleSize(0)
 	, Player(nullptr)
-	, TimeInfo(MakeShareable(new FVlcMediaTimeInfo()))
+	, TimeInfo(MakeShareable(new FVlcMediaTimeInfo))
 	, VideoBufferDim(FIntPoint::ZeroValue)
 	, VideoBufferStride(0)
 	, VideoOutputDim(FIntPoint::ZeroValue)
@@ -45,8 +45,6 @@ void FVlcMediaOutput::Initialize(FLibvlcMediaPlayer& InPlayer)
 	SetupAudioOutput();
 	SetupOverlayOutput();
 	SetupVideoOutput();
-
-	FlushSinks(true);
 }
 
 
@@ -61,6 +59,8 @@ void FVlcMediaOutput::Shutdown()
 	FVlc::VideoSetCallbacks(Player, nullptr, nullptr, nullptr, nullptr);
 
 	Player = nullptr;
+	TimeInfo = MakeShareable(new FVlcMediaTimeInfo);
+
 	FlushSinks(true);
 }
 
@@ -336,7 +336,7 @@ void FVlcMediaOutput::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 
 void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint32 Count, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPlayCallback: Count=%i"), Count);
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPlayCallback: Count=%i, Timestamp=%i"), Count, Timestamp);
 
 	auto Output = (FVlcMediaOutput*)Opaque;
 
@@ -358,6 +358,7 @@ void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint3
 	const FTimespan Delay = FTimespan::FromMicroseconds(FVlc::Delay(Timestamp));
 	const FTimespan SampleTime = PinnedTimeInfo->Time + Delay;
 	const FTimespan SampleTimecode = PinnedTimeInfo->Timecode + Delay;
+	const FTimespan Duration = FTimespan::FromSeconds((double)Count / (double)Output->AudioSampleRate);
 
 	// copy sample buffer
 	const SIZE_T BufferSize = Count * Output->AudioSampleSize * Output->AudioChannels;
@@ -375,7 +376,7 @@ void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint3
 			Output->AudioSampleRate,
 			SampleTime,
 			SampleTimecode,
-			FTimespan::MaxValue()
+			Duration
 		)
 	);
 
@@ -452,6 +453,9 @@ int FVlcMediaOutput::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, u
 		Output->AudioSampleFormat = EMediaAudioSampleFormat::Int16;
 		Output->AudioSampleSize = 2;
 	}
+
+	Output->AudioChannels = *Channels;
+	Output->AudioSampleRate = *Rate;
 
 	return 0;
 }

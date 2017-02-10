@@ -23,6 +23,7 @@ typedef const ANSICHAR* (*FLibvlcEventTypeNameProc)(ELibvlcEventType /*EventType
 
 // logging
 typedef void (*FLibvlcLogCb)(void* /*Data*/, ELibvlcLogLevel /*Level*/, FLibvlcLog* /*Context*/, const char* /*Format*/, va_list /*Args*/);
+typedef void (*FLibvlcLogGetContextProc)(FLibvlcLog* /*Context*/, const char** /*Module*/, const char** /*File*/, unsigned* /*Line*/);
 typedef void (*FLibvlcLogSetProc)(FLibvlcInstance* /*Instance*/, FLibvlcLogCb /*Callback*/, void* /*Data*/);
 typedef void (*FLibvlcLogUnsetProc)(FLibvlcInstance* /*Instance*/);
 

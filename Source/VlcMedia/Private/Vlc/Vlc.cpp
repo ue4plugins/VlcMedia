@@ -49,6 +49,7 @@ VLC_DEFINE(EventAttach)
 VLC_DEFINE(EventDetach)
 VLC_DEFINE(EventTypeName)
 
+VLC_DEFINE(LogGetContext)
 VLC_DEFINE(LogSet)
 VLC_DEFINE(LogUnset)
 
@@ -172,6 +173,7 @@ bool FVlc::Initialize()
 	VLC_IMPORT(libvlc_event_detach, EventDetach)
 	VLC_IMPORT(libvlc_event_type_name, EventTypeName)
 
+	VLC_IMPORT(libvlc_log_get_context, LogGetContext)
 	VLC_IMPORT(libvlc_log_set, LogSet)
 	VLC_IMPORT(libvlc_log_unset, LogUnset)
 

@@ -32,6 +32,7 @@ public:
 	static FLibvlcEventAttachProc EventDetach;
 	static FLibvlcEventTypeNameProc EventTypeName;
 
+	static FLibvlcLogGetContextProc LogGetContext;
 	static FLibvlcLogSetProc LogSet;
 	static FLibvlcLogUnsetProc LogUnset;
 

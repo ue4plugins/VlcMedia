@@ -24,9 +24,6 @@ public:
 	 */
 	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer() = 0;
 
-	/** Initialize VLC's log output. */
-	virtual void InitializeLogging() = 0;
-
 public:
 
 	/** Virtual destructor. */

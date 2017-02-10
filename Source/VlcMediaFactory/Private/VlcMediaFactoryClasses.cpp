@@ -4,5 +4,6 @@
 
 
 UVlcMediaSettings::UVlcMediaSettings()
-	: EnableLog(false)
+	: LogLevel(EVlcMediaLogLevel::Warning)
+	, ShowLogContext(false)
 { }

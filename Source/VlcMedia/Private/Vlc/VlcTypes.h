@@ -75,10 +75,10 @@ enum class ELibvlcEventType
 /** Enumerates logging levels. */
 enum class ELibvlcLogLevel
 {
-	Debug,
-	Notice,
-	Warning,
-	Error
+	Debug = 0,
+	Notice = 2,
+	Warning = 3,
+	Error = 4
 };
 
 

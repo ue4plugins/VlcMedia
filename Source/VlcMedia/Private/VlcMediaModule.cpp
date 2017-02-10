@@ -55,18 +55,6 @@ public:
 		return NewPlayer;
 	}
 
-	virtual void InitializeLogging() override
-	{
-		if (GetDefault<UVlcMediaSettings>()->EnableLog)
-		{
-			FVlc::LogSet(VlcInstance, &FVlcMediaModule::HandleVlcLog, nullptr);
-		}
-		else
-		{
-			FVlc::LogUnset(VlcInstance);
-		}
-	}
-
 public:
 
 	//~ IModuleInterface interface
@@ -98,8 +86,8 @@ public:
 			"--no-xlib",
 #endif
 			"--text-renderer", "dummy",
-#if UE_BUILD_DEBUG
-			"--verbose=2",
+#if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)
+			"--verbose=0",
 #else
 			"--quiet",
 #endif
@@ -118,7 +106,7 @@ public:
 		}
 
 		// register logging callback
-		InitializeLogging();	
+		FVlc::LogSet(VlcInstance, &FVlcMediaModule::HandleVlcLog, nullptr);
 
 		Initialized = true;
 	}
@@ -148,6 +136,41 @@ private:
 	/** Handles log messages from LibVLC. */
 	static void HandleVlcLog(void* /*Data*/, ELibvlcLogLevel Level, FLibvlcLog* Context, const char* Format, va_list Args)
 	{
+#if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)
+		const auto Settings = GetDefault<UVlcMediaSettings>();
+
+		// filter unwanted messages
+		if ((uint8)Level < (uint8)Settings->LogLevel)
+		{
+			return;
+		}
+
+		FString LogContext;
+
+		// get context information
+		if (Context != nullptr)
+		{
+			const char* Module = nullptr;
+			const char* File = nullptr;
+			unsigned Line = 0;
+
+			FVlc::LogGetContext(Context, &Module, &File, &Line);
+			LogContext = FString::Printf(TEXT("%s: "), (Module != nullptr) ? ANSI_TO_TCHAR(Module) : TEXT("unknown module"));
+
+			if (Settings->ShowLogContext)
+			{
+				LogContext += FString::Printf(TEXT("%s, line %s: "),
+					(File != nullptr) ? ANSI_TO_TCHAR(File) : TEXT("unknown file"),
+					(Line != 0) ? *FString::Printf(TEXT("%i"), Line) : TEXT("n/a")
+				);
+			}
+		}
+		else
+		{
+			LogContext = TEXT("generic: ");
+		}
+
+		// forward message to log
 		ANSICHAR Message[1024];
 
 		FCStringAnsi::GetVarArgs(Message, ARRAY_COUNT(Message), ARRAY_COUNT(Message) - 1, Format, Args);
@@ -155,25 +178,26 @@ private:
 		switch (Level)
 		{
 		case ELibvlcLogLevel::Debug:
-			UE_LOG(LogVlcMedia, VeryVerbose, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			UE_LOG(LogVlcMedia, VeryVerbose, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
 			break;
 
 		case ELibvlcLogLevel::Error:
-			UE_LOG(LogVlcMedia, Error, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			UE_LOG(LogVlcMedia, Error, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
 			break;
 
 		case ELibvlcLogLevel::Notice:
-			UE_LOG(LogVlcMedia, Verbose, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			UE_LOG(LogVlcMedia, Verbose, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
 			break;
 
 		case ELibvlcLogLevel::Warning:
-			UE_LOG(LogVlcMedia, Warning, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			UE_LOG(LogVlcMedia, Warning, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
 			break;
 
 		default:
-			UE_LOG(LogVlcMedia, Log, TEXT("%s"), ANSI_TO_TCHAR(Message));
+			UE_LOG(LogVlcMedia, Log, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
 			break;
 		}
+#endif
 	}
 
 private:

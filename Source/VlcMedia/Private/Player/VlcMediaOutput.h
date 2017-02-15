@@ -21,33 +21,14 @@ struct FLibvlcMediaPlayer;
 class FVlcMediaOutput
 	: public IMediaOutput
 {
-	/** */
-	struct FVlcMediaTimeInfo
+	/** Time information (set via Update by the player). */
+	struct FTimeInfo
 	{
-		/** The player's current play rate. */
 		float Rate;
-
-		/** The player's current time when StartTimecode was set. */
 		FTimespan StartOffset;
-
-		/** Time code at which playback was started with the current play rate. */
 		FTimespan StartTimecode;
-
-		/** The player's current play time. */
 		FTimespan Time;
-
-		/** The current time code. */
 		FTimespan Timecode;
-
-
-		/** Default constructor. */
-		FVlcMediaTimeInfo()
-			: Rate(0.0f)
-			, StartOffset(FTimespan::Zero())
-			, StartTimecode(FTimespan::Zero())
-			, Time(FTimespan::Zero())
-			, Timecode(FTimespan::Zero())
-		{ }
 	};
 
 public:
@@ -55,20 +36,23 @@ public:
 	/** Default constructor. */
 	FVlcMediaOutput();
 
+	/** Virtual destructor. */
+	~FVlcMediaOutput();
+
 public:
 
 	/**
-	 * Initialize this handler for the specified media player.
+	 * Initialize the handler for the specified media player.
 	 *
 	 * @param InPlayer The media player that owns this handler.
 	 */
 	void Initialize(FLibvlcMediaPlayer& InPlayer);
 
-	/** Shut down this handler. */
+	/** Shut down the handler. */
 	void Shutdown();
 
 	/**
-	 * Update this output.
+	 * Update time & play rate values.
 	 *
 	 * @param Timecode The current time code.
 	 * @param Time The player's play time.
@@ -172,7 +156,7 @@ private:
 	FLibvlcMediaPlayer* Player;
 
 	/** Current time information (updated via Update). */
-	TSharedPtr<FVlcMediaTimeInfo, ESPMode::ThreadSafe> TimeInfo;
+	TSharedPtr<FTimeInfo, ESPMode::ThreadSafe> TimeInfo;
 
 	/** Current video buffer dimensions (accessed by VLC thread only; may be larger than VideoOutputDim). */
 	FIntPoint VideoBufferDim;

@@ -24,13 +24,18 @@ FVlcMediaOutput::FVlcMediaOutput()
 	, AudioSampleRate(0)
 	, AudioSampleSize(0)
 	, Player(nullptr)
-	, TimeInfo(MakeShareable(new FVlcMediaTimeInfo))
 	, VideoBufferDim(FIntPoint::ZeroValue)
 	, VideoBufferStride(0)
 	, VideoOutputDim(FIntPoint::ZeroValue)
 	, VideoPreviousTime(FTimespan::MinValue())
 	, VideoSampleFormat(EMediaTextureSampleFormat::CharAYUV)
 { }
+
+
+FVlcMediaOutput::~FVlcMediaOutput()
+{
+	Shutdown();
+}
 
 
 /* FVlcMediaOutput interface
@@ -59,7 +64,7 @@ void FVlcMediaOutput::Shutdown()
 	FVlc::VideoSetCallbacks(Player, nullptr, nullptr, nullptr, nullptr);
 
 	Player = nullptr;
-	TimeInfo = MakeShareable(new FVlcMediaTimeInfo);
+	TimeInfo.Reset();
 
 	FlushSinks(true);
 }
@@ -67,24 +72,19 @@ void FVlcMediaOutput::Shutdown()
 
 void FVlcMediaOutput::Update(FTimespan Timecode, FTimespan Time, float Rate)
 {
-	// update sinks
-	if (Rate != TimeInfo->Rate)
+	auto NewTimeInfo = new FTimeInfo;
 	{
-		FlushSinks(false);
-
-		if (AudioSinkPtr.IsValid())
-		{
-			AudioSinkPtr.Pin()->SetAudioSinkRate(Rate);
-		}
-	}
-
-	// atomically set new time information
-	auto NewTimeInfo = new FVlcMediaTimeInfo();
-	{
-		if (Rate != TimeInfo->Rate)
+		if (!TimeInfo.IsValid() || (Rate != TimeInfo->Rate))
 		{
 			NewTimeInfo->StartOffset = Time;
 			NewTimeInfo->StartTimecode = Timecode;
+
+			FlushSinks(false);
+
+			if (AudioSinkPtr.IsValid())
+			{
+				AudioSinkPtr.Pin()->SetAudioSinkRate(Rate);
+			}
 		}
 		else
 		{
@@ -217,7 +217,8 @@ void FVlcMediaOutput::SetupAudioOutput()
 			this
 		);
 
-		AudioSink->SetAudioSinkRate(TimeInfo->Rate);
+		auto PinnedTimeInfo = TimeInfo;
+		AudioSink->SetAudioSinkRate(PinnedTimeInfo.IsValid() ? PinnedTimeInfo->Rate : 0.0f);
 	}
 	else
 	{
@@ -354,6 +355,11 @@ void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint3
 
 	auto PinnedTimeInfo = Output->TimeInfo;
 
+	if (!PinnedTimeInfo.IsValid())
+	{
+		return;
+	}
+
 	// calculate time code at which the sample should be played
 	const FTimespan Delay = FTimespan::FromMicroseconds(FVlc::Delay(Timestamp));
 	const FTimespan SampleTime = PinnedTimeInfo->Time + Delay;
@@ -482,7 +488,7 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 	auto VideoSink = Output->VideoSinkPtr.Pin();
 
 	// skip if no video sink assigned, or if frame already processed
-	if (!VideoSink.IsValid() || (Output->VideoPreviousTime == PinnedTimeInfo->Time))
+	if (!PinnedTimeInfo.IsValid() || !VideoSink.IsValid() || (Output->VideoPreviousTime == PinnedTimeInfo->Time))
 	{
 		FMemory::Free(Picture);
 

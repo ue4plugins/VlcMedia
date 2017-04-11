@@ -5,8 +5,10 @@ namespace UnrealBuildTool.Rules
 	public class VlcMediaFactory : ModuleRules
 	{
 		public VlcMediaFactory(ReadOnlyTargetRules Target) : base(Target)
-		{
-			DynamicallyLoadedModuleNames.AddRange(
+        {
+            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+            DynamicallyLoadedModuleNames.AddRange(
 				new string[] {
 					"Media",
 				}

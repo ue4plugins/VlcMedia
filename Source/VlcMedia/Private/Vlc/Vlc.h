@@ -101,13 +101,6 @@ public:
 
 	static FLibvlcFourccGetChromaDescriptionProc FourccGetChromaDescription;
 
-public:
-
-	static int64 Delay(int64 Timestamp)
-	{
-		return Timestamp - Clock();
-	}
-
 protected:
 
 	static void FreeDependency(void*& Handle);

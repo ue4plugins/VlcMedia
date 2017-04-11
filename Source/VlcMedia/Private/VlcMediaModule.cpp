@@ -3,12 +3,10 @@
 #include "IVlcMediaModule.h"
 #include "VlcMediaPrivate.h"
 
-#include "IMediaModule.h"
 #include "Modules/ModuleManager.h"
 #include "UObject/Class.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/WeakObjectPtr.h"
-
 #include "Vlc.h"
 #include "VlcMediaPlayer.h"
 
@@ -35,24 +33,14 @@ public:
 
 	//~ IVlcMediaModule interface
 
-	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer() override
+	virtual TSharedPtr<IMediaPlayer> CreatePlayer() override
 	{
 		if (!Initialized)
 		{
 			return nullptr;
 		}
 
-		IMediaModule* MediaModule = FModuleManager::LoadModulePtr<IMediaModule>("Media");
-
-		if (MediaModule == nullptr)
-		{
-			return nullptr;
-		}
-
-		TSharedRef<FVlcMediaPlayer, ESPMode::ThreadSafe> NewPlayer = MakeShareable(new FVlcMediaPlayer(VlcInstance));
-		MediaModule->RegisterTickable(NewPlayer);
-
-		return NewPlayer;
+		return MakeShareable(new FVlcMediaPlayer(VlcInstance));
 	}
 
 public:

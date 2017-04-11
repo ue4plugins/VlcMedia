@@ -3,43 +3,29 @@
 #include "VlcMediaOutput.h"
 #include "VlcMediaPrivate.h"
 
-#include "IMediaAudioSample.h"
 #include "IMediaAudioSink.h"
 #include "IMediaOptions.h"
 #include "IMediaOverlaySink.h"
-#include "IMediaTextureSample.h"
 #include "IMediaTextureSink.h"
-
+#include "Misc/ScopeLock.h"
 #include "Vlc.h"
-#include "VlcMediaAudioSample.h"
-#include "VlcMediaTextureSample.h"
 
 
 /* FVlcMediaOutput structors
- *****************************************************************************/
+*****************************************************************************/
 
 FVlcMediaOutput::FVlcMediaOutput()
-	: AudioChannels(0)
-	, AudioSampleFormat(EMediaAudioSampleFormat::Int16)
-	, AudioSampleRate(0)
-	, AudioSampleSize(0)
+	: AudioSink(nullptr)
 	, Player(nullptr)
-	, VideoBufferDim(FIntPoint::ZeroValue)
-	, VideoBufferStride(0)
-	, VideoOutputDim(FIntPoint::ZeroValue)
-	, VideoPreviousTime(FTimespan::MinValue())
-	, VideoSampleFormat(EMediaTextureSampleFormat::CharAYUV)
+	, ResumeOrigin(0)
+	, ResumeTime(FTimespan::Zero())
+	, OverlaySink(nullptr)
+	, VideoSink(nullptr)
 { }
 
 
-FVlcMediaOutput::~FVlcMediaOutput()
-{
-	Shutdown();
-}
-
-
 /* FVlcMediaOutput interface
- *****************************************************************************/
+*****************************************************************************/
 
 void FVlcMediaOutput::Initialize(FLibvlcMediaPlayer& InPlayer)
 {
@@ -48,120 +34,95 @@ void FVlcMediaOutput::Initialize(FLibvlcMediaPlayer& InPlayer)
 	Player = &InPlayer;
 
 	SetupAudioOutput();
-	SetupOverlayOutput();
+	SetupCaptionOutput();
 	SetupVideoOutput();
+}
+
+
+void FVlcMediaOutput::Resume(FTimespan InResumeTime)
+{
+	UE_LOG(LogVlcMedia, Verbose, TEXT("Resuming output at %s"), *InResumeTime.ToString());
+
+	FScopeLock Lock(&CriticalSection);
+
+	ResumeOrigin = FVlc::Clock();
+	ResumeTime = InResumeTime;
+
+	if (AudioSink != nullptr)
+	{
+		AudioSink->ResumeAudioSink();
+	}
 }
 
 
 void FVlcMediaOutput::Shutdown()
 {
-	if (Player == nullptr)
+	if (Player != nullptr)
 	{
-		return;
+		FVlc::AudioSetCallbacks(Player, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+		FVlc::VideoSetCallbacks(Player, nullptr, nullptr, nullptr, nullptr);
+		Player = nullptr;
 	}
-
-	FVlc::AudioSetCallbacks(Player, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-	FVlc::VideoSetCallbacks(Player, nullptr, nullptr, nullptr, nullptr);
-
-	Player = nullptr;
-	TimeInfo.Reset();
-
-	FlushSinks(true);
-}
-
-
-void FVlcMediaOutput::Update(FTimespan Timecode, FTimespan Time, float Rate)
-{
-	auto NewTimeInfo = new FTimeInfo;
-	{
-		if (!TimeInfo.IsValid() || (Rate != TimeInfo->Rate))
-		{
-			NewTimeInfo->StartOffset = Time;
-			NewTimeInfo->StartTimecode = Timecode;
-
-			FlushSinks(false);
-
-			if (AudioSinkPtr.IsValid())
-			{
-				AudioSinkPtr.Pin()->SetAudioSinkRate(Rate);
-			}
-		}
-		else
-		{
-			NewTimeInfo->StartOffset = TimeInfo->StartOffset;
-			NewTimeInfo->StartTimecode = TimeInfo->StartTimecode;
-		}
-
-		NewTimeInfo->Timecode = Timecode;
-		NewTimeInfo->Time = Time;
-		NewTimeInfo->Rate = Rate;
-	}
-
-	TimeInfo = MakeShareable(NewTimeInfo);
 }
 
 
 /* IMediaOutput interface
 *****************************************************************************/
 
-bool FVlcMediaOutput::SetAudioNative(bool Enabled)
+void FVlcMediaOutput::SetAudioSink(IMediaAudioSink* Sink)
 {
-	return false; // not implemented yet
-}
+	FScopeLock Lock(&CriticalSection);
 
-
-void FVlcMediaOutput::SetAudioNativeVolume(float Volume)
-{
-	// not implemented yet
-}
-
-
-void FVlcMediaOutput::SetAudioSink(TSharedPtr<IMediaAudioSink, ESPMode::ThreadSafe> Sink)
-{
-	if (Sink != AudioSinkPtr)
+	if (Sink != AudioSink)
 	{
-		if (AudioSinkPtr.IsValid())
+		if (AudioSink != nullptr)
 		{
-			AudioSinkPtr.Pin()->FlushAudioSink(true);
+			AudioSink->ShutdownAudioSink();
 		}
 
-		AudioSinkPtr = Sink;
+		AudioSink = Sink;
 		SetupAudioOutput();
 	}
 }
 
 
-void FVlcMediaOutput::SetMetadataSink(TSharedPtr<IMediaBinarySink, ESPMode::ThreadSafe> Sink)
+void FVlcMediaOutput::SetMetadataSink(IMediaBinarySink* Sink)
 {
 	// not supported
 }
 
 
-void FVlcMediaOutput::SetOverlaySink(TSharedPtr<IMediaOverlaySink, ESPMode::ThreadSafe> Sink)
+void FVlcMediaOutput::SetOverlaySink(IMediaOverlaySink* Sink)
 {
-	if (Sink != OverlaySinkPtr)
+	FScopeLock Lock(&CriticalSection);
+
+	if (Sink != OverlaySink)
 	{
-		if (OverlaySinkPtr.IsValid())
+		if (OverlaySink != nullptr)
 		{
-			OverlaySinkPtr.Pin()->FlushOverlaySink(true);
+			OverlaySink->ShutdownOverlaySink();
 		}
 
-		OverlaySinkPtr = Sink;
-		SetupOverlayOutput();
+		OverlaySink = Sink;
+
+		SetupCaptionOutput();
+		SetupSubtitleOutput();
 	}
 }
 
 
-void FVlcMediaOutput::SetVideoSink(TSharedPtr<IMediaTextureSink, ESPMode::ThreadSafe> Sink)
+void FVlcMediaOutput::SetVideoSink(IMediaTextureSink* Sink)
 {
-	if (Sink != VideoSinkPtr)
+	FScopeLock Lock(&CriticalSection);
+
+	if (Sink != VideoSink)
 	{
-		if (VideoSinkPtr.IsValid())
+		if (VideoSink != nullptr)
 		{
-			VideoSinkPtr.Pin()->FlushTextureSink(true);
+			VideoSink->ShutdownTextureSink();
 		}
 
-		VideoSinkPtr = Sink;
+		VideoSink = Sink;
 		SetupVideoOutput();
 	}
 }
@@ -170,25 +131,6 @@ void FVlcMediaOutput::SetVideoSink(TSharedPtr<IMediaTextureSink, ESPMode::Thread
 /* FVlcMediaOutput implementation
 *****************************************************************************/
 
-void FVlcMediaOutput::FlushSinks(bool Shutdown)
-{
-	if (AudioSinkPtr.IsValid())
-	{
-		AudioSinkPtr.Pin()->FlushAudioSink(Shutdown);
-	}
-
-	if (OverlaySinkPtr.IsValid())
-	{
-		OverlaySinkPtr.Pin()->FlushOverlaySink(Shutdown);
-	}
-
-	if (VideoSinkPtr.IsValid())
-	{
-		VideoSinkPtr.Pin()->FlushTextureSink(Shutdown);
-	}
-}
-
-
 void FVlcMediaOutput::SetupAudioOutput()
 {
 	if (Player == nullptr)
@@ -196,9 +138,7 @@ void FVlcMediaOutput::SetupAudioOutput()
 		return;
 	}
 
-	auto AudioSink = AudioSinkPtr.Pin();
-
-	if (AudioSink.IsValid())
+	if (AudioSink != nullptr)
 	{
 		// register callbacks
 		FVlc::AudioSetFormatCallbacks(
@@ -216,9 +156,6 @@ void FVlcMediaOutput::SetupAudioOutput()
 			&FVlcMediaOutput::StaticAudioDrainCallback,
 			this
 		);
-
-		auto PinnedTimeInfo = TimeInfo;
-		AudioSink->SetAudioSinkRate(PinnedTimeInfo.IsValid() ? PinnedTimeInfo->Rate : 0.0f);
 	}
 	else
 	{
@@ -229,19 +166,15 @@ void FVlcMediaOutput::SetupAudioOutput()
 }
 
 
-void FVlcMediaOutput::SetupOverlayOutput()
+void FVlcMediaOutput::SetupCaptionOutput()
 {
-	if (Player == nullptr)
-	{
-		return;
-	}
+	// @todo gmp: vlc: implement caption tracks
+}
 
-	auto OverlaySink = OverlaySinkPtr.Pin();
 
-	if (OverlaySink.IsValid())
-	{
-		// @todo gmp: vlc: implement caption/subtitle tracks
-	}
+void FVlcMediaOutput::SetupSubtitleOutput()
+{
+	// @todo gmp: vlc: implement subtitle tracks
 }
 
 
@@ -252,9 +185,7 @@ void FVlcMediaOutput::SetupVideoOutput()
 		return;
 	}
 
-	auto VideoSink = VideoSinkPtr.Pin();
-
-	if (VideoSink.IsValid())
+	if (VideoSink != nullptr)
 	{
 		// register callbacks
 		FVlc::VideoSetFormatCallbacks(
@@ -294,11 +225,12 @@ void FVlcMediaOutput::StaticAudioCleanupCallback(void* Opaque)
 		return;
 	}
 
-	auto AudioSink = Output->AudioSinkPtr.Pin();
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaAudioSink* AudioSink = Output->AudioSink;
 
-	if (AudioSink.IsValid())
+	if (AudioSink != nullptr)
 	{
-		AudioSink->FlushAudioSink(true);
+		AudioSink->ShutdownAudioSink();
 	}
 }
 
@@ -320,24 +252,19 @@ void FVlcMediaOutput::StaticAudioFlushCallback(void* Opaque, int64 Timestamp)
 		return;
 	}
 
-	auto AudioSink = Output->AudioSinkPtr.Pin();
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaAudioSink* AudioSink = Output->AudioSink;
 
-	if (AudioSink.IsValid())
+	if (AudioSink != nullptr)
 	{
-		AudioSink->FlushAudioSink(false);
+		AudioSink->FlushAudioSink();
 	}
 }
 
 
 void FVlcMediaOutput::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 {
-	// do nothing; pausing is handled in Update
-}
-
-
-void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint32 Count, int64 Timestamp)
-{
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPlayCallback: Count=%i, Timestamp=%i"), Count, Timestamp);
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPauseCallback"));
 
 	auto Output = (FVlcMediaOutput*)Opaque;
 
@@ -346,53 +273,55 @@ void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint3
 		return;
 	}
 
-	auto AudioSink = Output->AudioSinkPtr.Pin();
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaAudioSink* AudioSink = Output->AudioSink;
 
-	if (!AudioSink.IsValid())
+	if (AudioSink != nullptr)
+	{
+		AudioSink->PauseAudioSink();
+	}
+}
+
+
+void FVlcMediaOutput::StaticAudioPlayCallback(void* Opaque, void* Samples, uint32 Count, int64 Timestamp)
+{
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPlayCallback: Count=%i"), Count);
+
+	auto Output = (FVlcMediaOutput*)Opaque;
+
+	if (Output == nullptr)
 	{
 		return;
 	}
 
-	auto PinnedTimeInfo = Output->TimeInfo;
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaAudioSink* AudioSink = Output->AudioSink;
 
-	if (!PinnedTimeInfo.IsValid())
+	if (AudioSink != nullptr)
 	{
-		return;
+		AudioSink->PlayAudioSink((uint8*)Samples, Count * AudioSink->GetAudioSinkChannels() * sizeof(int16), Output->TimestampToTimespan(Timestamp));
 	}
-
-	// calculate time code at which the sample should be played
-	const FTimespan Delay = FTimespan::FromMicroseconds(FVlc::Delay(Timestamp));
-	const FTimespan SampleTime = PinnedTimeInfo->Time + Delay;
-	const FTimespan SampleTimecode = PinnedTimeInfo->Timecode + Delay;
-	const FTimespan Duration = FTimespan::FromSeconds((double)Count / (double)Output->AudioSampleRate);
-
-	// copy sample buffer
-	const SIZE_T BufferSize = Count * Output->AudioSampleSize * Output->AudioChannels;
-	void* Buffer = FMemory::Malloc(BufferSize);
-	FMemory::Memcpy(Buffer, Samples, BufferSize);
-	TSharedPtr<void, ESPMode::ThreadSafe> BufferRef = MakeShareable(Buffer, [](void* Ptr) { FMemory::Free(Ptr); });
-		
-	// forward sample to audio sink
-	TSharedRef<FVlcMediaAudioSample, ESPMode::ThreadSafe> Sample = MakeShareable(
-		new FVlcMediaAudioSample(
-			BufferRef,
-			Count,
-			Output->AudioChannels,
-			Output->AudioSampleFormat,
-			Output->AudioSampleRate,
-			SampleTime,
-			SampleTimecode,
-			Duration
-		)
-	);
-
-	AudioSink->OnAudioSample(Sample);
 }
 
 
 void FVlcMediaOutput::StaticAudioResumeCallback(void* Opaque, int64 Timestamp)
 {
-	// do nothing; resuming is handled in Update
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioResumeCallback"));
+
+	auto Output = (FVlcMediaOutput*)Opaque;
+
+	if (Output == nullptr)
+	{
+		return;
+	}
+
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaAudioSink* AudioSink = Output->AudioSink;
+
+	if (AudioSink != nullptr)
+	{
+		AudioSink->ResumeAudioSink();
+	}
 }
 
 
@@ -402,66 +331,42 @@ int FVlcMediaOutput::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, u
 
 	auto Output = *(FVlcMediaOutput**)Opaque;
 
-	if (Output == nullptr)
+	if ((Output == nullptr) || (Output->VideoSink == nullptr))
 	{
 		return -1;
 	}
 
-	auto AudioSink = Output->AudioSinkPtr.Pin();
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaAudioSink* AudioSink = Output->AudioSink;
 
-	if (!AudioSink.IsValid())
+	if (AudioSink == nullptr)
 	{
 		return -1;
 	}
 
-	// setup audio format
-	if (*Channels > 8)
+	// set decoder format
+	FMemory::Memcpy(Format, "S16N", 4);
+
+	if ((*Channels != 1) && (*Channels != 2) && (*Channels != 6))
 	{
-		*Channels = 8;
+		*Channels = 2;
 	}
 
-	if (FMemory::Memcmp(Format, "S8  ", 4) == 0)
+	if (*Rate != 44100u)
 	{
-		Output->AudioSampleFormat = EMediaAudioSampleFormat::Int8;
-		Output->AudioSampleSize = 1;
-	}
-	else if (FMemory::Memcmp(Format, "S16N", 4) == 0)
-	{
-		Output->AudioSampleFormat = EMediaAudioSampleFormat::Int16;
-		Output->AudioSampleSize = 2;
-	}
-	else if (FMemory::Memcmp(Format, "S32N", 4) == 0)
-	{
-		Output->AudioSampleFormat = EMediaAudioSampleFormat::Int32;
-		Output->AudioSampleSize = 4;
-	}
-	else if (FMemory::Memcmp(Format, "FL32", 4) == 0)
-	{
-		Output->AudioSampleFormat = EMediaAudioSampleFormat::Float;
-		Output->AudioSampleSize = 4;
-	}
-	else if (FMemory::Memcmp(Format, "FL64", 4) == 0)
-	{
-		Output->AudioSampleFormat = EMediaAudioSampleFormat::Double;
-		Output->AudioSampleSize = 8;
-	}
-	else if (FMemory::Memcmp(Format, "U8  ", 4) == 0)
-	{
-		// unsigned integer fall back
-		FMemory::Memcpy(Format, "S8  ", 4);
-		Output->AudioSampleFormat = EMediaAudioSampleFormat::Int8;
-		Output->AudioSampleSize = 1;
-	}
-	else
-	{
-		// unsupported format fall back
-		FMemory::Memcpy(Format, "S16N", 4);
-		Output->AudioSampleFormat = EMediaAudioSampleFormat::Int16;
-		Output->AudioSampleSize = 2;
+		UE_LOG(LogVlcMedia, Warning, TEXT("Possible loss of audio quality due to sample rate != 44100 Hz"));
 	}
 
-	Output->AudioChannels = *Channels;
-	Output->AudioSampleRate = *Rate;
+	// initialize sink
+	if (!AudioSink->InitializeAudioSink(*Channels, *Rate))
+	{
+		return -1;
+	}
+
+	if (FVlc::MediaPlayerGetState(Output->Player) == ELibvlcState::Playing)
+	{
+		AudioSink->ResumeAudioSink();
+	}
 
 	return 0;
 }
@@ -469,7 +374,22 @@ int FVlcMediaOutput::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, u
 
 void FVlcMediaOutput::StaticVideoCleanupCallback(void *Opaque)
 {
-	// do nothing
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoCleanupCallback"));
+
+	auto Output = (FVlcMediaOutput*)Opaque;
+
+	if (Output == nullptr)
+	{
+		return;
+	}
+
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaTextureSink* VideoSink = Output->VideoSink;
+
+	if (VideoSink != nullptr)
+	{
+		VideoSink->ShutdownTextureSink();
+	}
 }
 
 
@@ -478,44 +398,19 @@ void FVlcMediaOutput::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoDisplayCallback"));
 
 	auto Output = (FVlcMediaOutput*)Opaque;
-	
-	if ((Output == nullptr) || (Picture == nullptr))
+
+	if (Output == nullptr)
 	{
 		return;
 	}
 
-	auto PinnedTimeInfo = Output->TimeInfo;
-	auto VideoSink = Output->VideoSinkPtr.Pin();
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaTextureSink* VideoSink = Output->VideoSink;
 
-	// skip if no video sink assigned, or if frame already processed
-	if (!PinnedTimeInfo.IsValid() || !VideoSink.IsValid() || (Output->VideoPreviousTime == PinnedTimeInfo->Time))
+	if (VideoSink != nullptr)
 	{
-		FMemory::Free(Picture);
-
-		return;
+		VideoSink->DisplayTextureSinkBuffer(Output->TimestampToTimespan(FVlc::Clock()));
 	}
-
-	Output->VideoPreviousTime = PinnedTimeInfo->Time;
-
-	// calculate time code at which the sample should be displayed
-	const FTimespan SampleOffset = (PinnedTimeInfo->Time - PinnedTimeInfo->StartOffset) / PinnedTimeInfo->Rate;
-	const FTimespan SampleTimecode = PinnedTimeInfo->StartTimecode + SampleOffset;
-
-	// forward sample to video sink
-	TSharedRef<FVlcMediaTextureSample, ESPMode::ThreadSafe> Sample = MakeShareable(
-		new FVlcMediaTextureSample(
-			MakeShareable(Picture, [](void* Ptr) { FMemory::Free(Ptr); }),
-			Output->VideoBufferDim,
-			Output->VideoOutputDim,
-			Output->VideoSampleFormat,
-			Output->VideoBufferStride,
-			PinnedTimeInfo->Time,
-			SampleTimecode,
-			FTimespan::MaxValue()
-		)
-	);
-
-	VideoSink->OnTextureSample(Sample);
 }
 
 
@@ -525,16 +420,31 @@ void* FVlcMediaOutput::StaticVideoLockCallback(void* Opaque, void** Planes)
 
 	auto Output = (FVlcMediaOutput*)Opaque;
 
-	if ((Output == nullptr) || (Output->VideoOutputDim.GetMin() <= 0))
+	if (Output == nullptr)
 	{
 		return nullptr;
 	}
 
-	// allocate buffer for video frame
 	FMemory::Memzero(Planes, FVlc::MaxPlanes * sizeof(void*));
-	Planes[0] = FMemory::Malloc(Output->VideoBufferStride * Output->VideoBufferDim.Y, 32);
 
-	return Planes[0];
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaTextureSink* VideoSink = Output->VideoSink;
+
+	if (VideoSink != nullptr)
+	{
+		Planes[0] = VideoSink->AcquireTextureSinkBuffer();
+	}
+
+	if (Planes[0] == nullptr)
+	{
+		// VLC currently requires a valid buffer or it will crash, but the
+		// sink may not be ready yet, so we create a temporary buffer here
+		Planes[0] = FMemory::Malloc(Output->VideoDimensions.X * Output->VideoDimensions.Y * 4, 32);
+
+		return Planes[0];
+	}
+
+	return nullptr;
 }
 
 
@@ -543,59 +453,69 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoSetupCallback: Chroma=%s Dim=%ix%i"), ANSI_TO_TCHAR(Chroma), *Width, *Height);
 
 	auto Output = *(FVlcMediaOutput**)Opaque;
-	
-	if (Output == nullptr)
+
+	if ((Output == nullptr) || (Output->VideoSink == nullptr))
 	{
 		return 0;
 	}
 
-	// get video output size
-	if (FVlc::VideoGetSize(Output->Player, 0, (uint32*)&Output->VideoOutputDim.X, (uint32*)&Output->VideoOutputDim.Y) != 0)
-	{
-		Output->VideoBufferDim = FIntPoint::ZeroValue;
-		Output->VideoOutputDim = FIntPoint::ZeroValue;
-		Output->VideoBufferStride = 0;
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaTextureSink* VideoSink = Output->VideoSink;
 
-		return 0;
-	}
-
-	if (Output->VideoOutputDim.GetMin() <= 0)
+	if (VideoSink == nullptr)
 	{
 		return 0;
 	}
 
-	// determine decoder & sample formats
-	Output->VideoBufferDim = FIntPoint(*Width, *Height);
+	Output->VideoDimensions = FIntPoint::ZeroValue;
+
+	// output dimensions
+	FIntPoint OutputDim;
+	{
+		if (FVlc::VideoGetSize(Output->Player, 0, (uint32*)&OutputDim.X, (uint32*)&OutputDim.Y) != 0)
+		{
+			return 0;
+		}
+	}
+
+	// determine decoder & sink options
+	FIntPoint BufferDim(*Width, *Height);
+	EMediaTextureSinkFormat SinkFormat;
 
 	if (FCStringAnsi::Stricmp(Chroma, "AYUV") == 0)
 	{
-		Output->VideoSampleFormat = EMediaTextureSampleFormat::CharAYUV;
-		Output->VideoBufferStride = *Width * 4;
+		SinkFormat = EMediaTextureSinkFormat::CharAYUV;
+		Pitches[0] = *Width * 4;
 	}
 	else if (FCStringAnsi::Stricmp(Chroma, "RV32") == 0)
 	{
-		Output->VideoSampleFormat = EMediaTextureSampleFormat::CharBGRA;
-		Output->VideoBufferStride = *Width * 4;
+		SinkFormat = EMediaTextureSinkFormat::CharBGRA;
+		Pitches[0] = *Width * 4;
+	}
+	else if (FCStringAnsi::Stricmp(Chroma, "UYVY") == 0)
+	{
+		SinkFormat = EMediaTextureSinkFormat::CharUYVY;
+		Pitches[0] = *Width * 2;
 	}
 	else if ((FCStringAnsi::Stricmp(Chroma, "UYVY") == 0) ||
 		(FCStringAnsi::Stricmp(Chroma, "Y422") == 0) ||
 		(FCStringAnsi::Stricmp(Chroma, "UYNV") == 0) ||
 		(FCStringAnsi::Stricmp(Chroma, "HDYC") == 0))
 	{
-		Output->VideoSampleFormat = EMediaTextureSampleFormat::CharUYVY;
-		Output->VideoBufferStride = *Width * 2;
+		SinkFormat = EMediaTextureSinkFormat::CharUYVY;
+		Pitches[0] = *Width * 2;
 	}
 	else if ((FCStringAnsi::Stricmp(Chroma, "YUY2") == 0) ||
 		(FCStringAnsi::Stricmp(Chroma, "V422") == 0) ||
 		(FCStringAnsi::Stricmp(Chroma, "YUYV") == 0))
 	{
-		Output->VideoSampleFormat = EMediaTextureSampleFormat::CharYUY2;
-		Output->VideoBufferStride = *Width * 2;
+		SinkFormat = EMediaTextureSinkFormat::CharYUY2;
+		Pitches[0] = *Width * 2;
 	}
 	else if (FCStringAnsi::Stricmp(Chroma, "YVYU") == 0)
 	{
-		Output->VideoSampleFormat = EMediaTextureSampleFormat::CharYVYU;
-		Output->VideoBufferStride = *Width * 2;
+		SinkFormat = EMediaTextureSinkFormat::CharYVYU;
+		Pitches[0] = *Width * 2;
 	}
 	else
 	{
@@ -611,23 +531,30 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 		{
 			FMemory::Memcpy(Chroma, "YUY2", 4);
 
-			Output->VideoBufferDim = FIntPoint(Align(Output->VideoOutputDim.X, 16) / 2, Align(Output->VideoOutputDim.Y, 16));
-			Output->VideoSampleFormat = EMediaTextureSampleFormat::CharYUY2;
-			Output->VideoBufferStride = Output->VideoBufferDim.X * 4;
-			*Height = Output->VideoBufferDim.Y;
+			BufferDim = FIntPoint(Align(OutputDim.X, 16) / 2, Align(OutputDim.Y, 16));
+			SinkFormat = EMediaTextureSinkFormat::CharYUY2;
+			Pitches[0] = BufferDim.X * 4;
+			*Height = BufferDim.Y;
 		}
 		else
 		{
 			FMemory::Memcpy(Chroma, "RV32", 4);
 
-			Output->VideoBufferDim = Output->VideoOutputDim;
-			Output->VideoSampleFormat = EMediaTextureSampleFormat::CharBGRA;
-			Output->VideoBufferStride = Output->VideoBufferDim.X * 4;
+			BufferDim = OutputDim;
+			SinkFormat = EMediaTextureSinkFormat::CharBGRA;
+			Pitches[0] = BufferDim.X * 4;
 		}
 	}
 
-	Lines[0] = Output->VideoBufferDim.Y;
-	Pitches[0] = Output->VideoBufferStride;
+	Lines[0] = *Height;
+
+	// initialize sink
+	if (!VideoSink->InitializeTextureSink(OutputDim, BufferDim, SinkFormat, EMediaTextureSinkMode::Buffered))
+	{
+		return 0;
+	}
+
+	Output->VideoDimensions = OutputDim;
 
 	return 1;
 }
@@ -635,5 +562,34 @@ unsigned FVlcMediaOutput::StaticVideoSetupCallback(void** Opaque, char* Chroma, 
 
 void FVlcMediaOutput::StaticVideoUnlockCallback(void* Opaque, void* Picture, void* const* /*Planes*/)
 {
-	// do nothing
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoUnlockCallback"));
+
+	auto Output = (FVlcMediaOutput*)Opaque;
+
+	if (Output == nullptr)
+	{
+		return;
+	}
+
+	// update sink
+	FScopeLock Lock(&Output->CriticalSection);
+	IMediaTextureSink* VideoSink = Output->VideoSink;
+
+	if (VideoSink != nullptr)
+	{
+		if (Picture != nullptr)
+		{
+			VideoSink->UpdateTextureSinkBuffer((const uint8*)Picture);
+		}
+		else
+		{
+			VideoSink->ReleaseTextureSinkBuffer();
+		}
+	}
+
+	// free temporary buffer
+	if (Picture != nullptr)
+	{
+		FMemory::Free(Picture);
+	}
 }

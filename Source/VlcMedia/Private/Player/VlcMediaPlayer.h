@@ -3,14 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Containers/Queue.h"
 #include "IMediaControls.h"
 #include "IMediaPlayer.h"
-#include "IMediaTickable.h"
-
 #include "VlcMediaOutput.h"
 #include "VlcMediaSource.h"
 #include "VlcMediaTracks.h"
+#include "Containers/Queue.h"
 
 
 class IMediaOutput;
@@ -29,7 +27,6 @@ struct FLibvlcMediaPlayer;
 class FVlcMediaPlayer
 	: public IMediaControls
 	, public IMediaPlayer
-	, public IMediaTickable
 {
 public:
 
@@ -50,14 +47,15 @@ public:
 	virtual FTimespan GetDuration() const override;
 	virtual float GetRate() const override;
 	virtual EMediaState GetState() const override;
-	virtual TRangeSet<float> GetSupportedRates(EMediaRateThinning Thinning) const override;
+	virtual TRange<float> GetSupportedRates(EMediaPlaybackDirections Direction, bool Unthinned) const override;
 	virtual FTimespan GetTime() const override;
 	virtual bool IsLooping() const override;
 	virtual bool Seek(const FTimespan& Time) override;
 	virtual bool SetLooping(bool Looping) override;
 	virtual bool SetRate(float Rate) override;
-	virtual bool SupportsFeature(EMediaFeature Feature) const override;
-	virtual bool SupportsRate(float Rate, EMediaRateThinning Thinning) const override;
+	virtual bool SupportsRate(float Rate, bool Unthinned) const override;
+	virtual bool SupportsScrubbing() const override;
+	virtual bool SupportsSeeking() const override;
 
 public:
 
@@ -73,18 +71,14 @@ public:
 	virtual FString GetUrl() const override;
 	virtual bool Open(const FString& Url, const IMediaOptions& Options) override;
 	virtual bool Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl, const IMediaOptions& Options) override;
+	virtual void TickPlayer(float DeltaTime) override;
+	virtual void TickVideo(float DeltaTime) override;
 
 	DECLARE_DERIVED_EVENT(FVlcMediaPlayer, IMediaPlayer::FOnMediaEvent, FOnMediaEvent);
 	virtual FOnMediaEvent& OnMediaEvent() override
 	{
 		return MediaEvent;
 	}
-
-public:
-
-	//~ IMediaTickable interface
-
-	virtual void TickInput(FTimespan Timecode, FTimespan DeltaTime, bool Locked) override;
 
 protected:
 
@@ -102,20 +96,23 @@ private:
 
 private:
 
-	/** Current playback rate. */
-	float CurrentRate;
-
 	/** Current playback time (to work around VLC's broken time tracking). */
 	FTimespan CurrentTime;
 
 	/** Current difference between reported and interpolated time. */
 	FTimespan CurrentTimeDrift;
 
+	/** The desired playback rate. */
+	float DesiredRate;
+
 	/** Collection of received player events. */
 	TQueue<ELibvlcEventType, EQueueMode::Mpsc> Events;
 
 	/** Media information string. */
 	FString Info;
+
+	/** Platform time seconds at the last playback position change. */
+	double LastPlatformSeconds;
 
 	/** Holds an event delegate that is invoked when a media event occurred. */
 	FOnMediaEvent MediaEvent;

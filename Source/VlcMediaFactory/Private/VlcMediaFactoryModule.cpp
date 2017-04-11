@@ -87,7 +87,7 @@ public:
 		return true;
 	}
 
-	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer() override
+	virtual TSharedPtr<IMediaPlayer> CreatePlayer() override
 	{
 		auto VlcMediaModule = FModuleManager::LoadModulePtr<IVlcMediaModule>("VlcMedia");
 		return (VlcMediaModule != nullptr) ? VlcMediaModule->CreatePlayer() : nullptr;

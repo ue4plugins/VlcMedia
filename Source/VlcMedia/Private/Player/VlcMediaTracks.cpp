@@ -140,19 +140,15 @@ void FVlcMediaTracks::Shutdown()
 
 uint32 FVlcMediaTracks::GetAudioTrackChannels(int32 TrackIndex) const
 {
-	return 2; // @todo gmp: fix audio specs
+	// @todo gmp: fix audio specs
+	return 2;
 }
 
 
 uint32 FVlcMediaTracks::GetAudioTrackSampleRate(int32 TrackIndex) const
 {
-	return 44100; // @todo gmp: fix audio specs
-}
-
-
-bool FVlcMediaTracks::GetCacheState(EMediaTrackType TrackType, EMediaCacheState State, TRangeSet<FTimespan>& OutCachedTimes) const
-{
-	return false; // not supported
+	// @todo gmp: fix audio specs
+	return 44100;
 }
 
 
@@ -165,10 +161,10 @@ int32 FVlcMediaTracks::GetNumTracks(EMediaTrackType TrackType) const
 
 	case EMediaTrackType::Caption:
 		return CaptionTracks.Num();
-
+	
 	case EMediaTrackType::Video:
 		return VideoTracks.Num();
-
+	
 	default:
 		return 0;
 	}
@@ -266,6 +262,12 @@ FString FVlcMediaTracks::GetTrackName(EMediaTrackType TrackType, int32 TrackInde
 	}
 
 	return FString();
+}
+
+
+uint32 FVlcMediaTracks::GetVideoTrackBitRate(int32 TrackIndex) const
+{
+	return 0;
 }
 
 

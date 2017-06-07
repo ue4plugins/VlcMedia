@@ -3,6 +3,9 @@
 #include "IVlcMediaModule.h"
 #include "VlcMediaPrivate.h"
 
+#include "HAL/FileManager.h"
+#include "Misc/OutputDeviceFile.h"
+#include "Misc/Paths.h"
 #include "Modules/ModuleManager.h"
 #include "UObject/Class.h"
 #include "UObject/UObjectGlobals.h"
@@ -56,6 +59,13 @@ public:
 			return;
 		}
 
+#if UE_BUILD_DEBUG
+		// backup old log file
+		const FString LogFilePath = FPaths::Combine(FPaths::GameLogDir(), TEXT("vlc.log"));
+		FOutputDeviceFile::CreateBackupCopy(*LogFilePath);
+		IFileManager::Get().Delete(*LogFilePath);
+#endif
+
 		// create LibVLC instance
 		const ANSICHAR* Args[] =
 		{
@@ -69,6 +79,11 @@ public:
 			"--no-video-title-show",
 			"--text-renderer", "dummy",
 			"--vout", "vmem",
+
+#if UE_BUILD_DEBUG
+			"--file-logging",
+			TCHAR_TO_ANSI(*(FString(TEXT("--logfile=")) + FPaths::CreateTempFilename(*FPaths::GameLogDir(), TEXT("vlc"), TEXT(".log")))),
+#endif
 
 #if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)
 			"--verbose=2",

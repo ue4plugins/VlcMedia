@@ -66,20 +66,23 @@ public:
 			"--intf", "dummy",
 			"--no-disable-screensaver",
 			"--no-snapshot-preview",
-#if (UE_BUILD_SHIPPING || UE_BUILD_TEST)
-			"--no-stats",
-#endif
 			"--no-video-title-show",
-#if PLATFORM_LINUX
-			"--no-xlib",
-#endif
 			"--text-renderer", "dummy",
+			"--vout", "vmem",
+
 #if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)
-			"--verbose=0",
+			"--verbose=2",
 #else
 			"--quiet",
 #endif
-			"--vout", "vmem",
+
+#if (UE_BUILD_SHIPPING || UE_BUILD_TEST)
+			"--no-stats",
+#endif
+
+#if PLATFORM_LINUX
+			"--no-xlib",
+#endif
 		};
 
 		int Argc = sizeof(Args) / sizeof(*Args);

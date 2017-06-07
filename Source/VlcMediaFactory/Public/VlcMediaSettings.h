@@ -15,17 +15,14 @@
 UENUM()
 enum class EVlcMediaLogLevel : uint8
 {
-	/** Debug messages. */
-	Debug = 0,
-
-	/** Important informational messages. */
-	Notice = 2,
+	/** Error messages. */
+	Error = 0,
 
 	/** Warnings and potential errors. */
-	Warning = 3,
+	Warning = 1,
 
-	/** Error messages. */
-	Error = 4
+	/** Debug messages. */
+	Debug = 2,
 };
 
 

@@ -79,13 +79,13 @@ namespace UnrealBuildTool.Rules
 			// add VLC plug-ins
 			string PluginDirectory = Path.Combine(VlcDirectory, "plugins");
 
-			if (Directory.Exists(PluginDirectory))
-			{
-				foreach (string Plugin in Directory.EnumerateFiles(PluginDirectory))
-				{
-					RuntimeDependencies.Add(new RuntimeDependency(Plugin));
-				}
-			}
-		}
+            if (Directory.Exists(PluginDirectory))
+            {
+                foreach (string Plugin in Directory.EnumerateFiles(PluginDirectory, "*.*", SearchOption.AllDirectories))
+                {
+                    RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(PluginDirectory, Plugin)));
+                }
+            }
+        }
 	}
 }

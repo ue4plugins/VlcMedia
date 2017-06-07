@@ -82,7 +82,7 @@ public:
 
 #if UE_BUILD_DEBUG
 			"--file-logging",
-			TCHAR_TO_ANSI(*(FString(TEXT("--logfile=")) + FPaths::CreateTempFilename(*FPaths::GameLogDir(), TEXT("vlc"), TEXT(".log")))),
+			TCHAR_TO_ANSI(*(FString(TEXT("--logfile=")) + LogFilePath)),
 #endif
 
 #if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)

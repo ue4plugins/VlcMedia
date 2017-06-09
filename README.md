@@ -45,9 +45,9 @@ A relatively recent version of libvlc is required. The latest stable release
 (currently 2.2.1) is not sufficient.
 
 For Mac and Windows, the following nightly builds are currently included:
-* Mac: vlc-3.0.0-20170411-0445-git.dmg
-* Win32: vlc-3.0.0-20170411-0908-git-win32.zip
-* Win64: vlc-3.0.0-20170411-1225-git-win64.zip
+* Mac: vlc-3.0.0-20170608-0445-git.dmg
+* Win32: vlc-3.0.0-20170608-0258-git-win32.zip
+* Win64: vlc-3.0.0-20170608-0453-git-win64.zip
 
 Nightly builds can be downloaded from the VideoLAN web site (see below).
 
@@ -62,6 +62,14 @@ that users don't have to install it themselves. We will eventually include those
 binaries in this repository, although it is not clear what distros should be
 supported and where the builds are coming from. A better workflow needs to be
 established for this.
+
+Once the VLC libraries are installed on your machine, you need to add their path
+to your LD_LIBRARY_PATH](https://github.com/ue4plugins/VlcMedia/issues/17)
+environment variable. Copying the libraries and VLC plug-in's into VlcMedia's
+*/ThirdPart/vlc/Linux* directory is currently not supported out of the box as
+the [Build.cs](https://github.com/ue4plugins/VlcMedia/blob/master/Source/VlcMedia/VlcMedia.Build.cs#L52)
+file expects these files to be under the correct sub-directory for the target
+architecture.
 
 ### Mac, Windows
 

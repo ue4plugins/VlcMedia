@@ -15,7 +15,7 @@ that are not yet available in the UE4 Master branch.
 
 ## Supported Platforms
 
-This plug-in was last built against **Unreal Engine 4.16** and tested
+This plug-in was last built against **Unreal Engine 4.17** and tested
 against the following platforms:
 
 - ~~Linux~~

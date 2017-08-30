@@ -1,14 +1,16 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
-#include "CoreMinimal.h"
+#include "Containers/Array.h"
+#include "Containers/UnrealString.h"
 #include "IMediaPlayerFactory.h"
 #include "IMediaModule.h"
 #include "IMediaOptions.h"
-#include "IVlcMediaModule.h"
+#include "Internationalization/Internationalization.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleInterface.h"
 #include "Modules/ModuleManager.h"
 #include "UObject/Class.h"
+#include "UObject/NameTypes.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/WeakObjectPtr.h"
 
@@ -17,6 +19,8 @@
 	#include "ISettingsSection.h"
 	#include "VlcMediaSettings.h"
 #endif
+
+#include "../../VlcMedia/Public/IVlcMediaModule.h"
 
 
 #define LOCTEXT_NAMESPACE "FVlcMediaFactoryModule"
@@ -33,7 +37,7 @@ public:
 
 	//~ IMediaPlayerFactory interface
 
-	virtual bool CanPlayUrl(const FString& Url, const IMediaOptions& Options, TArray<FText>* OutWarnings, TArray<FText>* OutErrors) const override
+	virtual bool CanPlayUrl(const FString& Url, const IMediaOptions* Options, TArray<FText>* OutWarnings, TArray<FText>* OutErrors) const override
 	{
 		FString Scheme;
 		FString Location;
@@ -76,9 +80,9 @@ public:
 		}
 
 		// check options
-		if (OutWarnings != nullptr)
+		if ((OutWarnings != nullptr) && (Options != nullptr))
 		{
-			if (Options.GetMediaOption("PrecacheFile", false) && (Scheme != TEXT("file")))
+			if (Options->GetMediaOption("PrecacheFile", false) && (Scheme != TEXT("file")))
 			{
 				OutWarnings->Add(LOCTEXT("PrecacheFileWarning", "Precaching is supported for local files only"));
 			}
@@ -87,10 +91,10 @@ public:
 		return true;
 	}
 
-	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer() override
+	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer(IMediaEventSink& EventSink) override
 	{
 		auto VlcMediaModule = FModuleManager::LoadModulePtr<IVlcMediaModule>("VlcMedia");
-		return (VlcMediaModule != nullptr) ? VlcMediaModule->CreatePlayer() : nullptr;
+		return (VlcMediaModule != nullptr) ? VlcMediaModule->CreatePlayer(EventSink) : nullptr;
 	}
 
 	virtual FText GetDisplayName() const override
@@ -107,6 +111,17 @@ public:
 	virtual const TArray<FString>& GetSupportedPlatforms() const override
 	{
 		return SupportedPlatforms;
+	}
+
+	virtual bool SupportsFeature(EMediaFeature Feature) const override
+	{
+		return ((Feature == EMediaFeature::AudioSamples) ||
+				(Feature == EMediaFeature::AudioTracks) ||
+				(Feature == EMediaFeature::CaptionTracks) ||
+				(Feature == EMediaFeature::Video360) ||
+				(Feature == EMediaFeature::VideoSamples) ||
+				(Feature == EMediaFeature::VideoTracks));
+
 	}
 
 public:

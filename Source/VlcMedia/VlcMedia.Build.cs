@@ -9,30 +9,28 @@ namespace UnrealBuildTool.Rules
 	public class VlcMedia : ModuleRules
 	{
 		public VlcMedia(ReadOnlyTargetRules Target) : base(Target)
-        {
-            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		{
+			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-            DynamicallyLoadedModuleNames.AddRange(
+			DynamicallyLoadedModuleNames.AddRange(
 				new string[] {
 					"Media",
-				}
-			);
+				});
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[] {
 					"Core",
 					"CoreUObject",
+					"MediaUtils",
 					"Projects",
 					"RenderCore",
 					"VlcMediaFactory",
-				}
-			);
+				});
 
 			PrivateIncludePathModuleNames.AddRange(
 				new string[] {
 					"Media",
-				}
-			);
+				});
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
@@ -40,8 +38,7 @@ namespace UnrealBuildTool.Rules
 					"VlcMedia/Private/Player",
 					"VlcMedia/Private/Shared",
 					"VlcMedia/Private/Vlc",
-				}
-			);
+				});
 
 			// add VLC libraries
 			string BaseDirectory = Path.GetFullPath(Path.Combine(ModuleDirectory, "..", ".."));
@@ -79,13 +76,13 @@ namespace UnrealBuildTool.Rules
 			// add VLC plug-ins
 			string PluginDirectory = Path.Combine(VlcDirectory, "plugins");
 
-            if (Directory.Exists(PluginDirectory))
-            {
-                foreach (string Plugin in Directory.EnumerateFiles(PluginDirectory, "*.*", SearchOption.AllDirectories))
-                {
-                    RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(PluginDirectory, Plugin)));
-                }
-            }
-        }
+			if (Directory.Exists(PluginDirectory))
+			{
+				foreach (string Plugin in Directory.EnumerateFiles(PluginDirectory, "*.*", SearchOption.AllDirectories))
+				{
+					RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(PluginDirectory, Plugin)));
+				}
+			}
+		}
 	}
 }

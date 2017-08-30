@@ -10,6 +10,7 @@
 #include "UObject/Class.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/WeakObjectPtr.h"
+
 #include "Vlc.h"
 #include "VlcMediaPlayer.h"
 
@@ -36,14 +37,14 @@ public:
 
 	//~ IVlcMediaModule interface
 
-	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer() override
+	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer(IMediaEventSink& EventSink) override
 	{
 		if (!Initialized)
 		{
 			return nullptr;
 		}
 
-		return MakeShareable(new FVlcMediaPlayer(VlcInstance));
+		return MakeShared<FVlcMediaPlayer, ESPMode::ThreadSafe>(EventSink, VlcInstance);
 	}
 
 public:
@@ -55,9 +56,15 @@ public:
 		// initialize LibVLC
 		if (!FVlc::Initialize())
 		{
-			UE_LOG(LogVlcMedia, Error, TEXT("Failed to initialize libvlc"));
+			UE_LOG(LogVlcMedia, Error, TEXT("Failed to initialize LibVLC"));
 			return;
 		}
+
+		UE_LOG(LogVlcMedia, Log, TEXT("Initialized LibVLC %s (%s - %s)"),
+			ANSI_TO_TCHAR(FVlc::GetVersion()),
+			ANSI_TO_TCHAR(FVlc::GetChangeset()),
+			ANSI_TO_TCHAR(FVlc::GetCompiler())
+		);
 
 #if UE_BUILD_DEBUG
 		// backup old log file

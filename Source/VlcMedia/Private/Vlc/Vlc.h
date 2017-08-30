@@ -36,6 +36,11 @@ public:
 	static FLibvlcLogSetProc LogSet;
 	static FLibvlcLogUnsetProc LogUnset;
 
+	static FLibvlcFreeProc Free;
+	static FLibvlcGetChangesetProc GetChangeset;
+	static FLibvlcGetCompilerProc GetCompiler;
+	static FLibvlcGetVersionProc GetVersion;
+
 	static FLibvlcClockProc Clock;
 
 	static FLibvlcMediaEventManagerProc MediaEventManager;
@@ -76,23 +81,25 @@ public:
 	static FLibvlcMediaPlayerStopProc MediaPlayerStop;
 	static FLibvlcMediaPlayerWillPlayProc MediaPlayerWillPlay;
 
+	static FLibvlcAudioGetTrackProc AudioGetTrack;
 	static FLibvlcAudioSetCallbacksProc AudioSetCallbacks;
 	static FLibvlcAudioSetFormatProc AudioSetFormat;
 	static FLibvlcAudioSetFormatCallbacksProc AudioSetFormatCallbacks;
-	static FLibvlcAudioGetTrackProc AudioGetTrack;
 	static FLibvlcAudioSetTrackProc AudioSetTrack;
 
 	static FLibvlcVideoGetHeightProc VideoGetHeight;
-	static FLibvlcVideoGetWidthProc VideoGetWidth;
-	static FLibvlcVideoSetCallbacksProc VideoSetCallbacks;
-	static FLibvlcVideoSetFormatProc VideoSetFormat;
-	static FLibvlcVideoSetFormatCallbacksProc VideoSetFormatCallbacks;
 	static FLibvlcVideoGetSizeProc VideoGetSize;
 	static FLibvlcVideoGetSpuProc VideoGetSpu;
 	static FLibvlcVideoGetSpuCountProc VideoGetSpuCount;
-	static FLibvlcVideoSetSpuProc VideoSetSpu;
 	static FLibvlcVideoGetTrackProc VideoGetTrack;
+	static FLibvlcVideoGetWidthProc VideoGetWidth;
+	static FLibvlcVideoNewViewpointProc VideoNewViewpoint;
+	static FLibvlcVideoSetCallbacksProc VideoSetCallbacks;
+	static FLibvlcVideoSetFormatProc VideoSetFormat;
+	static FLibvlcVideoSetFormatCallbacksProc VideoSetFormatCallbacks;
+	static FLibvlcVideoSetSpuProc VideoSetSpu;
 	static FLibvlcVideoSetTrackProc VideoSetTrack;
+	static FLibvlcVideoUpdateViewpointProc VideoUpdateViewpoint;
 
 	static FLibvlcAudioGetTrackDescriptionProc AudioGetTrackDescription;
 	static FLibvlcVideoGetSpuDescriptionProc VideoGetSpuDescription;
@@ -100,6 +107,13 @@ public:
 	static FLibvlcTrackDescriptionListReleaseProc TrackDescriptionListRelease;
 
 	static FLibvlcFourccGetChromaDescriptionProc FourccGetChromaDescription;
+
+public:
+
+	static int64 Delay(int64 Timestamp)
+	{
+		return Timestamp - Clock();
+	}
 
 protected:
 

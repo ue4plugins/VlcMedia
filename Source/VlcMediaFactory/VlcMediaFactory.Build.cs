@@ -5,42 +5,37 @@ namespace UnrealBuildTool.Rules
 	public class VlcMediaFactory : ModuleRules
 	{
 		public VlcMediaFactory(ReadOnlyTargetRules Target) : base(Target)
-        {
-            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		{
+			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-            DynamicallyLoadedModuleNames.AddRange(
+			DynamicallyLoadedModuleNames.AddRange(
 				new string[] {
 					"Media",
-				}
-			);
+				});
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[] {
 					"MediaAssets",
-				}
-			);
+				});
 
 			PrivateIncludePathModuleNames.AddRange(
 				new string[] {
 					"Media",
 					"VlcMedia",
-				}
-			);
+				});
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					"VlcMediaFactory/Private",
-				}
-			);
+				});
 
-            PublicDependencyModuleNames.AddRange(
-                new string[] {
-                    "Core",
-                    "CoreUObject",
-                }
-            );
+			PublicDependencyModuleNames.AddRange(
+				new string[] {
+					"Core",
+					"CoreUObject",
+				});
 
-            if (Target.Type == TargetRules.TargetType.Editor)
+			if (Target.Type == TargetRules.TargetType.Editor)
 			{
 				DynamicallyLoadedModuleNames.Add("Settings");
 				PrivateIncludePathModuleNames.Add("Settings");

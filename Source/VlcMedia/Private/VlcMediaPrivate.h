@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "Logging/LogMacros.h"
 
 #include "../../VlcMediaFactory/Public/VlcMediaSettings.h"
 

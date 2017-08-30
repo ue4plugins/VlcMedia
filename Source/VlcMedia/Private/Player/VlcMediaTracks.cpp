@@ -138,17 +138,20 @@ void FVlcMediaTracks::Shutdown()
 /* IMediaTracks interface
 *****************************************************************************/
 
-uint32 FVlcMediaTracks::GetAudioTrackChannels(int32 TrackIndex) const
+bool FVlcMediaTracks::GetAudioTrackFormat(int32 TrackIndex, int32 FormatIndex, FMediaAudioTrackFormat& OutFormat) const
 {
-	// @todo gmp: fix audio specs
-	return 2;
-}
+	if (!AudioTracks.IsValidIndex(TrackIndex) || (FormatIndex != 0))
+	{
+		return false;
+	}
 
+	// @todo gmp: fix audio format
+	OutFormat.BitsPerSample = 0;
+	OutFormat.NumChannels = 2;
+	OutFormat.SampleRate = 44100;
+	OutFormat.TypeName = TEXT("PCM");
 
-uint32 FVlcMediaTracks::GetAudioTrackSampleRate(int32 TrackIndex) const
-{
-	// @todo gmp: fix audio specs
-	return 44100;
+	return true;
 }
 
 
@@ -161,13 +164,19 @@ int32 FVlcMediaTracks::GetNumTracks(EMediaTrackType TrackType) const
 
 	case EMediaTrackType::Caption:
 		return CaptionTracks.Num();
-	
+
 	case EMediaTrackType::Video:
 		return VideoTracks.Num();
-	
+
 	default:
 		return 0;
 	}
+}
+
+
+int32 FVlcMediaTracks::GetNumTrackFormats(EMediaTrackType TrackType, int32 TrackIndex) const
+{
+	return ((TrackIndex >= 0) && (TrackIndex < GetNumTracks(TrackType))) ? 1 : 0;
 }
 
 
@@ -227,6 +236,12 @@ FText FVlcMediaTracks::GetTrackDisplayName(EMediaTrackType TrackType, int32 Trac
 }
 
 
+int32 FVlcMediaTracks::GetTrackFormat(EMediaTrackType TrackType, int32 TrackIndex) const
+{
+	return (GetSelectedTrack(TrackType) != INDEX_NONE) ? 0 : INDEX_NONE;
+}
+
+
 FString FVlcMediaTracks::GetTrackLanguage(EMediaTrackType TrackType, int32 TrackIndex) const
 {
 	return TEXT("und"); // libvlc currently doesn't provide language codes
@@ -265,23 +280,20 @@ FString FVlcMediaTracks::GetTrackName(EMediaTrackType TrackType, int32 TrackInde
 }
 
 
-uint32 FVlcMediaTracks::GetVideoTrackBitRate(int32 TrackIndex) const
+bool FVlcMediaTracks::GetVideoTrackFormat(int32 TrackIndex, int32 FormatIndex, FMediaVideoTrackFormat& OutFormat) const
 {
-	return 0;
-}
+	if (!VideoTracks.IsValidIndex(TrackIndex) || (FormatIndex != 0) || (Player == nullptr))
+	{
+		return false;
+	}
 
+	// @todo gmp: fix video specs
+	OutFormat.Dim = FIntPoint(FVlc::VideoGetWidth(Player), FVlc::VideoGetHeight(Player));
+	OutFormat.FrameRate = FVlc::MediaPlayerGetFps(Player);
+	OutFormat.FrameRates = TRange<float>(OutFormat.FrameRate);
+	OutFormat.TypeName = TEXT("Default");
 
-FIntPoint FVlcMediaTracks::GetVideoTrackDimensions(int32 TrackIndex) const
-{
-	return (Player != nullptr)
-		? FIntPoint(FVlc::VideoGetWidth(Player), FVlc::VideoGetHeight(Player))
-		: FIntPoint(0, 0);
-}
-
-
-float FVlcMediaTracks::GetVideoTrackFrameRate(int32 TrackIndex) const
-{
-	return (Player != nullptr) ? FVlc::MediaPlayerGetFps(Player) : 0;
+	return true;
 }
 
 
@@ -302,6 +314,30 @@ bool FVlcMediaTracks::SelectTrack(EMediaTrackType TrackType, int32 TrackIndex)
 
 	case EMediaTrackType::Video:
 		return (FVlc::VideoSetTrack(Player, TrackIndex) == 0);
+
+	default:
+		return false;
+	}
+}
+
+
+bool FVlcMediaTracks::SetTrackFormat(EMediaTrackType TrackType, int32 TrackIndex, int32 FormatIndex)
+{
+	if ((Player == nullptr) || (FormatIndex != 0))
+	{
+		return false;
+	}
+
+	switch (TrackType)
+	{
+	case EMediaTrackType::Audio:
+		return AudioTracks.IsValidIndex(TrackIndex);
+
+	case EMediaTrackType::Caption:
+		return CaptionTracks.IsValidIndex(TrackIndex);
+
+	case EMediaTrackType::Video:
+		return VideoTracks.IsValidIndex(TrackIndex);
 
 	default:
 		return false;

@@ -27,6 +27,12 @@ typedef void (*FLibvlcLogGetContextProc)(FLibvlcLog* /*Context*/, const char** /
 typedef void (*FLibvlcLogSetProc)(FLibvlcInstance* /*Instance*/, FLibvlcLogCb /*Callback*/, void* /*Data*/);
 typedef void (*FLibvlcLogUnsetProc)(FLibvlcInstance* /*Instance*/);
 
+// misc
+typedef void (*FLibvlcFreeProc)(void* /*Pointer*/);
+typedef char* (*FLibvlcGetChangesetProc)();
+typedef char* (*FLibvlcGetCompilerProc)();
+typedef char* (*FLibvlcGetVersionProc)();
+
 // time
 typedef int64 (*FLibvlcClockProc)();
 
@@ -148,19 +154,21 @@ typedef void (*FLibvlcVideoSetFormatCallbacksProc)(
 );
 
 typedef int32 (*FLibvlcVideoGetHeightProc)(FLibvlcMediaPlayer* /*Player*/);
-typedef int32 (*FLibvlcVideoGetWidthProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoGetSizeProc)(FLibvlcMediaPlayer* /*Player*/, uint32 /*VideoNum*/, uint32* /*Width*/, uint32* /*Height*/);
 typedef int32 (*FLibvlcVideoGetSpuProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoGetSpuCountProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef int32 (*FLibvlcVideoGetTrackProc)(FLibvlcMediaPlayer* /*Player*/);
+typedef int32(*FLibvlcVideoGetWidthProc)(FLibvlcMediaPlayer* /*Player*/);
+typedef FLibvlcVideoViewpoint* (*FLibvlcVideoNewViewpointProc)();
 typedef int32 (*FLibvlcVideoSetSpuProc)(FLibvlcMediaPlayer* /*Player*/, int32 /*SpuId*/);
 typedef int32 (*FLibvlcVideoSetTrackProc)(FLibvlcMediaPlayer* /*Player*/, int32 /*TrackId*/);
+typedef int32 (*FLibvlcVideoUpdateViewpointProc)(FLibvlcMediaPlayer* /*Player*/, FLibvlcVideoViewpoint* /*Viewpoint*/, bool /*Absolute*/);
 
 // tracks
 typedef FLibvlcTrackDescription* (*FLibvlcAudioGetTrackDescriptionProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef FLibvlcTrackDescription* (*FLibvlcVideoGetSpuDescriptionProc)(FLibvlcMediaPlayer* /*Player*/);
 typedef FLibvlcTrackDescription* (*FLibvlcVideoGetTrackDescriptionProc)(FLibvlcMediaPlayer* /*Player*/);
-typedef void (*FLibvlcTrackDescriptionListReleaseProc)(FLibvlcTrackDescription* /*Desription*/);
+typedef void(*FLibvlcTrackDescriptionListReleaseProc)(FLibvlcTrackDescription* /*Desription*/);
 
-// fourcc
+// FourCC
 typedef FLibvlcChromaDescription* (*FLibvlcFourccGetChromaDescriptionProc)(FLibvlcFourcc /*Fourcc*/);

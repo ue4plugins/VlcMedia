@@ -157,7 +157,7 @@ typedef uint32 FLibvlcFourcc;
 
 
 /**
- * Structure for chroma format descriptions.
+ * Structure for chroma format descriptions (libvlc_chroma_description_t).
  */
 struct FLibvlcChromaDescription
 {
@@ -184,7 +184,7 @@ struct FLibvlcChromaDescription
 
 
 /**
- * Structure for VLC events.
+ * Structure for VLC events (libvlc_event_t).
  */
 struct FLibvlcEvent
 {
@@ -333,7 +333,7 @@ struct FLibvlcEvent
 
 
 /**
- * Structure for VLC media statistics.
+ * Structure for VLC media statistics (libvlc_media_stats).
  */
 struct FLibvlcMediaStats
 {
@@ -356,7 +356,7 @@ struct FLibvlcMediaStats
 
 
 /**
- * Structure for VLC media tracks.
+ * Structure for VLC media tracks (libvlc_media_track).
  */
 struct FLibvlcMediaTrack
 {
@@ -370,11 +370,23 @@ struct FLibvlcMediaTrack
 
 
 /**
- * Structure for VLC media track descriptions.
+ * Structure for VLC media track descriptions (libvlc_track_t).
  */
 struct FLibvlcTrackDescription
 {
 	int32 Id;
 	ANSICHAR* Name;
 	FLibvlcTrackDescription* Next;
+};
+
+
+/**
+ * Structure for VLC video viewpoints (libvlc_video_viewpoint_t).
+ */
+struct FLibvlcVideoViewpoint
+{
+	float Yaw;
+	float Pitch;
+	float Roll;
+	float FieldOfView;
 };

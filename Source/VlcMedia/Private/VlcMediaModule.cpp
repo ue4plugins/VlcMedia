@@ -68,7 +68,7 @@ public:
 
 #if UE_BUILD_DEBUG
 		// backup old log file
-		const FString LogFilePath = FPaths::Combine(FPaths::GameLogDir(), TEXT("vlc.log"));
+		const FString LogFilePath = FPaths::Combine(FPaths::ProjectLogDir(), TEXT("vlc.log"));
 		FOutputDeviceFile::CreateBackupCopy(*LogFilePath);
 		IFileManager::Get().Delete(*LogFilePath);
 #endif

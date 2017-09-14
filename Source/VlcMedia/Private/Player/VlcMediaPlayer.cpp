@@ -268,7 +268,7 @@ FString FVlcMediaPlayer::GetInfo() const
 }
 
 
-FName FVlcMediaPlayer::GetName() const
+FName FVlcMediaPlayer::GetPlayerName() const
 {
 	static FName PlayerName(TEXT("VlcMedia"));
 	return PlayerName;
@@ -415,7 +415,7 @@ bool FVlcMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Arch
 }
 
 
-void FVlcMediaPlayer::TickInput(FTimespan DeltaTime)
+void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 {
 	if (Player == nullptr)
 	{

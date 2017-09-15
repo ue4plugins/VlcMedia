@@ -15,7 +15,7 @@ that are not yet available in the UE4 Master branch.
 
 ## Supported Platforms
 
-This plug-in was last built against **Unreal Engine 4.17** and tested
+This plug-in was last built against **Unreal Engine 4.18** and tested
 against the following platforms:
 
 - ~~Linux~~
@@ -45,9 +45,9 @@ A relatively recent version of libvlc is required. The latest stable release
 (currently 2.2.1) is not sufficient.
 
 For Mac and Windows, the following nightly builds are currently included:
-* Mac: vlc-3.0.0-20170608-0445-git.dmg
-* Win32: vlc-3.0.0-20170608-0258-git-win32.zip
-* Win64: vlc-3.0.0-20170608-0453-git-win64.zip
+* Mac: vlc-3.0.0-20170914-0450-git.dmg
+* Win32: vlc-3.0.0-20170914-0251-git-win32.zip
+* Win64: vlc-3.0.0-20170914-0457-git-win64.zip
 
 Nightly builds can be downloaded from the VideoLAN web site (see below).
 

@@ -27,6 +27,9 @@ Core:
  * EPG reworked: table and single event updates, now using network time
  * Refactored and fixed subtitles es selection. Demuxers can now override
    es category single only or multiple es behavior
+ * Support for 360 video and audio
+ * Support for ambisonic audio and > 8 channels
+ * Support subtitles size live changing
 
 Access:
  * New NFS access module using libnfs
@@ -56,6 +59,7 @@ Access:
  * New SAT>IP access module, to receive DVB-S via IP networks
  * Improvements on DVB scanning
  * BluRay module can open ISO over network and has full BD-J support
+ * Support for DVD ISO over network
 
 Decoder:
  * OMX GPU-zerocopy support for decoding and display on Android using OpenMax IL
@@ -65,8 +69,10 @@ Decoder:
  * Support for experimental AV1 video
  * Important improvements for the MMAL decoder and output for rPI and rPI2
  * Support HEVC hardware decoding on Windows, using DxVA2 and D3D11
- * Support hardware decoding using Direct3D11, including GPU-zerocopy mode
- * DxVA2 GPU-zerocopy for hardware decoding and displaying on Windows
+ * Support hardware decoding using Direct3D11, including GPU-zerocopy mode,
+   and hardware filtering, for deinterlace and adjust
+ * DxVA2 GPU-zerocopy for hardware decoding and displaying on Windows,
+   and support for hardware filtering, for deinterlace and adjust
  * Support HEVC hardware decoding using OMX and MediaCodec (Android)
  * Use MediaCodec via NDK native API after Android Lollipop
  * Support MPEG-2, VC1/WMV3 on Android using MediaCodec
@@ -86,11 +92,12 @@ Decoder:
  * H264 packetizer can now generate timestamps
  * Packetizers have support for captions in SEI
  * DTS packetizer handle DTS extensions (like DTS-HD): decoders like avcodec
- * can now decode up to 8 channels
+   can now decode up to 8 channels
  * JPEG images correctly oriented using embedded orientation tag, if present
  * Support VPX high bit depth support
  * Extend MicroDVD support with color, fontname, size, position extensions
  * BluRay text subtitles are now decoded
+ * Improve Closed Captions detection
 
 Demuxers:
  * Support HD-DVD .evo (H.264, VC-1, MPEG-2, PCM, AC-3, E-AC3, MLP, DTS)
@@ -122,6 +129,7 @@ Demuxers:
  * Support multi-channel WAV without channel-maps
  * Rewrite MKV seeking
  * Support for TTML and WebVTT in ISOBMF/MP4 and DASH
+ * Support for Scenarist Closed Caption
  * Fix Quicktime Mp4 inside MKV and unpacketized VC1
  * Support for isofLaC
  * Improved fLaC seeking
@@ -138,6 +146,7 @@ Stream filter:
 
 Demux filter:
  * Added a demuxer filter chain to filter or intercept control commands and demuxing
+ * Added a demuxer filter to block seeking (--demux-filter noseek)
 
 Audio output:
  * Complete rewrite of the AudioTrack Android module, it is now the default
@@ -146,11 +155,16 @@ Audio output:
  * Added Tizen audio module
  * HDMI/SPDIF pass-through support for WASAPI (AC3/DTS/DTSHD/EAC3/TRUEHD)
  * Support EAC3 and TRUEHD pass-through for PulseAudio
+ * Support Ambisonics audio with viewpoint changes
 
 Audio filters:
  * Add SoX Resampler library audio filter module (converter and resampler)
  * a52tospdif and dtstospdif audio converters are merged into tospdif,
    this new converter can convert AC3, DTS, EAC3 and TRUEHD to a IEC61937 frame
+ * Added the Spatialaudio module with 2 submodules: one Ambisonics audio
+ * renderer and one Binauralizer audio filter
+ * Add Headphones option in Stereo Mode: use the spatialaudio module for
+ * headphones effects
 
 Video ouput:
  * Linux/BSD default video output is now OpenGL, instead of Xvideo
@@ -166,6 +180,7 @@ Video ouput:
  * New OpenGL provider for Windows
  * Drop OpenGL 1.x and OpenGL ES 1 support
  * Direct rendering with OpenGL (starting OpenGL 4.4)
+ * Direct rendering with VA-API via EGL/OpenGL
 
 Text renderer:
  * CTL support through Harfbuzz in the Freetype module
@@ -176,6 +191,8 @@ Video filter:
  * New video filter to convert between fps rates
  * Added 9-bit and 10-bit support to image adjust filter
  * New edge detection filter uses the Sobel operator to detect edges
+ * Hardware accelerated deinterlacing/adjust/sharpen/chroma with VA-API
+ * Hardware accelerated adjust/invert/posterize/sepia/sharpen with CoreImage
 
 Stream Output:
  * Chromecast output module
@@ -249,6 +266,7 @@ libVLC:
  * Add libvlc_media_player_add_slave to replace libvlc_video_set_subtitle_file,
    working with MRL and supporting also audio slaves
  * Add vlc_epg_event_(New|Delete|Duplicate), vlc_epg_AddEvent, vlc_epg_Duplicate
+   and removes vlc_epg_Merge
 
 Logging
  * Support for the SystemD Journal
@@ -287,6 +305,9 @@ Removed modules
  * Rar access and stream filter: use libarchive
  * VDA decoder: use VT
  * Audioqueue: use audiounit
+ * SDL video output module
+ * DirectFB video output module
+
 
 Changes between 2.2.5 and 2.2.5.1:
 --------------------------------

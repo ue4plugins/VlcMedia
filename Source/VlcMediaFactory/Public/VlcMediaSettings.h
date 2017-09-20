@@ -42,6 +42,24 @@ public:
 
 public:
 
+	/** Caching duration for optical media (default = 300 ms). */
+	UPROPERTY(config, EditAnywhere, Category=Caching)
+	FTimespan DiscCaching;
+
+	/** Caching duration for local files (default = 300 ms). */
+	UPROPERTY(config, EditAnywhere, Category=Caching)
+	FTimespan FileCaching;
+
+	/** Caching duration for cameras and microphones (default = 300 ms). */
+	UPROPERTY(config, EditAnywhere, Category=Caching)
+	FTimespan LiveCaching;
+
+	/** Caching duration for network resources (default = 1000 ms). */
+	UPROPERTY(config, EditAnywhere, Category=Caching)
+	FTimespan NetworkCaching;
+
+public:
+
 	/**
 	 * Log level for LibVLC log messages to be forwarded to UE4 log file (default = Warning).
 	 *

@@ -73,20 +73,21 @@ public:
 		IFileManager::Get().Delete(*LogFilePath);
 #endif
 
+		const auto Settings = GetDefault<UVlcMediaSettings>();
+
 		// create LibVLC instance
 		const ANSICHAR* Args[] =
 		{
-			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
-			"--aout", "amem",
-			"--drop-late-frames",
-			"--ignore-config",
-			"--intf", "dummy",
-			"--no-disable-screensaver",
-			"--no-snapshot-preview",
-			"--no-video-title-show",
-			"--text-renderer", "dummy",
-			"--vout", "vmem",
+			// caching
+			TCHAR_TO_ANSI(*(FString::Printf(TEXT("--disc-caching=%i"), (int32)Settings->DiscCaching.GetTotalMilliseconds()))),
+			TCHAR_TO_ANSI(*(FString::Printf(TEXT("--file-caching=%i"), (int32)Settings->FileCaching.GetTotalMilliseconds()))),
+			TCHAR_TO_ANSI(*(FString::Printf(TEXT("--live-caching=%i"), (int32)Settings->LiveCaching.GetTotalMilliseconds()))),
+			TCHAR_TO_ANSI(*(FString::Printf(TEXT("--network-caching=%i"), (int32)Settings->NetworkCaching.GetTotalMilliseconds()))),
 
+			// config
+			"--ignore-config",
+
+			// logging
 #if UE_BUILD_DEBUG
 			"--file-logging",
 			TCHAR_TO_ANSI(*(FString(TEXT("--logfile=")) + LogFilePath)),
@@ -97,6 +98,23 @@ public:
 #else
 			"--quiet",
 #endif
+
+			// output
+			"--aout", "amem",
+			"--intf", "dummy",
+			"--text-renderer", "dummy",
+			"--vout", "vmem",
+
+			// plugins
+			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
+
+			// performance
+			"--drop-late-frames",
+
+			// undesired features
+			"--no-disable-screensaver",
+			"--no-snapshot-preview",
+			"--no-video-title-show",
 
 #if (UE_BUILD_SHIPPING || UE_BUILD_TEST)
 			"--no-stats",

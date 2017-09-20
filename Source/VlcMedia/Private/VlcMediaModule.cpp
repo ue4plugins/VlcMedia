@@ -113,6 +113,7 @@ public:
 
 			// undesired features
 			"--no-disable-screensaver",
+			"--no-plugins-cache",
 			"--no-snapshot-preview",
 			"--no-video-title-show",
 

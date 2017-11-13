@@ -178,8 +178,8 @@ public:
 		SupportedFileExtensions.Add(TEXT("m4a"));
 		SupportedFileExtensions.Add(TEXT("m4b"));
 		SupportedFileExtensions.Add(TEXT("m4p"));
-		SupportedFileExtensions.Add(TEXT("m5p"));
 		SupportedFileExtensions.Add(TEXT("m4v"));
+		SupportedFileExtensions.Add(TEXT("m5p"));
 		SupportedFileExtensions.Add(TEXT("mid"));
 		SupportedFileExtensions.Add(TEXT("mka"));
 		SupportedFileExtensions.Add(TEXT("mkv"));
@@ -209,8 +209,8 @@ public:
 		SupportedFileExtensions.Add(TEXT("mxg"));
 		SupportedFileExtensions.Add(TEXT("nsc"));
 		SupportedFileExtensions.Add(TEXT("nsv"));
-		SupportedFileExtensions.Add(TEXT("nuv"));
 		SupportedFileExtensions.Add(TEXT("nut"));
+		SupportedFileExtensions.Add(TEXT("nuv"));
 		SupportedFileExtensions.Add(TEXT("oga"));
 		SupportedFileExtensions.Add(TEXT("ogg"));
 		SupportedFileExtensions.Add(TEXT("ogm"));

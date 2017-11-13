@@ -105,9 +105,6 @@ public:
 			"--text-renderer", "dummy",
 			"--vout", "vmem",
 
-			// plugins
-			TCHAR_TO_ANSI(*(FString(TEXT("--plugin-path=")) + FVlc::GetPluginDir())),
-
 			// performance
 			"--drop-late-frames",
 

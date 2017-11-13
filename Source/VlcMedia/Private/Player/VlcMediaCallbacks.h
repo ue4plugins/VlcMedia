@@ -15,6 +15,8 @@ class IMediaOverlaySink;
 class IMediaSamples;
 class IMediaTextureSink;
 
+class FVlcMediaSamples;
+
 struct FLibvlcMediaPlayer;
 
 
@@ -122,7 +124,7 @@ private:
 	FLibvlcMediaPlayer* Player;
 
 	/** The output media samples. */
-	FMediaSamples* Samples;
+	FVlcMediaSamples* Samples;
 
 	/** Current video buffer dimensions (accessed by VLC thread only; may be larger than VideoOutputDim). */
 	FIntPoint VideoBufferDim;

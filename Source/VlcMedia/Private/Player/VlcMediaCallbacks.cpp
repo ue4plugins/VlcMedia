@@ -11,6 +11,7 @@
 #include "Vlc.h"
 #include "VlcMediaAudioSample.h"
 #include "VlcMediaTextureSample.h"
+#include "VlcMediaSamples.h"
 
 
 /* FVlcMediaOutput structors
@@ -24,7 +25,7 @@ FVlcMediaCallbacks::FVlcMediaCallbacks()
 	, AudioSampleSize(0)
 	, CurrentTime(FTimespan::Zero())
 	, Player(nullptr)
-	, Samples(new FMediaSamples)
+	, Samples(new FVlcMediaSamples)
 	, VideoBufferDim(FIntPoint::ZeroValue)
 	, VideoBufferStride(0)
 	, VideoFrameDuration(FTimespan::Zero())

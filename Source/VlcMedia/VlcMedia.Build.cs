@@ -46,12 +46,8 @@ namespace UnrealBuildTool.Rules
 
 			if (Target.Platform == UnrealTargetPlatform.Linux)
 			{
-				VlcDirectory = Path.Combine(VlcDirectory, Target.Architecture);
+				VlcDirectory = Path.Combine(VlcDirectory, Target.Architecture, "lib");
 
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so.5.5.0")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so.8.0.0")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so.5")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so.8")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so")));
 				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so")));
 			}
@@ -75,6 +71,11 @@ namespace UnrealBuildTool.Rules
 
 			// add VLC plug-ins
 			string PluginDirectory = Path.Combine(VlcDirectory, "plugins");
+            
+			if (Target.Platform == UnrealTargetPlatform.Linux)
+			{
+				PluginDirectory = Path.Combine(VlcDirectory, "vlc", "plugins");
+			}
 
 			if (Directory.Exists(PluginDirectory))
 			{

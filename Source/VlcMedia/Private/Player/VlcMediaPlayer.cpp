@@ -18,7 +18,6 @@
 FVlcMediaPlayer::FVlcMediaPlayer(IMediaEventSink& InEventSink, FLibvlcInstance* InVlcInstance)
 	: CurrentRate(0.0f)
 	, CurrentTime(FTimespan::Zero())
-	, CurrentTimeDrift(FTimespan::Zero())
 	, EventSink(InEventSink)
 	, MediaSource(InVlcInstance)
 	, Player(nullptr)
@@ -155,8 +154,8 @@ bool FVlcMediaPlayer::Seek(const FTimespan& Time)
 
 	if (Time != CurrentTime)
 	{
-		CurrentTimeDrift = FTimespan::Zero();
 		FVlc::MediaPlayerSetTime(Player, Time.GetTotalMilliseconds());
+		CurrentTime = Time;
 	}
 
 	return true;
@@ -430,10 +429,12 @@ void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 			FVlc::MediaPlayerStop(Player);
 			// end hack
 
+			Callbacks.GetSamples().FlushSamples();
 			EventSink.ReceiveMediaEvent(EMediaEvent::PlaybackEndReached);
 
 			if (ShouldLoop && (CurrentRate != 0.0f))
 			{
+				CurrentTime = FTimespan::Zero();
 				SetRate(CurrentRate);
 			}
 			else
@@ -447,13 +448,7 @@ void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 			break;
 
 		case ELibvlcEventType::MediaPlayerPlaying:
-			CurrentTimeDrift = FTimespan::Zero();
 			EventSink.ReceiveMediaEvent(EMediaEvent::PlaybackResumed);
-			break;
-
-		case ELibvlcEventType::MediaPlayerPositionChanged:
-			CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player)));
-			CurrentTimeDrift = FTimespan::Zero();
 			break;
 
 		default:
@@ -467,22 +462,11 @@ void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 	if (State == ELibvlcState::Playing)
 	{
 		CurrentRate = FVlc::MediaPlayerGetRate(Player);
-
-		// interpolate time (FVlc::MediaPlayerGetTime is too inacurate)
-		const FTimespan TimeCorrection = DeltaTime * CurrentRate;
-
-		CurrentTime += TimeCorrection;
-		CurrentTimeDrift += TimeCorrection;
+		CurrentTime += DeltaTime * CurrentRate;
 	}
 	else
 	{
 		CurrentRate = 0.0f;
-
-		// poll time when paused (VLC doesn't send events when scrubbing)
-		if (State == ELibvlcState::Paused)
-		{
-			CurrentTime = FTimespan::FromMilliseconds(FMath::Max<int64>(0, FVlc::MediaPlayerGetTime(Player))) + CurrentTimeDrift;
-		}
 	}
 
 	Callbacks.SetCurrentTime(CurrentTime);
@@ -524,7 +508,6 @@ bool FVlcMediaPlayer::InitializePlayer()
 	// initialize player
 	CurrentRate = 0.0f;
 	CurrentTime = FTimespan::Zero();
-	CurrentTimeDrift = FTimespan::Zero();
 
 	EventSink.ReceiveMediaEvent(EMediaEvent::MediaOpened);
 

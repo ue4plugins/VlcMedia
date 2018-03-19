@@ -143,7 +143,7 @@ bool FVlc::Initialize()
 	const FString VlcDir = FPaths::Combine(*BaseDir, TEXT("ThirdParty"), TEXT("vlc"));
 
 #if PLATFORM_LINUX
-	const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Linux"), TEXT("x86_64-unknown-linux-gnu"));
+	const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Linux"), TEXT("x86_64-unknown-linux-gnu"), TEXT("lib"));
 #elif PLATFORM_MAC
 	const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Mac"));
 #elif PLATFORM_WINDOWS
@@ -168,6 +168,10 @@ bool FVlc::Initialize()
 	}
 
 	PluginDir = FPaths::ConvertRelativePathToFull(FPaths::Combine(*LibDir, TEXT("plugins")));
+    
+#if PLATFORM_LINUX
+	PluginDir = FPaths::ConvertRelativePathToFull(FPaths::Combine(*LibDir, TEXT("vlc"), TEXT("plugins")));
+#endif
 
 	// import library functions
 	VLC_IMPORT(libvlc_new, New)

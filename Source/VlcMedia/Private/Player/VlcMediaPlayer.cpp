@@ -549,7 +549,12 @@ bool FVlcMediaPlayer::InitializePlayer()
 
 void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 {
-	UE_LOG(LogVlcMedia, Verbose, TEXT("LibVLC event: %s"), *VlcMedia::EventToString(Event));
+	if (Event == nullptr)
+	{
+		return;
+	}
+
+	UE_LOG(LogVlcMedia, Verbose, TEXT("Player %llx: Event [%s]"), UserData, *VlcMedia::EventToString(Event));
 
 	if (UserData != nullptr)
 	{

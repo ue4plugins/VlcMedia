@@ -125,38 +125,45 @@ void FVlcMediaCallbacks::Shutdown()
 
 void FVlcMediaCallbacks::StaticAudioCleanupCallback(void* Opaque)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioCleanupCallback"));
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioCleanupCallback"), Opaque);
 }
 
 
 void FVlcMediaCallbacks::StaticAudioDrainCallback(void* Opaque)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioDrainCallback"));
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioDrainCallback"), Opaque);
 }
 
 
 void FVlcMediaCallbacks::StaticAudioFlushCallback(void* Opaque, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioFlushCallback"));
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioFlushCallback"), Opaque);
 }
 
 
 void FVlcMediaCallbacks::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioPauseCallback (Timestamp = %i)"), Opaque, Timestamp);
+
 	// do nothing; pausing is handled in Update
 }
 
 
 void FVlcMediaCallbacks::StaticAudioPlayCallback(void* Opaque, void* Samples, uint32 Count, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioPlayCallback: Count=%i, Timestamp=%i"), Count, Timestamp);
-
 	auto Callbacks = (FVlcMediaCallbacks*)Opaque;
 
 	if (Callbacks == nullptr)
 	{
 		return;
 	}
+
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioPlayCallback (Count = %i, Timestamp = %i, Queue = %i)"),
+		Opaque,
+		Count,
+		Timestamp,
+		Callbacks->Samples->NumAudio()
+	);
 
 	// create & add sample to queue
 	auto AudioSample = Callbacks->AudioSamplePool->AcquireShared();
@@ -182,20 +189,27 @@ void FVlcMediaCallbacks::StaticAudioPlayCallback(void* Opaque, void* Samples, ui
 
 void FVlcMediaCallbacks::StaticAudioResumeCallback(void* Opaque, int64 Timestamp)
 {
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioResumeCallback (Timestamp = %i)"), Opaque, Timestamp);
+
 	// do nothing; resuming is handled in Update
 }
 
 
 int FVlcMediaCallbacks::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format, uint32* Rate, uint32* Channels)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticAudioSetupCallback: Format=%s Rate=%i Channels=%i"), ANSI_TO_TCHAR(Format), *Rate, *Channels);
-
 	auto Callbacks = *(FVlcMediaCallbacks**)Opaque;
 
 	if (Callbacks == nullptr)
 	{
 		return -1;
 	}
+
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioSetupCallback (Format = %s, Rate = %i, Channels = %i)"),
+		Opaque,
+		ANSI_TO_TCHAR(Format),
+		*Rate,
+		*Channels
+	);
 
 	// setup audio format
 	if (*Channels > 8)
@@ -258,8 +272,6 @@ void FVlcMediaCallbacks::StaticVideoCleanupCallback(void *Opaque)
 
 void FVlcMediaCallbacks::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoDisplayCallback"));
-
 	auto Callbacks = (FVlcMediaCallbacks*)Opaque;
 	auto VideoSample = (FVlcMediaTextureSample*)Picture;
 
@@ -267,6 +279,11 @@ void FVlcMediaCallbacks::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 	{
 		return;
 	}
+
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticVideoDisplayCallback (CurrentTime = %s, Queue = %i)"),
+		Opaque, *Callbacks->CurrentTime.ToString(),
+		Callbacks->Samples->NumVideoSamples()
+	);
 
 	VideoSample->SetTime(Callbacks->CurrentTime);
 
@@ -277,8 +294,6 @@ void FVlcMediaCallbacks::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 
 void* FVlcMediaCallbacks::StaticVideoLockCallback(void* Opaque, void** Planes)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoLockCallback"));
-
 	auto Callbacks = (FVlcMediaCallbacks*)Opaque;
 	check(Callbacks != nullptr);
 
@@ -291,6 +306,11 @@ void* FVlcMediaCallbacks::StaticVideoLockCallback(void* Opaque, void** Planes)
 		Planes[0] = FMemory::Malloc(Callbacks->VideoBufferStride * Callbacks->VideoBufferDim.Y, 32);
 		return nullptr;
 	}
+
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticVideoLockCallback (CurrentTime = %s)"),
+		Opaque,
+		*Callbacks->CurrentTime.ToString()
+	);
 
 	// create & initialize video sample
 	auto VideoSample = Callbacks->VideoSamplePool->Acquire();
@@ -324,14 +344,19 @@ void* FVlcMediaCallbacks::StaticVideoLockCallback(void* Opaque, void** Planes)
 
 unsigned FVlcMediaCallbacks::StaticVideoSetupCallback(void** Opaque, char* Chroma, unsigned* Width, unsigned* Height, unsigned* Pitches, unsigned* Lines)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("StaticVideoSetupCallback: Chroma=%s Dim=%ix%i"), ANSI_TO_TCHAR(Chroma), *Width, *Height);
-
 	auto Callbacks = *(FVlcMediaCallbacks**)Opaque;
 	
 	if (Callbacks == nullptr)
 	{
 		return 0;
 	}
+
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticVideoSetupCallback (Chroma = %s, Dim = %ix%i)"),
+		Opaque,
+		ANSI_TO_TCHAR(Chroma),
+		*Width,
+		*Height
+	);
 
 	// get video output size
 	if (FVlc::VideoGetSize(Callbacks->Player, 0, (uint32*)&Callbacks->VideoOutputDim.X, (uint32*)&Callbacks->VideoOutputDim.Y) != 0)
@@ -421,8 +446,13 @@ unsigned FVlcMediaCallbacks::StaticVideoSetupCallback(void** Opaque, char* Chrom
 }
 
 
-void FVlcMediaCallbacks::StaticVideoUnlockCallback(void* /*Opaque*/, void* Picture, void* const* Planes)
+void FVlcMediaCallbacks::StaticVideoUnlockCallback(void* Opaque, void* Picture, void* const* Planes)
 {
+	if ((Opaque != nullptr) && (Picture != nullptr))
+	{
+		UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticVideoUnlockCallback"), Opaque);
+	}
+
 	// discard temporary buffer for VLC crash workaround
 	if ((Picture == nullptr) && (Planes != nullptr) && (Planes[0] != nullptr))
 	{

@@ -44,6 +44,7 @@ public:
 	static FLibvlcClockProc Clock;
 
 	static FLibvlcMediaEventManagerProc MediaEventManager;
+	static FLibvlcMediaGetDurationProc MediaGetDuration;
 	static FLibvlcMediaGetStatsProc MediaGetStats;
 	static FLibvlcMediaNewCallbacksProc MediaNewCallbacks;
 	static FLibvlcMediaNewLocationProc MediaNewLocation;

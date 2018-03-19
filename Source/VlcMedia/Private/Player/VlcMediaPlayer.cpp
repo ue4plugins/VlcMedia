@@ -63,19 +63,7 @@ bool FVlcMediaPlayer::CanControl(EMediaControl Control) const
 
 FTimespan FVlcMediaPlayer::GetDuration() const
 {
-	if (Player == nullptr)
-	{
-		return FTimespan::Zero();
-	}
-
-	int64 Length = FVlc::MediaPlayerGetLength(Player);
-
-	if (Length <= 0)
-	{
-		return GetTime();
-	}
-
-	return FTimespan::FromMilliseconds(Length);
+	return MediaSource.GetDuration();
 }
 
 

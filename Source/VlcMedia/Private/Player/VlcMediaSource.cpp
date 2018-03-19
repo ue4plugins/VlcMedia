@@ -18,6 +18,24 @@ FVlcMediaSource::FVlcMediaSource(FLibvlcInstance* InVlcInstance)
 /* FVlcMediaReader interface
 *****************************************************************************/
 
+FTimespan FVlcMediaSource::GetDuration() const
+{
+	if (Media == nullptr)
+	{
+		return FTimespan::Zero();
+	}
+
+	int64 Duration = FVlc::MediaGetDuration(Media);
+
+	if (Duration < 0)
+	{
+		return FTimespan::Zero();
+	}
+
+	return FTimespan(Duration * ETimespan::TicksPerMillisecond);
+}
+
+
 FLibvlcMedia* FVlcMediaSource::OpenArchive(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl)
 {
 	check(Media == nullptr);

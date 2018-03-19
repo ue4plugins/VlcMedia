@@ -38,6 +38,13 @@ public:
 	}
 
 	/**
+	 * Get the duration of the media source.
+	 *
+	 * @return Media duration.
+	 */
+	FTimespan GetDuration() const;
+
+	/**
 	 * Open a media source using the given archive.
 	 *
 	 * You must call Close() if this media source is open prior to calling this method.

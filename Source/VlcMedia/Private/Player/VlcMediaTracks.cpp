@@ -3,6 +3,8 @@
 #include "VlcMediaTracks.h"
 #include "Vlc.h"
 
+#include "MediaHelpers.h"
+
 
 #define LOCTEXT_NAMESPACE "FVlcMediaTracks"
 
@@ -21,6 +23,8 @@ FVlcMediaTracks::FVlcMediaTracks()
 void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo)
 {
 	Shutdown();
+
+	UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks: %p: Initializing tracks"), this);
 
 	Player = &InPlayer;
 
@@ -41,9 +45,10 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo)
 			{
 				FTrack Track;
 				{
+					Track.Id = AudioTrackDescr->Id;
 					Track.Name = ANSI_TO_TCHAR(AudioTrackDescr->Name);
 					Track.DisplayName = Track.Name.IsEmpty()
-						? FText::Format(LOCTEXT("AudioTrackFormat", "Audio Track {0}"), FText::AsNumber((uint32)AudioTrackDescr->Id))
+						? FText::Format(LOCTEXT("AudioTrackFormat", "Audio Track {0}"), FText::AsNumber(AudioTracks.Num()))
 						: FText::FromString(Track.Name);
 				}
 
@@ -71,9 +76,10 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo)
 			{
 				FTrack Track;
 				{
+					Track.Id = CaptionTrackDescr->Id;
 					Track.Name = ANSI_TO_TCHAR(CaptionTrackDescr->Name);
 					Track.DisplayName = Track.Name.IsEmpty()
-						? FText::Format(LOCTEXT("CaptionTrackFormat", "Caption Track {0}"), FText::AsNumber((uint32)CaptionTrackDescr->Id))
+						? FText::Format(LOCTEXT("CaptionTrackFormat", "Caption Track {0}"), FText::AsNumber(CaptionTracks.Num()))
 						: FText::FromString(Track.Name);
 				}
 
@@ -101,9 +107,10 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo)
 			{
 				FTrack Track;
 				{
+					Track.Id = VideoTrackDescr->Id;
 					Track.Name = ANSI_TO_TCHAR(VideoTrackDescr->Name);
 					Track.DisplayName = Track.Name.IsEmpty()
-						? FText::Format(LOCTEXT("VideoTrackFormat", "Video Track {0}"), FText::AsNumber((uint32)VideoTrackDescr->Id))
+						? FText::Format(LOCTEXT("VideoTrackFormat", "Video Track {0}"), FText::AsNumber(VideoTracks.Num()))
 						: FText::FromString(Track.Name);
 				}
 
@@ -121,11 +128,15 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo)
 		}
 	}
 	FVlc::TrackDescriptionListRelease(VideoTrackDescr);
+
+	UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Found %i streams"), this, StreamCount);
 }
 
 
 void FVlcMediaTracks::Shutdown()
 {
+	UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks: %p: Shutting down tracks"), this);
+
 	if (Player != nullptr)
 	{
 		AudioTracks.Reset();
@@ -187,20 +198,41 @@ int32 FVlcMediaTracks::GetSelectedTrack(EMediaTrackType TrackType) const
 		return INDEX_NONE;
 	}
 
+	const TArray<FTrack>* Tracks = nullptr;
+	int32 TrackId = INDEX_NONE;
+
 	switch (TrackType)
 	{
 	case EMediaTrackType::Audio:
-		return FVlc::AudioGetTrack(Player);
+		Tracks = &AudioTracks;
+		TrackId = FVlc::AudioGetTrack(Player);
+		break;
 
 	case EMediaTrackType::Caption:
-		return FVlc::VideoGetSpu(Player);
+		Tracks = &CaptionTracks;
+		TrackId = FVlc::VideoGetSpu(Player);
+		break;
 
 	case EMediaTrackType::Video:
-		return FVlc::VideoGetTrack(Player);
-
-	default:
-		return INDEX_NONE;
+		Tracks = &VideoTracks;
+		TrackId = FVlc::VideoGetTrack(Player);
+		break;
 	}
+
+	if (TrackId != INDEX_NONE)
+	{
+		check(Tracks != nullptr);
+
+		for (int32 TrackIndex = 0; TrackIndex < Tracks->Num(); ++TrackIndex)
+		{
+			if ((*Tracks)[TrackIndex].Id == TrackId)
+			{
+				return TrackIndex;
+			}
+		}
+	}
+
+	return INDEX_NONE;
 }
 
 
@@ -301,23 +333,86 @@ bool FVlcMediaTracks::SelectTrack(EMediaTrackType TrackType, int32 TrackIndex)
 {
 	if (Player == nullptr)
 	{
-		return false;
+		return false; // not initialized
 	}
+
+	UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Selecting %s track %i"), this, *MediaUtils::TrackTypeToString(TrackType), TrackIndex);
+
+	int32 TrackId = INDEX_NONE;
 
 	switch (TrackType)
 	{
 	case EMediaTrackType::Audio:
-		return (FVlc::AudioSetTrack(Player, TrackIndex) == 0);
+		if (AudioTracks.IsValidIndex(TrackIndex))
+		{
+			TrackId = AudioTracks[TrackIndex].Id;
+		}
+		else if (TrackIndex == INDEX_NONE)
+		{
+			TrackId = -1;
+		}
+		else
+		{
+			return false; // invalid track
+		}
+
+		if (FVlc::AudioSetTrack(Player, TrackId) != 0)
+		{
+			UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Failed to %s audio track %i (id %i)"), this, (TrackId == -1) ? TEXT("disable") : TEXT("enable"), TrackIndex, TrackId);
+			return false;
+		}
 
 	case EMediaTrackType::Caption:
-		return (FVlc::VideoSetSpu(Player, TrackIndex) == 0);
+		if (CaptionTracks.IsValidIndex(TrackIndex))
+		{
+			TrackId = CaptionTracks[TrackIndex].Id;
+		}
+		else if (TrackIndex == INDEX_NONE)
+		{
+			TrackId = -1;
+		}
+		else
+		{
+			return false; // invalid track
+		}
+
+		if (FVlc::VideoSetSpu(Player, TrackId) != 0)
+		{
+			UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Failed to %s caption track %i (id %i)"), this, (TrackId == -1) ? TEXT("disable") : TEXT("enable"), TrackIndex, TrackId);
+			return false;
+		}
 
 	case EMediaTrackType::Video:
-		return (FVlc::VideoSetTrack(Player, TrackIndex) == 0);
+		if (VideoTracks.IsValidIndex(TrackIndex))
+		{
+			TrackId = VideoTracks[TrackIndex].Id;
+		}
+		else if (TrackIndex == INDEX_NONE)
+		{
+			TrackId = -1;
+		}
+		else
+		{
+			return false; // invalid track
+		}
+
+		if ((TrackId != -1) && (FVlc::VideoSetTrack(Player, -1) != 0))
+		{
+			UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Failed to disable video decoding"), this);
+			return false;
+		}
+
+		if (FVlc::VideoSetTrack(Player, TrackId) != 0)
+		{
+			UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Failed to %s video track %i (id %i)"), this, (TrackId == -1) ? TEXT("disable") : TEXT("enable"), TrackIndex, TrackId);
+			return false;
+		}
 
 	default:
-		return false;
+		return false; // unsupported track type
 	}
+
+	return true;
 }
 
 

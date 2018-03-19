@@ -45,9 +45,9 @@ A relatively recent version of libvlc is required. The latest stable release
 (currently 2.2.1) is not sufficient.
 
 For Mac and Windows, the following nightly builds are currently included:
-* Mac: vlc-3.0.0-20170914-0450-git.dmg
-* Win32: vlc-3.0.0-20170914-0251-git-win32.zip
-* Win64: vlc-3.0.0-20170914-0457-git-win64.zip
+* macOS: vlc-4.0.0-20180319-0303-dev
+* Win32: vlc-4.0.0-20180319-0303-dev-win32
+* Win64: vlc-4.0.0-20180319-1331-dev-win64
 
 Nightly builds can be downloaded from the VideoLAN web site (see below).
 

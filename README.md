@@ -15,10 +15,10 @@ that are not yet available in the UE4 Master branch.
 
 ## Supported Platforms
 
-This plug-in was last built against **Unreal Engine 4.18** and tested
+This plug-in was last built against **Unreal Engine 4.19** and tested
 against the following platforms:
 
-- Linux Ubuntu 16.04
+- Linux (Ubuntu 16.04)
 - ~~Mac~~
 - Windows
 
@@ -54,7 +54,7 @@ Nightly builds can be downloaded from the VideoLAN web site (see below).
 For debugging on Win32 and Win64, you can download debug builds and replace the
 corresponding files and folders in the *VlcMedia/ThirdParty/vlc/* directory.
 
-### Linux Ubuntu 16.04
+### Linux (Ubuntu 16.04)
 
 A suitable version of **libvlc** must be installed or compiled from source. If
 you ship your game on Linux, you will likely want to include libvlc with it, so
@@ -63,13 +63,12 @@ binaries in this repository, although it is not clear what distros should be
 supported and where the builds are coming from. A better workflow needs to be
 established for this (https://github.com/ue4plugins/VlcMedia/issues/17).
 
-To install VLC (including libvlc) into plugin folder for the Game Packaging
-(GameProject/Plugins/VlcMedia/ThirdParty/vlc/Linux/x86_64-unknown-linux-gnu):
-**Vlc4LinuxCloneMakeInstall.sh** - Run from the Game Project folder to clean up, 
-clone, make and install VLC.
-If later for some reason you need to make and install VLC from existing vlc code:
-**Vlc4LinuxMakeInstall.sh** - Run from the Game Project folder to clean up, 
-make and install VLC.
+To clean up, clone, make and install VLC (including libvlc) into your project at
+*YourProject/Plugins/VlcMedia/ThirdParty/vlc/Linux/x86_64-unknown-linux-gnu*,
+run the **Vlc4LinuxCloneMakeInstall.sh** script from your project's root folder.
+
+If you later need to make and re-install VLC from the existing vlc code, run the
+**Vlc4LinuxMakeInstall.sh** script from your project's root folder instead.
 
 ### Mac, Windows
 

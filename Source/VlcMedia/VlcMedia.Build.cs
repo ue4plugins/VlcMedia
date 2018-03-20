@@ -47,26 +47,23 @@ namespace UnrealBuildTool.Rules
 			if (Target.Platform == UnrealTargetPlatform.Linux)
 			{
 				VlcDirectory = Path.Combine(VlcDirectory, Target.Architecture, "lib");
-
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.so")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.so")));
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Mac)
 			{
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.dylib")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.5.dylib")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.dylib")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.8.dylib")));
+				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.dylib"));
+				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.5.dylib"));
+				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlccore.dylib"));
+				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlccore.8.dylib"));
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Win32)
 			{
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.dll")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.dll")));
+				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.dll"));
+				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlccore.dll"));
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Win64)
 			{
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlc.dll")));
-				RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(VlcDirectory, "libvlccore.dll")));
+				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.dll"));
+				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlccore.dll"));
 			}
 
 			// add VLC plug-ins
@@ -81,7 +78,7 @@ namespace UnrealBuildTool.Rules
 			{
 				foreach (string Plugin in Directory.EnumerateFiles(PluginDirectory, "*.*", SearchOption.AllDirectories))
 				{
-					RuntimeDependencies.Add(new RuntimeDependency(Path.Combine(PluginDirectory, Plugin)));
+					RuntimeDependencies.Add(Path.Combine(PluginDirectory, Plugin));
 				}
 			}
 		}

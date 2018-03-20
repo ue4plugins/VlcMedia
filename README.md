@@ -63,12 +63,10 @@ binaries in this repository, although it is not clear what distros should be
 supported and where the builds are coming from. A better workflow needs to be
 established for this (https://github.com/ue4plugins/VlcMedia/issues/17).
 
-To clean up, clone, make and install VLC (including libvlc) into your project at
-*YourProject/Plugins/VlcMedia/ThirdParty/vlc/Linux/x86_64-unknown-linux-gnu*,
-run the **Vlc4LinuxCloneMakeInstall.sh** script from your project's root folder.
-
-If you later need to make and re-install VLC from the existing vlc code, run the
-**Vlc4LinuxMakeInstall.sh** script from your project's root folder instead.
+To clean up, clone, make and install VLC (including libvlc) into your project,
+run the *VlcMedia/Build/Vlc4LinuxCloneMakeInstall.sh* script from within your
+project's root folder. If you later need to make and re-install VLC from the
+existing VLC code, run the *Vlc4LinuxMakeInstall.sh* script instead.
 
 ### Mac, Windows
 

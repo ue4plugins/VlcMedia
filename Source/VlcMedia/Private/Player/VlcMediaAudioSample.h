@@ -72,7 +72,7 @@ public:
 			BufferSize = InBufferSize;
 		}
 
-		FMemory::Memcpy(Buffer, InBuffer, BufferSize);
+		FMemory::Memcpy(Buffer, InBuffer, InBufferSize);
 
 		Channels = InChannels;
 		Duration = InDuration;

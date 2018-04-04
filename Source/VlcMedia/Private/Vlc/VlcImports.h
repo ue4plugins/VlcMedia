@@ -44,6 +44,7 @@ typedef int32 (*FLibvlcMediaSeekCb)(void* /*Opaque*/, uint64 /*Offset*/);
 
 // media
 typedef FLibvlcEventManager* (*FLibvlcMediaEventManagerProc)(FLibvlcMedia* /*Media*/);
+typedef int64 (*FLibvlcMediaGetDurationProc)(FLibvlcMedia* /*Media*/);
 typedef int (*FLibvlcMediaGetStatsProc)(FLibvlcMedia* /*Media*/, FLibvlcMediaStats* /*Stats*/);
 
 typedef FLibvlcMedia* (*FLibvlcMediaNewCallbacksProc)(

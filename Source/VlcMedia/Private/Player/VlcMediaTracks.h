@@ -19,6 +19,7 @@ class FVlcMediaTracks
 	struct FTrack
 	{
 		FText DisplayName;
+		int32 Id;
 		FString Name;
 	}; 
 

@@ -29,6 +29,8 @@ sudo apt install git build-essential pkg-config libtool autopoint gettext
 sudo apt install subversion yasm cvs cmake ragel
 sudo apt install gperf default-jdk ant flex flex-old bison 
 sudo apt install libcaca-dev libncursesw5-dev libasound2-dev lua5.2-dev libxcb-keysyms1-dev
+sudo apt install lua5.2 openjdk-8-jdk ant nasm libxcb-composite0 libxcb-composite0-dev
+sudo apt install libxcb-xv0 libxcb-xv0-dev wayland-protocols
 
 # Protocol Buffers - Google's data interchange format
 #git clone git://github.com/google/protobuf.git
@@ -45,7 +47,7 @@ cd ..
 # install vlc and make it available to the VlcMedia plugin
 #git clone git://git.videolan.org/vlc.git
 cd vlc
-#git checkout tags/3.0.0-git -b 3.0.0-git
+#git checkout tags/4.0.0-dev -b 4.0.0-dev
 ./bootstrap
 # VLC contribs system, included in the VLC source
 cd contrib

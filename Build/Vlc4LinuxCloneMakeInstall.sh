@@ -40,6 +40,7 @@ cd protobuf
 make
 make check
 sudo make install
+make clean
 sudo ldconfig # refresh shared library cache
 cd ..
 
@@ -66,5 +67,6 @@ cd ..
 ./configure --disable-srt --disable-dca --disable-libass --disable-css --disable-upnp --disable-chromaprint --disable-freetype --prefix=$installDir
 make
 make install
+make clean
 cd ..
 

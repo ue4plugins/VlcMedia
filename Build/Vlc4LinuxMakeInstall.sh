@@ -41,6 +41,7 @@ make clean
 make
 make check
 sudo make install
+make clean
 sudo ldconfig # refresh shared library cache
 cd ..
 
@@ -68,5 +69,6 @@ cd ..
 make clean
 make
 make install
+make clean
 cd ..
 

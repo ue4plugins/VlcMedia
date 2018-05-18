@@ -18,7 +18,7 @@ that are not yet available in the UE4 Master branch.
 This plug-in was last built against **Unreal Engine 4.19** and tested
 against the following platforms:
 
-- Linux (Ubuntu 16.04)
+- Linux (Ubuntu 18.04 LTS (Bionic Beaver))
 - ~~Mac~~
 - Windows
 
@@ -54,7 +54,7 @@ Nightly builds can be downloaded from the VideoLAN web site (see below).
 For debugging on Win32 and Win64, you can download debug builds and replace the
 corresponding files and folders in the *VlcMedia/ThirdParty/vlc/* directory.
 
-### Linux (Ubuntu 16.04)
+### Linux (Ubuntu 18.04 LTS (Bionic Beaver))
 
 A suitable version of **libvlc** must be installed or compiled from source. If
 you ship your game on Linux, you will likely want to include libvlc with it, so
@@ -67,6 +67,9 @@ To clean up, clone, make and install VLC (including libvlc) into your project,
 run the *VlcMedia/Build/Vlc4LinuxCloneMakeInstall.sh* script from within your
 project's root folder. If you later need to make and re-install VLC from the
 existing VLC code, run the *Vlc4LinuxMakeInstall.sh* script instead.
+
+To use clang-5.0 (llvm-5.0) as default clang compiler for Ubuntu 18.04 LTS,
+run the *VlcMedia/Build/clang-5.0.sh* script.
 
 ### Mac, Windows
 

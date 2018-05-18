@@ -31,6 +31,7 @@ sudo apt install gperf default-jdk ant flex flex-old bison
 sudo apt install libcaca-dev libncursesw5-dev libasound2-dev lua5.2-dev libxcb-keysyms1-dev
 sudo apt install lua5.2 openjdk-8-jdk ant nasm libxcb-composite0 libxcb-composite0-dev
 sudo apt install libxcb-xv0 libxcb-xv0-dev wayland-protocols
+sudo apt install libavutil-dev libavcodec-dev libavformat-dev libswscale-dev libxcb-randr0-dev
 
 # Protocol Buffers - Google's data interchange format
 git clone git://github.com/google/protobuf.git

@@ -3,10 +3,10 @@
 #include "VlcMediaPlayer.h"
 #include "VlcMediaPrivate.h"
 
-#include "ArrayReader.h"
-#include "FileHelper.h"
 #include "IMediaEventSink.h"
 #include "IMediaOptions.h"
+#include "Misc/FileHelper.h"
+#include "Serialization/ArrayReader.h"
 
 #include "Vlc.h"
 #include "VlcMediaUtils.h"

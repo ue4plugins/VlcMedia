@@ -19,7 +19,7 @@ This plug-in was last built against **Unreal Engine 4.19** and tested
 against the following platforms:
 
 - Linux (Ubuntu 16.04)
-- ~~Mac~~
+- ~~Mac~~ Mac os Catalina
 - Windows
 
 **IMPORTANT**: Please note that this repository contains pre-compiled binaries

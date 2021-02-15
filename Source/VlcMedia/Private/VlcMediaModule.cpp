@@ -202,7 +202,7 @@ private:
 		// forward message to log
 		ANSICHAR Message[1024];
 
-		FCStringAnsi::GetVarArgs(Message, ARRAY_COUNT(Message), ARRAY_COUNT(Message) - 1, Format, Args);
+		FCStringAnsi::GetVarArgs(Message, UE_ARRAY_COUNT(Message), Format, Args);
 
 		switch (Level)
 		{

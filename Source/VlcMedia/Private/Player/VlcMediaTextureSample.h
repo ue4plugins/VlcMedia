@@ -145,7 +145,7 @@ public:
 	}
 #endif //WITH_ENGINE
 
-	virtual FTimespan GetTime() const override
+	virtual FMediaTimeStamp GetTime() const override
 	{
 		return Time;
 	}

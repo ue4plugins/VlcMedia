@@ -7,7 +7,7 @@
 	"CreatedBy" : "Epic Games Inc",
 	"CreatedByURL" : "http://epicgames.com",
 	"DocsURL" : "https://github.com/ue4plugins/VlcMedia",
-	"EngineVersion" : "4.20.0",
+	"EngineVersion" : "4.26.0",
 	"Description" : "Implements a media player using the Video LAN Codec (libvlc).",
 	"Category" : "Media Players",
 	"EnabledByDefault" : true,

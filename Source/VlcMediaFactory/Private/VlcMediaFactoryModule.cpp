@@ -6,6 +6,7 @@
 #include "IMediaModule.h"
 #include "IMediaOptions.h"
 #include "Internationalization/Internationalization.h"
+#include "Misc/Guid.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleInterface.h"
 #include "Modules/ModuleManager.h"
@@ -93,6 +94,7 @@ public:
 
 	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer(IMediaEventSink& EventSink) override
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FVlcMediaFactoryModule::CreatePlayer"));
 		auto VlcMediaModule = FModuleManager::LoadModulePtr<IVlcMediaModule>("VlcMedia");
 		return (VlcMediaModule != nullptr) ? VlcMediaModule->CreatePlayer(EventSink) : nullptr;
 	}
@@ -106,6 +108,12 @@ public:
 	{
 		static FName PlayerName(TEXT("VlcMedia"));
 		return PlayerName;
+	}
+
+	virtual FGuid GetPlayerPluginGUID() const override
+	{
+		static const FGuid PluginGuid(0x6BD4A7B8, 0x2C984F7F, 0xA31B6F8E, 0xB2F5B6A1);
+		return PluginGuid;
 	}
 
 	virtual const TArray<FString>& GetSupportedPlatforms() const override

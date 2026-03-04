@@ -66,6 +66,7 @@ VLC_DEFINE(MediaGetStats)
 VLC_DEFINE(MediaNewCallbacks)
 VLC_DEFINE(MediaNewLocation)
 VLC_DEFINE(MediaNewPath)
+VLC_DEFINE(MediaAddOption)
 VLC_DEFINE(MediaParseAsync)
 VLC_DEFINE(MediaRelease)
 VLC_DEFINE(MediaRetain)
@@ -139,7 +140,19 @@ FString FVlc::GetPluginDir()
 bool FVlc::Initialize()
 {
 	// determine directory paths
-	const FString BaseDir = IPluginManager::Get().FindPlugin("VlcMedia")->GetBaseDir();
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("VlcMedia"));
+	if (!Plugin.IsValid())
+	{
+		Plugin = IPluginManager::Get().FindPlugin(TEXT("VlcMedia-master"));
+	}
+
+	if (!Plugin.IsValid())
+	{
+		UE_LOG(LogVlcMedia, Warning, TEXT("Failed to find VlcMedia plugin via IPluginManager."));
+		return false;
+	}
+
+	const FString BaseDir = FPaths::ConvertRelativePathToFull(Plugin->GetBaseDir());
 	const FString VlcDir = FPaths::Combine(*BaseDir, TEXT("ThirdParty"), TEXT("vlc"));
 
 #if PLATFORM_LINUX
@@ -148,11 +161,14 @@ bool FVlc::Initialize()
 	const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Mac"));
 #elif PLATFORM_WINDOWS
 	#if PLATFORM_64BITS
-		const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Win64"));
+		const FString LibDir = FPaths::ConvertRelativePathToFull(FPaths::Combine(*VlcDir, TEXT("Win64")));
 	#else
-		const FString LibDir = FPaths::Combine(*VlcDir, TEXT("Win32"));
+		const FString LibDir = FPaths::ConvertRelativePathToFull(FPaths::Combine(*VlcDir, TEXT("Win32")));
 	#endif
 #endif
+
+	UE_LOG(LogVlcMedia, Warning, TEXT("VLC BaseDir: %s"), *BaseDir);
+	UE_LOG(LogVlcMedia, Warning, TEXT("VLC LibDir: %s"), *LibDir);
 
 	// load required libraries in the correct order
 	if (!LoadDependency(LibDir, TEXT("libvlccore"), CoreHandle))
@@ -202,6 +218,7 @@ bool FVlc::Initialize()
 	VLC_IMPORT(libvlc_media_new_callbacks, MediaNewCallbacks)
 	VLC_IMPORT(libvlc_media_new_location, MediaNewLocation)
 	VLC_IMPORT(libvlc_media_new_path, MediaNewPath)
+	VLC_IMPORT(libvlc_media_add_option, MediaAddOption)
 	VLC_IMPORT(libvlc_media_parse_async, MediaParseAsync)
 	VLC_IMPORT(libvlc_media_release, MediaRelease)
 	VLC_IMPORT(libvlc_media_retain, MediaRetain)

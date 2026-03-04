@@ -4,6 +4,7 @@
 
 #include "CoreTypes.h"
 #include "IMediaTextureSample.h"
+#include "IMediaTimeSource.h"
 #include "MediaObjectPool.h"
 #include "Math/IntPoint.h"
 #include "Misc/Timespan.h"
@@ -86,7 +87,12 @@ public:
 		}
 
 		Dim = InDim;
-		Duration = InDuration;
+		Duration = InDuration; // Duration check
+        
+        // [DEBUG] Sample Initialization Log
+        // UE_LOG(LogVlcMedia, Warning, TEXT("Sample Init: Dim=%dx%d, Duration=%s, BufferSize=%d"), 
+        //     InDim.X, InDim.Y, *InDuration.ToString(), RequiredBufferSize);
+
 		OutputDim = InOutputDim;
 		SampleFormat = InSampleFormat;
 		Stride = InStride;
@@ -145,9 +151,9 @@ public:
 	}
 #endif //WITH_ENGINE
 
-	virtual FTimespan GetTime() const override
+	virtual FMediaTimeStamp GetTime() const override
 	{
-		return Time;
+		return FMediaTimeStamp(Time);
 	}
 
 	virtual bool IsCacheable() const override

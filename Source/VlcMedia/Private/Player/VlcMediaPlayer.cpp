@@ -5,6 +5,7 @@
 
 #include "IMediaEventSink.h"
 #include "IMediaOptions.h"
+#include "Misc/Guid.h"
 #include "Misc/FileHelper.h"
 #include "Serialization/ArrayReader.h"
 
@@ -22,6 +23,9 @@ FVlcMediaPlayer::FVlcMediaPlayer(IMediaEventSink& InEventSink, FLibvlcInstance* 
 	, MediaSource(InVlcInstance)
 	, Player(nullptr)
 	, ShouldLoop(false)
+	, bVideoFormatSet(false)
+	, bCallbacksInitialized(false)
+	, LastCallbackResetSeconds(0.0)
 { }
 
 
@@ -176,8 +180,12 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 		return false;
 	}
 
+	// [DEBUG] SetRate 호출 로깅
+	UE_LOG(LogVlcMedia, Warning, TEXT("[VlcMediaPlayer] SetRate called with Rate=%f"), Rate);
+
 	if ((FVlc::MediaPlayerSetRate(Player, Rate) == -1))
 	{
+		UE_LOG(LogVlcMedia, Warning, TEXT("[VlcMediaPlayer] MediaPlayerSetRate failed"));
 		return false;
 	}
 
@@ -197,6 +205,7 @@ bool FVlcMediaPlayer::SetRate(float Rate)
 	{
 		if (FVlc::MediaPlayerPlay(Player) == -1)
 		{
+			UE_LOG(LogVlcMedia, Warning, TEXT("[VlcMediaPlayer] MediaPlayerPlay failed"));
 			return false;
 		}
 	}
@@ -254,11 +263,10 @@ FString FVlcMediaPlayer::GetInfo() const
 	return Info;
 }
 
-
-FName FVlcMediaPlayer::GetPlayerName() const
+FGuid FVlcMediaPlayer::GetPlayerPluginGUID() const
 {
-	static FName PlayerName(TEXT("VlcMedia"));
-	return PlayerName;
+	static const FGuid PluginGuid(0x6BD4A7B8, 0x2C984F7F, 0xA31B6F8E, 0xB2F5B6A1);
+	return PluginGuid;
 }
 
 
@@ -287,30 +295,30 @@ FString FVlcMediaPlayer::GetStats() const
 	FString StatsString;
 	{
 		StatsString += TEXT("General\n");
-		StatsString += FString::Printf(TEXT("    Decoded Video: %i\n"), Stats.DecodedVideo);
-		StatsString += FString::Printf(TEXT("    Decoded Audio: %i\n"), Stats.DecodedAudio);
-		StatsString += FString::Printf(TEXT("    Displayed Pictures: %i\n"), Stats.DisplayedPictures);
-		StatsString += FString::Printf(TEXT("    Lost Pictures: %i\n"), Stats.LostPictures);
-		StatsString += FString::Printf(TEXT("    Played A-Buffers: %i\n"), Stats.PlayedAbuffers);
-		StatsString += FString::Printf(TEXT("    Lost Lost A-Buffers: %i\n"), Stats.LostAbuffers);
+		StatsString += FString::Printf(TEXT("    Decoded Video: %d\n"), Stats.DecodedVideo);
+		StatsString += FString::Printf(TEXT("    Decoded Audio: %d\n"), Stats.DecodedAudio);
+		StatsString += FString::Printf(TEXT("    Displayed Pictures: %d\n"), Stats.DisplayedPictures);
+		StatsString += FString::Printf(TEXT("    Lost Pictures: %d\n"), Stats.LostPictures);
+		StatsString += FString::Printf(TEXT("    Played A-Buffers: %d\n"), Stats.PlayedAbuffers);
+		StatsString += FString::Printf(TEXT("    Lost Lost A-Buffers: %d\n"), Stats.LostAbuffers);
 		StatsString += TEXT("\n");
 
 		StatsString += TEXT("Input\n");
-		StatsString += FString::Printf(TEXT("    Bit Rate: %i\n"), Stats.InputBitrate);
-		StatsString += FString::Printf(TEXT("    Bytes Read: %i\n"), Stats.ReadBytes);
+		StatsString += FString::Printf(TEXT("    Bit Rate: %f\n"), Stats.InputBitrate);
+		StatsString += FString::Printf(TEXT("    Bytes Read: %d\n"), Stats.ReadBytes);
 		StatsString += TEXT("\n");
 
 		StatsString += TEXT("Demux\n");
 		StatsString += FString::Printf(TEXT("    Bit Rate: %f\n"), Stats.DemuxBitrate);
-		StatsString += FString::Printf(TEXT("    Bytes Read: %i\n"), Stats.DemuxReadBytes);
-		StatsString += FString::Printf(TEXT("    Corrupted: %i\n"), Stats.DemuxCorrupted);
-		StatsString += FString::Printf(TEXT("    Discontinuity: %i\n"), Stats.DemuxDiscontinuity);
+		StatsString += FString::Printf(TEXT("    Bytes Read: %d\n"), Stats.DemuxReadBytes);
+		StatsString += FString::Printf(TEXT("    Corrupted: %d\n"), Stats.DemuxCorrupted);
+		StatsString += FString::Printf(TEXT("    Discontinuity: %d\n"), Stats.DemuxDiscontinuity);
 		StatsString += TEXT("\n");
 
 		StatsString += TEXT("Network\n");
 		StatsString += FString::Printf(TEXT("    Bitrate: %f\n"), Stats.SendBitrate);
-		StatsString += FString::Printf(TEXT("    Sent Bytes: %i\n"), Stats.SentBytes);
-		StatsString += FString::Printf(TEXT("    Sent Packets: %i\n"), Stats.SentPackets);
+		StatsString += FString::Printf(TEXT("    Sent Bytes: %d\n"), Stats.SentBytes);
+		StatsString += FString::Printf(TEXT("    Sent Packets: %d\n"), Stats.SentPackets);
 		StatsString += TEXT("\n");
 	}
 
@@ -409,6 +417,16 @@ void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 		return;
 	}
 
+    // [DEBUG] TickInput 호출 확인 (매 1초마다)
+    static double LastTickLogTime = 0.0;
+    double CurrentPlatformTime = FPlatformTime::Seconds();
+    if (CurrentPlatformTime - LastTickLogTime >= 1.0)
+    {
+        ELibvlcState DebugState = FVlc::MediaPlayerGetState(Player);
+        UE_LOG(LogVlcMedia, Warning, TEXT("[VLC TickInput Entry] Player=%p, LibVlcState=%d"), this, (int32)DebugState);
+        LastTickLogTime = CurrentPlatformTime;
+    }
+
 	// process events
 	ELibvlcEventType Event;
 
@@ -417,9 +435,39 @@ void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 		switch (Event)
 		{
 		case ELibvlcEventType::MediaParsedChanged:
+			UE_LOG(LogVlcMedia, Warning, TEXT("Player %p: MediaParsedChanged - Initializing Tracks, Callbacks, View"), this);
 			Tracks.Initialize(*Player, Info);
 			Callbacks.Initialize(*Player);
 			View.Initialize(*Player);
+			bVideoFormatSet = false;
+			bCallbacksInitialized = true;
+			LastCallbackResetSeconds = FPlatformTime::Seconds();
+
+			{
+				uint32 Width = 0;
+				uint32 Height = 0;
+				if (FVlc::VideoGetSize(Player, 0, &Width, &Height) != 0 || Width == 0 || Height == 0)
+				{
+					Width = 640;
+					Height = 480;
+				}
+
+				FVlc::VideoSetFormat(Player, "RV32", Width, Height, Width * 4);
+				bVideoFormatSet = true;
+				UE_LOG(LogVlcMedia, Warning, TEXT("Set VLC video format to RV32 (%ux%u) after MediaParsedChanged"), Width, Height);
+			}
+
+			if (Tracks.GetNumTracks(EMediaTrackType::Video) > 0)
+			{
+				if (Tracks.SelectTrack(EMediaTrackType::Video, 0))
+				{
+					UE_LOG(LogVlcMedia, Warning, TEXT("Selected default video track 0"));
+				}
+				else
+				{
+					UE_LOG(LogVlcMedia, Warning, TEXT("Failed to select default video track 0"));
+				}
+			}
 			EventSink.ReceiveMediaEvent(EMediaEvent::TracksChanged);
 			break;
 
@@ -448,7 +496,13 @@ void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 			break;
 
 		case ELibvlcEventType::MediaPlayerPlaying:
+            UE_LOG(LogVlcMedia, Verbose, TEXT("Player %p: Playing (%s)"), this, *MediaSource.GetCurrentUrl());
 			EventSink.ReceiveMediaEvent(EMediaEvent::PlaybackResumed);
+			break;
+            
+		case ELibvlcEventType::MediaPlayerStopped:
+			UE_LOG(LogVlcMedia, Verbose, TEXT("Player %p: Stopped"), this);
+			EventSink.ReceiveMediaEvent(EMediaEvent::PlaybackSuspended);
 			break;
 
 		default:
@@ -456,7 +510,44 @@ void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 		}
 	}
 
-	const ELibvlcState State = FVlc::MediaPlayerGetState(Player);
+	ELibvlcState State = FVlc::MediaPlayerGetState(Player);
+
+	if ((State == ELibvlcState::Playing) && (Callbacks.GetSamples().NumVideoSamples() == 0))
+	{
+		const double Now = FPlatformTime::Seconds();
+		if (Now - LastCallbackResetSeconds > 2.0)
+		{
+			UE_LOG(LogVlcMedia, Warning, TEXT("No video samples yet; reinitializing callbacks and forcing RV32 format"));
+			Callbacks.Initialize(*Player);
+			bCallbacksInitialized = true;
+			bVideoFormatSet = false;
+			LastCallbackResetSeconds = Now;
+		}
+	}
+
+	// ensure VLC uses a CPU-friendly format once dimensions are known
+	if (!bVideoFormatSet)
+	{
+		uint32 Width = 0;
+		uint32 Height = 0;
+		if (FVlc::VideoGetSize(Player, 0, &Width, &Height) == 0 && Width > 0 && Height > 0)
+		{
+			FVlc::VideoSetFormat(Player, "RV32", Width, Height, Width * 4);
+			bVideoFormatSet = true;
+			UE_LOG(LogVlcMedia, Warning, TEXT("Set VLC video format to RV32 (%ux%u)"), Width, Height);
+		}
+	}
+
+    // [DEBUG] State 체크 주석 처리하여 강제 진행 (디버깅용)
+	// if ((State != ELibvlcState::Opening) && (State != ELibvlcState::Buffering) && (State != ELibvlcState::Playing))
+	// {
+	// 	return;
+	// }
+
+	if (ShouldLoop && (State == ELibvlcState::Ended))
+	{
+		FVlc::MediaPlayerSetPosition(Player, 0.0f);
+	}
 
 	// update current time & rate
 	if (State == ELibvlcState::Playing)
@@ -470,6 +561,33 @@ void FVlcMediaPlayer::TickInput(FTimespan DeltaTime, FTimespan /*Timecode*/)
 	}
 
 	Callbacks.SetCurrentTime(CurrentTime);
+    
+    // [DEBUG] 샘플 큐 상태 로깅 (1초마다)
+	static FTimespan LastEndLogTime = FTimespan::Zero();
+	if ((CurrentTime - LastEndLogTime).GetTotalSeconds() >= 1.0)
+	{
+		int32 VideoSamples = Callbacks.GetSamples().NumVideoSamples();
+		int32 AudioSamples = Callbacks.GetSamples().NumAudioSamples();
+        int32 SelectedVideoTrack = Tracks.GetSelectedTrack(EMediaTrackType::Video);
+		
+		UE_LOG(LogVlcMedia, Warning, TEXT("[VLC TickInput End] Player=%p, State=%d, VideoSamples=%d, AudioSamples=%d, SelectedTrack=%d, CurrentTime=%s"),
+			this, (int32)State, VideoSamples, AudioSamples, SelectedVideoTrack, *CurrentTime.ToString());
+		
+		LastEndLogTime = CurrentTime;
+	}
+}
+
+bool FVlcMediaPlayer::GetPlayerFeatureFlag(EFeatureFlag Flag) const
+{
+	switch (Flag)
+	{
+	case EFeatureFlag::AlwaysPullNewestVideoFrame:
+	case EFeatureFlag::UseRealtimeWithVideoOnly:
+	case EFeatureFlag::PlayerSelectsDefaultTracks:
+		return true;
+	default:
+		return false;
+	}
 }
 
 
@@ -509,6 +627,11 @@ bool FVlcMediaPlayer::InitializePlayer()
 	CurrentRate = 0.0f;
 	CurrentTime = FTimespan::Zero();
 
+	// register callbacks early so VLC uses vmem for video output
+	Callbacks.Initialize(*Player);
+	bCallbacksInitialized = true;
+	LastCallbackResetSeconds = FPlatformTime::Seconds();
+
 	EventSink.ReceiveMediaEvent(EMediaEvent::MediaOpened);
 
 	return true;
@@ -525,7 +648,7 @@ void FVlcMediaPlayer::StaticEventCallback(FLibvlcEvent* Event, void* UserData)
 		return;
 	}
 
-	UE_LOG(LogVlcMedia, Verbose, TEXT("Player %llx: Event [%s]"), UserData, *VlcMedia::EventToString(Event));
+	UE_LOG(LogVlcMedia, Verbose, TEXT("Player %p: Event [%s]"), UserData, *VlcMedia::EventToString(Event));
 
 	if (UserData != nullptr)
 	{

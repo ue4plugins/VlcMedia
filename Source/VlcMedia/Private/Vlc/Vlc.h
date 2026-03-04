@@ -49,6 +49,7 @@ public:
 	static FLibvlcMediaNewCallbacksProc MediaNewCallbacks;
 	static FLibvlcMediaNewLocationProc MediaNewLocation;
 	static FLibvlcMediaNewPathProc MediaNewPath;
+	static FLibvlcMediaAddOptionProc MediaAddOption;
 	static FLibvlcMediaParseAsyncProc MediaParseAsync;
 	static FLibvlcMediaReleaseProc MediaRelease;
 	static FLibvlcMediaRetainProc MediaRetain;

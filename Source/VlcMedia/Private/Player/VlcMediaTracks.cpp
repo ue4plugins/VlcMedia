@@ -2,6 +2,7 @@
 
 #include "VlcMediaTracks.h"
 #include "Vlc.h"
+#include "VlcMediaPrivate.h"
 
 #include "MediaHelpers.h"
 
@@ -33,8 +34,9 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo)
 	int32 StreamCount = 0;
 
 	// @todo gmp: fix audio specs
-	FVlc::AudioSetFormat(Player, "S16N", 44100, 2);
-	FVlc::VideoSetFormat(Player, "RV32", Width, Height, Width * 4);
+	// FVlc::AudioSetFormat(Player, "S16N", 44100, 2);
+	// FVlc::VideoSetFormat(Player, "RV32", Width, Height, Width * 4);
+    UE_LOG(LogVlcMedia, Warning, TEXT("Tracks: %p: Skipped explicit SetFormat to allow Callbacks to negotiate format. Initial Dim: %dx%d"), this, Width, Height);
 
 	// initialize audio tracks
 	FLibvlcTrackDescription* AudioTrackDescr = FVlc::AudioGetTrackDescription(Player);
@@ -129,7 +131,7 @@ void FVlcMediaTracks::Initialize(FLibvlcMediaPlayer& InPlayer, FString& OutInfo)
 	}
 	FVlc::TrackDescriptionListRelease(VideoTrackDescr);
 
-	UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Found %i streams"), this, StreamCount);
+	UE_LOG(LogVlcMedia, Warning, TEXT("Tracks %p: Found %i streams (Video: %d, Audio: %d)"), this, StreamCount, VideoTracks.Num(), AudioTracks.Num());
 }
 
 
@@ -361,6 +363,7 @@ bool FVlcMediaTracks::SelectTrack(EMediaTrackType TrackType, int32 TrackIndex)
 			UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Failed to %s audio track %i (id %i)"), this, (TrackId == -1) ? TEXT("disable") : TEXT("enable"), TrackIndex, TrackId);
 			return false;
 		}
+		break;
 
 	case EMediaTrackType::Caption:
 		if (CaptionTracks.IsValidIndex(TrackIndex))
@@ -381,6 +384,7 @@ bool FVlcMediaTracks::SelectTrack(EMediaTrackType TrackType, int32 TrackIndex)
 			UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Failed to %s caption track %i (id %i)"), this, (TrackId == -1) ? TEXT("disable") : TEXT("enable"), TrackIndex, TrackId);
 			return false;
 		}
+		break;
 
 	case EMediaTrackType::Video:
 		if (VideoTracks.IsValidIndex(TrackIndex))
@@ -407,6 +411,7 @@ bool FVlcMediaTracks::SelectTrack(EMediaTrackType TrackType, int32 TrackIndex)
 			UE_LOG(LogVlcMedia, Verbose, TEXT("Tracks %p: Failed to %s video track %i (id %i)"), this, (TrackId == -1) ? TEXT("disable") : TEXT("enable"), TrackIndex, TrackId);
 			return false;
 		}
+		break;
 
 	default:
 		return false; // unsupported track type

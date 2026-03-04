@@ -7,7 +7,7 @@
 	"CreatedBy" : "Epic Games Inc",
 	"CreatedByURL" : "http://epicgames.com",
 	"DocsURL" : "https://github.com/ue4plugins/VlcMedia",
-	"EngineVersion" : "4.20.0",
+	"EngineVersion" : "5.6.0",
 	"Description" : "Implements a media player using the Video LAN Codec (libvlc).",
 	"Category" : "Media Players",
 	"EnabledByDefault" : true,
@@ -19,7 +19,7 @@
 			"Name" : "VlcMedia",
 			"Type" : "RuntimeNoCommandlet",
 			"LoadingPhase" : "PreLoadingScreen",
-			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64" ]
+			"WhitelistPlatforms" : [ "Linux", "Mac", "Win64" ]
 		},
 		{
 			"Name" : "VlcMediaEditor",
@@ -35,7 +35,7 @@
 			"Name": "VlcMediaFactory",
 			"Type": "RuntimeNoCommandlet",
 			"LoadingPhase" : "PostEngineInit",
-			"WhitelistPlatforms" : [ "Linux", "Mac", "Win32", "Win64" ]
+			"WhitelistPlatforms" : [ "Linux", "Mac", "Win64" ]
 		}
 	],
 

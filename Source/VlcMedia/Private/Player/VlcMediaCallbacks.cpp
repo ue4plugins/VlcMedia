@@ -61,6 +61,7 @@ IMediaSamples& FVlcMediaCallbacks::GetSamples()
 
 void FVlcMediaCallbacks::Initialize(FLibvlcMediaPlayer& InPlayer)
 {
+	UE_LOG(LogVlcMedia, Warning, TEXT("FVlcMediaCallbacks::Initialize called for Player %p"), &InPlayer);
 	Shutdown();
 
 	Player = &InPlayer;
@@ -125,25 +126,25 @@ void FVlcMediaCallbacks::Shutdown()
 
 void FVlcMediaCallbacks::StaticAudioCleanupCallback(void* Opaque)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioCleanupCallback"), Opaque);
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticAudioCleanupCallback"), Opaque);
 }
 
 
 void FVlcMediaCallbacks::StaticAudioDrainCallback(void* Opaque)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioDrainCallback"), Opaque);
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticAudioDrainCallback"), Opaque);
 }
 
 
 void FVlcMediaCallbacks::StaticAudioFlushCallback(void* Opaque, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioFlushCallback"), Opaque);
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticAudioFlushCallback"), Opaque);
 }
 
 
 void FVlcMediaCallbacks::StaticAudioPauseCallback(void* Opaque, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioPauseCallback (Timestamp = %i)"), Opaque, Timestamp);
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticAudioPauseCallback (Timestamp = %d)"), Opaque, static_cast<int32>(Timestamp));
 
 	// do nothing; pausing is handled in Update
 }
@@ -158,11 +159,11 @@ void FVlcMediaCallbacks::StaticAudioPlayCallback(void* Opaque, void* Samples, ui
 		return;
 	}
 
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioPlayCallback (Count = %i, Timestamp = %i, Queue = %i)"),
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticAudioPlayCallback (Count = %d, Timestamp = %d, Queue = %d)"),
 		Opaque,
-		Count,
-		Timestamp,
-		Callbacks->Samples->NumAudio()
+		static_cast<int32>(Count),
+		static_cast<int32>(Timestamp),
+		Callbacks->Samples->NumAudioSamples()
 	);
 
 	// create & add sample to queue
@@ -189,7 +190,7 @@ void FVlcMediaCallbacks::StaticAudioPlayCallback(void* Opaque, void* Samples, ui
 
 void FVlcMediaCallbacks::StaticAudioResumeCallback(void* Opaque, int64 Timestamp)
 {
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioResumeCallback (Timestamp = %i)"), Opaque, Timestamp);
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticAudioResumeCallback (Timestamp = %d)"), Opaque, static_cast<int32>(Timestamp));
 
 	// do nothing; resuming is handled in Update
 }
@@ -204,8 +205,8 @@ int FVlcMediaCallbacks::StaticAudioSetupCallback(void** Opaque, ANSICHAR* Format
 		return -1;
 	}
 
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticAudioSetupCallback (Format = %s, Rate = %i, Channels = %i)"),
-		Opaque,
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticAudioSetupCallback (Format = %s, Rate = %u, Channels = %u)"),
+		reinterpret_cast<void*>(Opaque),
 		ANSI_TO_TCHAR(Format),
 		*Rate,
 		*Channels
@@ -280,7 +281,7 @@ void FVlcMediaCallbacks::StaticVideoDisplayCallback(void* Opaque, void* Picture)
 		return;
 	}
 
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticVideoDisplayCallback (CurrentTime = %s, Queue = %i)"),
+	UE_LOG(LogVlcMedia, Warning, TEXT("Callbacks %p: StaticVideoDisplayCallback (CurrentTime = %s, Queue = %d)"),
 		Opaque, *Callbacks->CurrentTime.ToString(),
 		Callbacks->Samples->NumVideoSamples()
 	);
@@ -299,15 +300,7 @@ void* FVlcMediaCallbacks::StaticVideoLockCallback(void* Opaque, void** Planes)
 
 	FMemory::Memzero(Planes, FVlc::MaxPlanes * sizeof(void*));
 
-	// skip if already processed
-	if (Callbacks->VideoPreviousTime == Callbacks->CurrentTime)
-	{
-		// VLC currently requires a valid buffer or it will crash
-		Planes[0] = FMemory::Malloc(Callbacks->VideoBufferStride * Callbacks->VideoBufferDim.Y, 32);
-		return nullptr;
-	}
-
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticVideoLockCallback (CurrentTime = %s)"),
+	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticVideoLockCallback (CurrentTime = %s)"),
 		Opaque,
 		*Callbacks->CurrentTime.ToString()
 	);
@@ -351,8 +344,8 @@ unsigned FVlcMediaCallbacks::StaticVideoSetupCallback(void** Opaque, char* Chrom
 		return 0;
 	}
 
-	UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticVideoSetupCallback (Chroma = %s, Dim = %ix%i)"),
-		Opaque,
+	UE_LOG(LogVlcMedia, Warning, TEXT("Callbacks %p: StaticVideoSetupCallback (Chroma = %s, Dim = %ux%u)"),
+		reinterpret_cast<void*>(Opaque),
 		ANSI_TO_TCHAR(Chroma),
 		*Width,
 		*Height
@@ -361,16 +354,24 @@ unsigned FVlcMediaCallbacks::StaticVideoSetupCallback(void** Opaque, char* Chrom
 	// get video output size
 	if (FVlc::VideoGetSize(Callbacks->Player, 0, (uint32*)&Callbacks->VideoOutputDim.X, (uint32*)&Callbacks->VideoOutputDim.Y) != 0)
 	{
-		Callbacks->VideoBufferDim = FIntPoint::ZeroValue;
-		Callbacks->VideoOutputDim = FIntPoint::ZeroValue;
-		Callbacks->VideoBufferStride = 0;
-
-		return 0;
+		Callbacks->VideoOutputDim = FIntPoint(*Width, *Height);
 	}
 
 	if (Callbacks->VideoOutputDim.GetMin() <= 0)
 	{
-		return 0;
+		Callbacks->VideoOutputDim = FIntPoint(*Width, *Height);
+		if (Callbacks->VideoOutputDim.GetMin() <= 0)
+		{
+			return 0;
+		}
+	}
+
+	// force software-friendly chroma when VLC requests DX* formats (vmem cannot handle them)
+	if ((FCStringAnsi::Stricmp(Chroma, "DX11") == 0) || (FCStringAnsi::Stricmp(Chroma, "DXA9") == 0))
+	{
+		FMemory::Memcpy(Chroma, "RV32", 4);
+		*Width = Callbacks->VideoOutputDim.X;
+		*Height = Callbacks->VideoOutputDim.Y;
 	}
 
 	// determine decoder & sample formats
@@ -418,12 +419,13 @@ unsigned FVlcMediaCallbacks::StaticVideoSetupCallback(void** Opaque, char* Chrom
 
 		if (ChromaDescr->PlaneCount > 1)
 		{
-			FMemory::Memcpy(Chroma, "YUY2", 4);
+			// [FORCE] Use RV32 (BGRA) even for planar formats to ensure UE compatibility
+			FMemory::Memcpy(Chroma, "RV32", 4);
 
-			Callbacks->VideoBufferDim = FIntPoint(Align(Callbacks->VideoOutputDim.X, 16) / 2, Align(Callbacks->VideoOutputDim.Y, 16));
-			Callbacks->VideoSampleFormat = EMediaTextureSampleFormat::CharYUY2;
+			Callbacks->VideoBufferDim = Callbacks->VideoOutputDim;
+			Callbacks->VideoSampleFormat = EMediaTextureSampleFormat::CharBGRA;
 			Callbacks->VideoBufferStride = Callbacks->VideoBufferDim.X * 4;
-			*Height = Callbacks->VideoBufferDim.Y;
+            // *Height = Callbacks->VideoBufferDim.Y; // RV32 uses original height
 		}
 		else
 		{
@@ -436,7 +438,15 @@ unsigned FVlcMediaCallbacks::StaticVideoSetupCallback(void** Opaque, char* Chrom
 	}
 
 	// get other video properties
-	Callbacks->VideoFrameDuration = FTimespan::FromSeconds(1.0 / FVlc::MediaPlayerGetFps(Callbacks->Player));
+	// get other video properties
+	float Fps = FVlc::MediaPlayerGetFps(Callbacks->Player);
+	if (Fps <= 0.0f)
+	{
+		Fps = 30.0f;
+	}
+	Callbacks->VideoFrameDuration = FTimespan::FromSeconds(1.0 / Fps);
+	
+	UE_LOG(LogVlcMedia, Warning, TEXT("[VLC Setup] FPS: %f, Duration: %s"), Fps, *Callbacks->VideoFrameDuration.ToString());
 
 	// initialize decoder
 	Lines[0] = Callbacks->VideoBufferDim.Y;
@@ -450,7 +460,7 @@ void FVlcMediaCallbacks::StaticVideoUnlockCallback(void* Opaque, void* Picture, 
 {
 	if ((Opaque != nullptr) && (Picture != nullptr))
 	{
-		UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %llx: StaticVideoUnlockCallback"), Opaque);
+		UE_LOG(LogVlcMedia, VeryVerbose, TEXT("Callbacks %p: StaticVideoUnlockCallback"), Opaque);
 	}
 
 	// discard temporary buffer for VLC crash workaround

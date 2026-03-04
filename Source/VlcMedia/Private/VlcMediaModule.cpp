@@ -1,9 +1,11 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
+#include "CoreMinimal.h"
 #include "IVlcMediaModule.h"
 #include "VlcMediaPrivate.h"
 
 #include "HAL/FileManager.h"
+#include "Containers/StringConv.h"
 #include "Misc/OutputDeviceFile.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleManager.h"
@@ -39,9 +41,14 @@ public:
 
 	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer(IMediaEventSink& EventSink) override
 	{
+		UE_LOG(LogVlcMedia, Warning, TEXT("FVlcMediaModule::CreatePlayer called (Initialized=%s)"), Initialized ? TEXT("true") : TEXT("false"));
 		if (!Initialized)
 		{
-			return nullptr;
+			InitializeLibVlc();
+			if (!Initialized)
+			{
+				return nullptr;
+			}
 		}
 
 		return MakeShared<FVlcMediaPlayer, ESPMode::ThreadSafe>(EventSink, VlcInstance);
@@ -53,91 +60,8 @@ public:
 
 	virtual void StartupModule() override
 	{
-		// initialize LibVLC
-		if (!FVlc::Initialize())
-		{
-			UE_LOG(LogVlcMedia, Error, TEXT("Failed to initialize LibVLC"));
-			return;
-		}
-
-		UE_LOG(LogVlcMedia, Log, TEXT("Initialized LibVLC %s (%s - %s)"),
-			ANSI_TO_TCHAR(FVlc::GetVersion()),
-			ANSI_TO_TCHAR(FVlc::GetChangeset()),
-			ANSI_TO_TCHAR(FVlc::GetCompiler())
-		);
-
-#if UE_BUILD_DEBUG
-		// backup old log file
-		const FString LogFilePath = FPaths::Combine(FPaths::ProjectLogDir(), TEXT("vlc.log"));
-		FOutputDeviceFile::CreateBackupCopy(*LogFilePath);
-		IFileManager::Get().Delete(*LogFilePath);
-#endif
-
-		const auto Settings = GetDefault<UVlcMediaSettings>();
-
-		// create LibVLC instance
-		const ANSICHAR* Args[] =
-		{
-			// caching
-			TCHAR_TO_ANSI(*(FString::Printf(TEXT("--disc-caching=%i"), (int32)Settings->DiscCaching.GetTotalMilliseconds()))),
-			TCHAR_TO_ANSI(*(FString::Printf(TEXT("--file-caching=%i"), (int32)Settings->FileCaching.GetTotalMilliseconds()))),
-			TCHAR_TO_ANSI(*(FString::Printf(TEXT("--live-caching=%i"), (int32)Settings->LiveCaching.GetTotalMilliseconds()))),
-			TCHAR_TO_ANSI(*(FString::Printf(TEXT("--network-caching=%i"), (int32)Settings->NetworkCaching.GetTotalMilliseconds()))),
-
-			// config
-			"--ignore-config",
-
-			// logging
-#if UE_BUILD_DEBUG
-			"--file-logging",
-			TCHAR_TO_ANSI(*(FString(TEXT("--logfile=")) + LogFilePath)),
-#endif
-
-#if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)
-			"--verbose=2",
-#else
-			"--quiet",
-#endif
-
-			// output
-			"--aout", "amem",
-			"--intf", "dummy",
-			"--text-renderer", "dummy",
-			"--vout", "vmem",
-
-			// performance
-			"--drop-late-frames",
-
-			// undesired features
-			"--no-disable-screensaver",
-			"--no-plugins-cache",
-			"--no-snapshot-preview",
-			"--no-video-title-show",
-
-#if (UE_BUILD_SHIPPING || UE_BUILD_TEST)
-			"--no-stats",
-#endif
-
-#if PLATFORM_LINUX
-			"--no-xlib",
-#endif
-		};
-
-		int Argc = sizeof(Args) / sizeof(*Args);
-		VlcInstance = FVlc::New(Argc, Args);
-
-		if (VlcInstance == nullptr)
-		{
-			UE_LOG(LogVlcMedia, Warning, TEXT("Failed to create VLC instance (%s)"), ANSI_TO_TCHAR(FVlc::Errmsg()));
-			FVlc::Shutdown();
-
-			return;
-		}
-
-		// register logging callback
-		FVlc::LogSet(VlcInstance, &FVlcMediaModule::HandleVlcLog, nullptr);
-
-		Initialized = true;
+		UE_LOG(LogVlcMedia, Warning, TEXT("FVlcMediaModule::StartupModule"));
+		InitializeLibVlc();
 	}
 
 	virtual void ShutdownModule() override
@@ -161,18 +85,130 @@ public:
 	}
 
 private:
+	bool InitializeLibVlc()
+	{
+		if (Initialized)
+		{
+			return true;
+		}
+
+		// initialize LibVLC
+		if (!FVlc::Initialize())
+		{
+			UE_LOG(LogVlcMedia, Error, TEXT("Failed to initialize LibVLC"));
+			return false;
+		}
+
+		UE_LOG(LogVlcMedia, Log, TEXT("Initialized LibVLC %s (%s - %s)"),
+			ANSI_TO_TCHAR(FVlc::GetVersion()),
+			ANSI_TO_TCHAR(FVlc::GetChangeset()),
+			ANSI_TO_TCHAR(FVlc::GetCompiler())
+		);
+
+#if UE_BUILD_DEBUG
+		// backup old log file
+		const FString LogFilePath = FPaths::Combine(FPaths::ProjectLogDir(), TEXT("vlc.log"));
+		FOutputDeviceFile::CreateBackupCopy(*LogFilePath);
+		IFileManager::Get().Delete(*LogFilePath);
+#endif
+
+		const auto Settings = GetDefault<UVlcMediaSettings>();
+		const FString PluginDir = FVlc::GetPluginDir();
+		const FString PluginPathArg = FString(TEXT("--plugin-path=")) + PluginDir;
+		FPlatformMisc::SetEnvironmentVar(TEXT("VLC_PLUGIN_PATH"), *PluginDir);
+		UE_LOG(LogVlcMedia, Warning, TEXT("VLC PluginDir: %s"), *PluginDir);
+
+		TArray<FString> ArgStrings;
+		ArgStrings.Reserve(32);
+		ArgStrings.Add(FString::Printf(TEXT("--disc-caching=%i"), (int32)Settings->DiscCaching.GetTotalMilliseconds()));
+		ArgStrings.Add(FString::Printf(TEXT("--file-caching=%i"), (int32)Settings->FileCaching.GetTotalMilliseconds()));
+		ArgStrings.Add(FString::Printf(TEXT("--live-caching=%i"), (int32)Settings->LiveCaching.GetTotalMilliseconds()));
+		ArgStrings.Add(FString::Printf(TEXT("--network-caching=%i"), (int32)Settings->NetworkCaching.GetTotalMilliseconds()));
+
+		ArgStrings.Add(TEXT("--ignore-config"));
+
+#if UE_BUILD_DEBUG
+		ArgStrings.Add(TEXT("--file-logging"));
+		ArgStrings.Add(FString(TEXT("--logfile=")) + LogFilePath);
+#endif
+
+#if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)
+		ArgStrings.Add(TEXT("--verbose=2"));
+#else
+		ArgStrings.Add(TEXT("--quiet"));
+#endif
+
+		ArgStrings.Add(TEXT("--aout=amem"));
+		ArgStrings.Add(TEXT("--intf=dummy"));
+		ArgStrings.Add(TEXT("--text-renderer=dummy"));
+		ArgStrings.Add(TEXT("--vout=vmem"));
+		ArgStrings.Add(TEXT("--rtsp-tcp"));
+
+		ArgStrings.Add(TEXT("--drop-late-frames"));
+		ArgStrings.Add(TEXT("--avcodec-hw=none"));
+
+		ArgStrings.Add(TEXT("--no-disable-screensaver"));
+		ArgStrings.Add(TEXT("--no-plugins-cache"));
+		ArgStrings.Add(TEXT("--no-snapshot-preview"));
+		ArgStrings.Add(TEXT("--no-video-title-show"));
+
+#if (UE_BUILD_SHIPPING || UE_BUILD_TEST)
+		ArgStrings.Add(TEXT("--no-stats"));
+#endif
+
+#if PLATFORM_LINUX
+		ArgStrings.Add(TEXT("--no-xlib"));
+#endif
+
+		TArray<FTCHARToUTF8> ArgUtf8;
+		ArgUtf8.Reserve(ArgStrings.Num());
+
+		TArray<const ANSICHAR*> Argv;
+		Argv.Reserve(ArgStrings.Num());
+
+		for (const FString& Arg : ArgStrings)
+		{
+			ArgUtf8.Emplace(*Arg);
+			Argv.Add(ArgUtf8.Last().Get());
+		}
+
+		VlcInstance = FVlc::New(Argv.Num(), Argv.GetData());
+
+		if (VlcInstance == nullptr)
+		{
+			UE_LOG(LogVlcMedia, Warning, TEXT("libvlc_new failed; retrying with empty args"));
+			VlcInstance = FVlc::New(0, nullptr);
+		}
+
+		if (VlcInstance == nullptr)
+		{
+			UE_LOG(LogVlcMedia, Warning, TEXT("Failed to create VLC instance (%s)"), ANSI_TO_TCHAR(FVlc::Errmsg()));
+			FVlc::Shutdown();
+
+			return false;
+		}
+
+		// register logging callback
+		FVlc::LogSet(VlcInstance, &FVlcMediaModule::HandleVlcLog, nullptr);
+
+		Initialized = true;
+		return true;
+	}
+
 
 	/** Handles log messages from LibVLC. */
 	static void HandleVlcLog(void* /*Data*/, ELibvlcLogLevel Level, FLibvlcLog* Context, const char* Format, va_list Args)
 	{
-#if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)
-		const auto Settings = GetDefault<UVlcMediaSettings>();
+		// [DEBUG] Force enable logging for all builds and disable filtering
+		// #if (UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT)
+		
+		// const auto Settings = GetDefault<UVlcMediaSettings>();
 
-		// filter unwanted messages
-		if ((uint8)Level < (uint8)Settings->LogLevel)
-		{
-			return;
-		}
+		// [DEBUG] Disable filtering
+		// if ((uint8)Level < (uint8)Settings->LogLevel)
+		// {
+		// 	return;
+		// }
 
 		FString LogContext;
 
@@ -186,7 +222,8 @@ private:
 			FVlc::LogGetContext(Context, &Module, &File, &Line);
 			LogContext = FString::Printf(TEXT("%s: "), (Module != nullptr) ? ANSI_TO_TCHAR(Module) : TEXT("unknown module"));
 
-			if (Settings->ShowLogContext)
+			// [DEBUG] Always show context
+			// if (Settings->ShowLogContext)
 			{
 				LogContext += FString::Printf(TEXT("%s, line %s: "),
 					(File != nullptr) ? ANSI_TO_TCHAR(File) : TEXT("unknown file"),
@@ -202,31 +239,12 @@ private:
 		// forward message to log
 		ANSICHAR Message[1024];
 
-		FCStringAnsi::GetVarArgs(Message, ARRAY_COUNT(Message), ARRAY_COUNT(Message) - 1, Format, Args);
+		FCStringAnsi::GetVarArgs(Message, UE_ARRAY_COUNT(Message), Format, Args);
 
-		switch (Level)
-		{
-		case ELibvlcLogLevel::Debug:
-			UE_LOG(LogVlcMedia, VeryVerbose, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
-			break;
+		// [DEBUG] Force all logs to Warning so they show up in UE Editor Log
+		UE_LOG(LogVlcMedia, Warning, TEXT("[VLC Internal] %s%s"), *LogContext, ANSI_TO_TCHAR(Message));
 
-		case ELibvlcLogLevel::Error:
-			UE_LOG(LogVlcMedia, Error, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
-			break;
-
-		case ELibvlcLogLevel::Notice:
-			UE_LOG(LogVlcMedia, Verbose, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
-			break;
-
-		case ELibvlcLogLevel::Warning:
-			UE_LOG(LogVlcMedia, Warning, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
-			break;
-
-		default:
-			UE_LOG(LogVlcMedia, Log, TEXT("%s%s"), *LogContext, ANSI_TO_TCHAR(Message));
-			break;
-		}
-#endif
+		// #endif
 	}
 
 private:

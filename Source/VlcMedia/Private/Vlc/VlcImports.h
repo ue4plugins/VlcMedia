@@ -57,6 +57,7 @@ typedef FLibvlcMedia* (*FLibvlcMediaNewCallbacksProc)(
 
 typedef FLibvlcMedia* (*FLibvlcMediaNewLocationProc)(FLibvlcInstance* /*Instance*/, const ANSICHAR* /*Location*/);
 typedef FLibvlcMedia* (*FLibvlcMediaNewPathProc)(FLibvlcInstance* /*Instance*/, const ANSICHAR* /*Path*/);
+typedef void (*FLibvlcMediaAddOptionProc)(FLibvlcMedia* /*Media*/, const ANSICHAR* /*Options*/);
 typedef void (*FLibvlcMediaParseAsyncProc)(FLibvlcMedia* /*Media*/);
 typedef void (*FLibvlcMediaReleaseProc)(FLibvlcMedia* /*Media*/);
 typedef void (*FLibvlcMediaRetainProc)(FLibvlcMedia* /*Media*/);

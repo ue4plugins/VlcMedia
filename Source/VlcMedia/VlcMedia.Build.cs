@@ -46,7 +46,7 @@ namespace UnrealBuildTool.Rules
 
 			if (Target.Platform == UnrealTargetPlatform.Linux)
 			{
-				VlcDirectory = Path.Combine(VlcDirectory, Target.Architecture, "lib");
+				VlcDirectory = Path.Combine(VlcDirectory, Target.Architecture.ToString(), "lib");
 				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.so"));
 				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.so.5"));
 				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.so.5.6.0"));
@@ -60,11 +60,6 @@ namespace UnrealBuildTool.Rules
 				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.5.dylib"));
 				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlccore.dylib"));
 				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlccore.9.dylib"));
-			}
-			else if (Target.Platform == UnrealTargetPlatform.Win32)
-			{
-				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlc.dll"));
-				RuntimeDependencies.Add(Path.Combine(VlcDirectory, "libvlccore.dll"));
 			}
 			else if (Target.Platform == UnrealTargetPlatform.Win64)
 			{

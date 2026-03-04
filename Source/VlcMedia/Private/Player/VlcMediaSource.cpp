@@ -71,7 +71,14 @@ FLibvlcMedia* FVlcMediaSource::OpenUrl(const FString& Url)
 {
 	check(Media == nullptr);
 
-	Media = FVlc::MediaNewLocation(VlcInstance, TCHAR_TO_ANSI(*Url));
+	FString CleanUrl = Url;
+	const int32 QueryIndex = CleanUrl.Find(TEXT("?"), ESearchCase::IgnoreCase, ESearchDir::FromStart);
+	if (QueryIndex != INDEX_NONE)
+	{
+		CleanUrl = CleanUrl.Left(QueryIndex);
+	}
+
+	Media = FVlc::MediaNewLocation(VlcInstance, TCHAR_TO_ANSI(*CleanUrl));
 
 	if (Media == nullptr)
 	{
@@ -79,7 +86,20 @@ FLibvlcMedia* FVlcMediaSource::OpenUrl(const FString& Url)
 	}
 	else
 	{
-		CurrentUrl = Url;
+		// Force vmem output for callbacks and set RTSP options
+		FVlc::MediaAddOption(Media, ":vout=vmem");
+		FVlc::MediaAddOption(Media, ":vmem-chroma=RV32");
+		FVlc::MediaAddOption(Media, ":vmem-width=640");
+		FVlc::MediaAddOption(Media, ":vmem-height=480");
+		FVlc::MediaAddOption(Media, ":vmem-pitch=2560");
+		FVlc::MediaAddOption(Media, ":no-video-title-show");
+		FVlc::MediaAddOption(Media, ":rtsp-tcp");
+		FVlc::MediaAddOption(Media, ":network-caching=300");
+		FVlc::MediaAddOption(Media, ":clock-jitter=0");
+		FVlc::MediaAddOption(Media, ":clock-synchro=0");
+		FVlc::MediaAddOption(Media, ":avcodec-hw=none");
+
+		CurrentUrl = CleanUrl;
 	}
 
 	return Media;

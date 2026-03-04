@@ -31,13 +31,13 @@ namespace VlcMedia
 		case ELibvlcEventType::MediaPlayerEncounteredError: return TEXT("Player Encountered Error");
 		case ELibvlcEventType::MediaPlayerTimeChanged: return FString::Printf(TEXT("Player Time Changed: %s"), *FTimespan::FromMilliseconds(Event->Descriptor.MediaPlayerTimeChanged.NewTime).ToString());
 		case ELibvlcEventType::MediaPlayerPositionChanged: return FString::Printf(TEXT("Position Changed: %f"), Event->Descriptor.MediaPlayerPositionChanged.NewPosition);
-		case ELibvlcEventType::MediaPlayerSeekableChanged: return FString::Printf(TEXT("Player Seekable Changed: %s"), Event->Descriptor.MediaPlayerSeekableChanged.new_seekable ? *GTrue.ToString() : *GFalse.ToString());
-		case ELibvlcEventType::MediaPlayerPausableChanged: return FString::Printf(TEXT("Player Pausable Changed: %s"), Event->Descriptor.MediaPlayerPausableChanged.NewPausable ? *GTrue.ToString() : *GFalse.ToString());
-		case ELibvlcEventType::MediaPlayerTitleChanged: return FString::Printf(TEXT("Player Title Changed: %s"), Event->Descriptor.MediaPlayerTitleChanged.NewTitle);
+		case ELibvlcEventType::MediaPlayerSeekableChanged: return FString::Printf(TEXT("Player Seekable Changed: %s"), Event->Descriptor.MediaPlayerSeekableChanged.new_seekable ? TEXT("true") : TEXT("false"));
+		case ELibvlcEventType::MediaPlayerPausableChanged: return FString::Printf(TEXT("Player Pausable Changed: %s"), Event->Descriptor.MediaPlayerPausableChanged.NewPausable ? TEXT("true") : TEXT("false"));
+		case ELibvlcEventType::MediaPlayerTitleChanged: return FString::Printf(TEXT("Player Title Changed: %i"), Event->Descriptor.MediaPlayerTitleChanged.NewTitle);
 		case ELibvlcEventType::MediaPlayerSnapshotTaken: return TEXT("Player Snapshot Taken");
-		case ELibvlcEventType::MediaPlayerLengthChanged: return FString::Printf(TEXT("Player Length Changed: %i"), Event->Descriptor.MediaPlayerLengthChanged.NewLength);
+		case ELibvlcEventType::MediaPlayerLengthChanged: return FString::Printf(TEXT("Player Length Changed: %lld"), static_cast<long long>(Event->Descriptor.MediaPlayerLengthChanged.NewLength));
 		case ELibvlcEventType::MediaPlayerVout: return FString::Printf(TEXT("Player Vout: %i"), Event->Descriptor.MediaPlayerVout.NewCount);
-		case ELibvlcEventType::MediaPlayerScrambledChanged: return FString::Printf(TEXT("Player Scambled Changed: %s"), Event->Descriptor.MediaPlayerScrambledChanged.NewScrambled ? *GTrue.ToString() : *GFalse.ToString());
+		case ELibvlcEventType::MediaPlayerScrambledChanged: return FString::Printf(TEXT("Player Scambled Changed: %s"), Event->Descriptor.MediaPlayerScrambledChanged.NewScrambled ? TEXT("true") : TEXT("false"));
 		case ELibvlcEventType::MediaPlayerESAdded: return TEXT("Player ES Added");
 		case ELibvlcEventType::MediaPlayerESDeleted: return TEXT("Player ES Deleted");
 		case ELibvlcEventType::MediaPlayerESSelected: return TEXT("Player ES Selected");

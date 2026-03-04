@@ -54,7 +54,7 @@ public:
 	virtual IMediaCache& GetCache() override;
 	virtual IMediaControls& GetControls() override;
 	virtual FString GetInfo() const override;
-	virtual FName GetPlayerName() const override;
+	virtual FGuid GetPlayerPluginGUID() const override;
 	virtual IMediaSamples& GetSamples() override;
 	virtual FString GetStats() const override;
 	virtual IMediaTracks& GetTracks() override;
@@ -63,6 +63,7 @@ public:
 	virtual bool Open(const FString& Url, const IMediaOptions* Options) override;
 	virtual bool Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Archive, const FString& OriginalUrl, const IMediaOptions* Options) override;
 	virtual void TickInput(FTimespan DeltaTime, FTimespan Timecode) override;
+	virtual bool GetPlayerFeatureFlag(EFeatureFlag Flag) const override;
 
 protected:
 
@@ -128,4 +129,13 @@ private:
 
 	/** View settings. */
 	FVlcMediaView View;
+
+	/** Whether the video format has been explicitly set. */
+	bool bVideoFormatSet = false;
+
+	/** Whether callbacks were initialized for the current player. */
+	bool bCallbacksInitialized = false;
+
+	/** Last time (seconds) we reinitialized callbacks due to missing samples. */
+	double LastCallbackResetSeconds = 0.0;
 };

@@ -4,6 +4,7 @@
 
 #include "CoreTypes.h"
 #include "IMediaAudioSample.h"
+#include "IMediaTimeSource.h"
 #include "MediaObjectPool.h"
 #include "Misc/Timespan.h"
 #include "Templates/SharedPointer.h"
@@ -118,9 +119,9 @@ public:
 		return SampleRate;
 	}
 
-	virtual FTimespan GetTime() const override
+	virtual FMediaTimeStamp GetTime() const override
 	{
-		return Time;
+		return FMediaTimeStamp(Time);
 	}
 
 protected:

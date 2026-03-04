@@ -144,4 +144,5 @@ private:
 
 	/** Video sample object pool. */
 	FVlcMediaTextureSamplePool* VideoSamplePool;
+
 };
